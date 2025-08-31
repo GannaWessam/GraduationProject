@@ -1,5 +1,6 @@
 const express = require("express");
 const { generateToken, validateToken } = require("./middlewares/token");
+const syncDB = require('./connections/syncDB')
 
 const app = express();
 const port = 3000;

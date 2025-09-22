@@ -27,6 +27,7 @@ async function login(req, res) {
     if (!username || !password) return res.status(400).json({ success: false, error: 'اسم المستخدم وكلمة المرور مطلوبين' });
 
     const result = await authService.loginUser(username, password);
+    console.log(result);
     return res.json({ success: true, user: result });
   } catch (err) {
     if (err.message === 'invalid_pass') {

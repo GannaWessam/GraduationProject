@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
-function generateToken(email){
+function generateToken(email,name,id,role){
 
-    const tokenData = {email}; // ضيف role لو محتاج
+    const tokenData = {email,name,id,role}; // ضيف لو محتاج حاجه
     const token = jwt.sign(tokenData, process.env.SecretKey, { expiresIn: "1h" });
     return token;
 }

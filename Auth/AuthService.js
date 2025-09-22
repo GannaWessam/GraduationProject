@@ -3,6 +3,20 @@ const bcrypt = require('bcrypt');
 const { User, Student , Product} = require('../models');
 const token = require('../middlewares/token')
 
+// testData = {
+//   "email": "student@example.com",
+//   "password": "StrongPassword123!",
+//   "confirmPassword": "StrongPassword123!",
+//   "name_ar": "جنه وسام",
+//   "national_id": "123456789012345",
+//   "nationality": "Egypt",
+//   "university": "Cairo University",
+//   "faculty": "Engineering",
+//   "department": "Computer Science",
+//   "mobile": "+201234567890",
+//   "training_type": "Summer Training",
+//   "role": "STUDENT"
+// }
 
 async function registerUser(payload) {
   const {
@@ -48,7 +62,7 @@ async function registerUser(payload) {
   if (nationality == "Sudan" && national_id.length !== 9 &&  /^[A-Za-z]/.test(national_id) ) {
       throw new Error('national id not valid');}
 
-  const cate = "egyptian" ;
+  var cate = "egyptian" ;
 
   if(nationality !== "Egypt"){
       cate = "other";
@@ -86,8 +100,8 @@ async function registerUser(payload) {
       university,
       college: faculty,
       department,
-      nationalIdImage: "placeholder.png", 
-      courseType: "EXAM_ONLY",
+      nationalIdImage: "placeholder.png", /////////////
+      courseType: "EXAM_ONLY", /////////////
       userId: user.userId,
     }, { transaction: t });
     
@@ -114,14 +128,20 @@ async function registerUser(payload) {
 
 async function loginUser(email, password) {
   const user = await User.findOne({
-    where: { email } 
+    where: { email },
+    include: [
+      {
+        model: Student,
+        attributes: ['fullName'],
+      }
+    ]
   });
   if (!user) throw new Error('invalid_email');
 
   const match = await bcrypt.compare(password, user.passwordHash);
   if (!match) throw new Error('invalid_pass');
 
-  const tok = token.generateToken(email);
+  const tok = token.generateToken(email, user.Student.fullName, user.userId, user.role);
   return {
     id: user.userId,
     email: user.email,

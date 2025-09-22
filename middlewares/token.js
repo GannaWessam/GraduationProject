@@ -1,17 +1,11 @@
 const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
-function generateToken(req,res){
+function generateToken(email){
 
-    const tokenData = { role: "admin" };//mhtagen el role mbd'yan 
-    jwt.sign(
-        tokenData, 
-        process.env.SecretKey, { expiresIn: "1h" }, (err, token) =>{
-            if(err)
-                res.status(500).json({ msg: "Token generation failed" });  
-            res.json({token});
-        });
-    // return token;
+    const tokenData = {email}; // ضيف role لو محتاج
+    const token = jwt.sign(tokenData, process.env.SecretKey, { expiresIn: "1h" });
+    return token;
 }
 
 function validateToken(req,res,next){
@@ -29,7 +23,7 @@ function validateToken(req,res,next){
                 return res.status(403).json({ msg: "Invalid token" }); // test
             req.userData = tokenData; //ageb mnha elly ana 3ayzah lama a7tag
             next();
-      });    
+    });    
 }
 
 

@@ -24,6 +24,7 @@ async function registerUser(payload) {
     password,
     confirmPassword,
     name_ar,
+    name_En,
     national_id,
     nationality,
     university,
@@ -31,17 +32,21 @@ async function registerUser(payload) {
     department,
     mobile,
     training_type,
-    role = 'STUDENT'
+    role = 'STUDENT',
+    type,
   } = payload;
   
 
   const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]).{8,}$/;
   
 
-  if ( !email || !password || !confirmPassword || !name_ar || !national_id || !training_type ) {
+  if ( !email || !password || !confirmPassword || !name_ar || !national_id || !training_type || !name_En || !type  ) {
     throw new Error('missing_required_fields');
   }
-
+  if (type !== '1' && type !== '2')
+  {
+    throw new Error('type not valied');
+  }
   const name = name_ar.trim();
 
   if (name.length < 3) {
@@ -50,7 +55,7 @@ async function registerUser(payload) {
   
   const passwordTrim = password.trim();
 
-  if (passwordTrim.length < 3 && re.test(passwordTrim)) {
+  if (passwordTrim.length < 8 || !re.test(passwordTrim)) {
     throw new Error('password not valied');
   }
 
@@ -94,7 +99,9 @@ async function registerUser(payload) {
 
     
     const student = await Student.create({
+      type:type,
       fullName: name_ar,
+      NameEn: name_En,
       nationality,
       nationalId: national_id,
       university,
@@ -150,5 +157,28 @@ async function loginUser(email, password) {
     token: tok
   };
 }
+async function resetPassword(email, NewPassword) {
+    
+  const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]).{8,}$/;
+  const user = await User.findOne({ where: { email }});
 
-module.exports = { registerUser, loginUser };
+    if (!user) throw new Error('invalid_email');
+    
+    const passwordTrim = NewPassword.trim();
+    console.log(passwordTrim);
+
+    if (passwordTrim.length < 8 || !re.test(passwordTrim)) {
+      throw new Error('password not valied');
+    }
+
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(passwordTrim, saltRounds);
+
+    user.passwordHash = hashedPassword;
+    await user.save();
+  
+    return {email: user.email}
+
+  };
+
+module.exports = { registerUser, loginUser , resetPassword};

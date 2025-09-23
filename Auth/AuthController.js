@@ -6,6 +6,7 @@ async function register(req, res) {
     return res.status(201).json({ success: true, user: result });
   } catch (err) {
     let msg = err.message;
+    if (msg === 'type not valied') return res.status(400).json({ success: false, error: 'type not valied' });
     if (msg === 'name not valied') return res.status(400).json({ success: false, error: 'name not valied' });
     if (msg === 'password not valied') return res.status(400).json({ success: false, error: 'password not valied' });
     if (msg === 'national id not valid') return res.status(400).json({ success: false, error: 'national id not valid' });
@@ -31,14 +32,32 @@ async function login(req, res) {
     return res.json({ success: true, user: result });
   } catch (err) {
     if (err.message === 'invalid_pass') {
-      return res.status(401).json({ success: false, error: 'بيانات تسجيل الدخول غير صحيحة' });
+      return res.status(401).json({ success: false, error: '1بيانات تسجيل الدخول غير صحيحة' });
     }
     if (err.message === 'invalid_email') {
-      return res.status(401).json({ success: false, error: 'بيانات تسجيل الدخول غير صحيحة' });
+      return res.status(401).json({ success: false, error: '2بيانات تسجيل الدخول غير صحيحة' });
     }
     console.error(err);
     return res.status(500).json({ success: false, error: 'خطأ في السيرفر' });
   }
 }
 
-module.exports = { register, login };
+async function updatePassword(req, res) {
+  try {
+    const {email , newPassword } = req.body;
+
+    const result = await authService.resetPassword(email, newPassword);
+
+    return res.status(201).json({ success: true, user: result });
+
+  } catch (error) {
+    let msg = error.message;
+    if (msg === 'invalid_email') return res.status(400).json({ success: false, error: 'invalid_email' });
+    if (msg === 'password not valied') return res.status(400).json({ success: false, error: 'password not valied' });
+
+    console.error(error);
+    return res.status(500).json({ success: false, error: 'خطأ في السيرفر' });
+  }
+};
+
+module.exports = { register, login ,updatePassword };

@@ -8,17 +8,17 @@ module.exports = (sequelize) => {
       unique: true,
     },
     fullName: { type: DataTypes.STRING(200), allowNull: false, },
+    NameEn: { type: DataTypes.STRING(200), allowNull: false, },
     nationality: { type: DataTypes.STRING(100), allowNull: true },
     nationalId: { type: DataTypes.STRING(50), allowNull: false, unique: true, },
     nationalIdImage: { type: DataTypes.STRING(300), allowNull: true, },
     examType: { type: DataTypes.ENUM('ONE_EXAM', 'SEVEN_EXAM'), allowNull: true, },
     courseType: {
-      type: DataTypes.ENUM('EXAM_AND_COURSE', 'EXAM_ONLY'),
-      allowNull: false,
-      defaultValue: 'EXAM_AND_COURSE',
+      type: DataTypes.STRING(200), allowNull: false,
     },
     university: { type: DataTypes.STRING(150), allowNull: true },
     college: { type: DataTypes.STRING(150), allowNull: true },
+    type: {type: DataTypes.ENUM('1', '2'), allowNull: true,}
   }, {
     tableName: 'students',
     // indexes: [

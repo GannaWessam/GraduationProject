@@ -65,10 +65,7 @@ async function registerUser(payload,idImage) {
 
   if (nationality == "Egypt" && national_id.length !== 14) {
     throw new Error('national id must be 14 chars');}
-
-
-  const ID = AES.encrypt(national_id , process.env.AESsecretKey); 
-  console.log(ID);
+  
   if (nationality == "Sudan" && national_id.length !== 9 &&  /^[A-Za-z]/.test(national_id) ) {
       throw new Error('national id not valid');}
 
@@ -108,7 +105,7 @@ async function registerUser(payload,idImage) {
       fullName: name_ar,
       NameEn: name_En,
       nationality,
-      nationalId: national_id,
+      nationalId:national_id,
       university,
       college: faculty,
       department,

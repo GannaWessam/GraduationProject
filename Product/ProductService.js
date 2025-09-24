@@ -21,6 +21,7 @@ async function getProductByType (ProductInfo) {
     if ( !type ) {
         throw new Error('missing_required_fields');
     }
+    
     const service = await Product.findAll({
         where: { user: type }
         });

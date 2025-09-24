@@ -18,7 +18,7 @@ module.exports = (sequelize) => {
     },
     university: { type: DataTypes.STRING(150), allowNull: true },
     college: { type: DataTypes.STRING(150), allowNull: true },
-    type: {type: DataTypes.ENUM('1', '2'), allowNull: true,}
+    type: {type: DataTypes.ENUM('1', '2' ,'3','4'), allowNull: true,}
   }, {
     tableName: 'students',
     // indexes: [

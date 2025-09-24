@@ -2,7 +2,13 @@ const authService = require('./AuthService');
 
 async function register(req, res) {
   try {
-    const result = await authService.registerUser(req.body);
+    let idImage ;
+    if(req.file){
+      idImage = req.file.filename;
+    }
+    console.log(req.file.filename)
+    console.log(idImage)
+    const result = await authService.registerUser(req.body , idImage);
     return res.status(201).json({ success: true, user: result });
   } catch (err) {
     let msg = err.message;

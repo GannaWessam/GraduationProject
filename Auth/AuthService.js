@@ -1,7 +1,9 @@
 const sequelize = require('../connections/db');
 const bcrypt = require('bcrypt');
+const AES = require('../Util/AES');
 const { User, Student , Product} = require('../models');
-const token = require('../middlewares/token')
+const token = require('../middlewares/token');
+
 
 // testData = {
 //   "email": "student@example.com",
@@ -18,7 +20,7 @@ const token = require('../middlewares/token')
 //   "role": "STUDENT"
 // }
 
-async function registerUser(payload) {
+async function registerUser(payload,idImage) {
   const {
     email,
     password,
@@ -36,7 +38,7 @@ async function registerUser(payload) {
     type,
   } = payload;
   
-
+  
   const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]).{8,}$/;
   
 
@@ -64,6 +66,9 @@ async function registerUser(payload) {
   if (nationality == "Egypt" && national_id.length !== 14) {
     throw new Error('national id must be 14 chars');}
 
+
+  const ID = AES.encrypt(national_id , process.env.AESsecretKey); 
+  console.log(ID);
   if (nationality == "Sudan" && national_id.length !== 9 &&  /^[A-Za-z]/.test(national_id) ) {
       throw new Error('national id not valid');}
 
@@ -107,8 +112,8 @@ async function registerUser(payload) {
       university,
       college: faculty,
       department,
-      nationalIdImage: "placeholder.png", /////////////
-      courseType: "EXAM_ONLY", /////////////
+      nationalIdImage: idImage, 
+      courseType: "EXAM_ONLY",
       userId: user.userId,
     }, { transaction: t });
     

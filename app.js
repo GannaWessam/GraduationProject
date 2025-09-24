@@ -10,6 +10,7 @@ require('./models/Student');
 const app = express();
 const port = 3000;
 app.use(express.json()) // parse JSON body
+app.use("/uploads",express.static("uploads"))
 app.use('/api', ProductRoutes);
 app.use('/api', authRoutes);
 app.post("/login", generateToken);

@@ -6,5 +6,7 @@ const { uploadSingleFile } = require("../fileUpload");
 router.post('/register',uploadSingleFile("nationalIdImage"), authController.register);
 router.post('/login', authController.login);
 router.post('/resetPassword', authController.updatePassword);
+router.post("/send-otp", authController.sendOtp)
+router.post("/verify-otp", authController.verifyOTP)
 
 module.exports = router;

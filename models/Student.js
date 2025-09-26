@@ -9,6 +9,8 @@ module.exports = (sequelize) => {
     },
     fullName: { type: DataTypes.STRING(200), allowNull: false, },
     NameEn: { type: DataTypes.STRING(200), allowNull: false, },
+    Mobile:{ type: DataTypes.STRING(200), allowNull: false, },
+    StudyLan: { type: DataTypes.STRING(200), allowNull: false, },
     nationality: { type: DataTypes.STRING(100), allowNull: true },
     nationalId: { type: DataTypes.STRING(50), allowNull: false, unique: true, },
     nationalIdImage: { type: DataTypes.STRING(300), allowNull: true, },

@@ -27,12 +27,13 @@ async function registerUser(payload,idImage) {
     confirmPassword,
     name_ar,
     name_En,
+    StudyLan,
     national_id,
     nationality,
     university,
     faculty,
     department,
-    mobile,
+    Mobile,
     training_type,
     role = 'STUDENT',
     type,
@@ -69,7 +70,7 @@ async function registerUser(payload,idImage) {
   if (nationality == "Sudan" && national_id.length !== 9 &&  /^[A-Za-z]/.test(national_id) ) {
       throw new Error('national id not valid');}
 
-  var cate = "egyptian" ;
+  var cate = "egyption" ;
 
   if(nationality !== "Egypt"){
       cate = "other";
@@ -83,15 +84,12 @@ async function registerUser(payload,idImage) {
     
     const existing = await User.findOne({ where: { email }, transaction: t });
     if (existing) throw new Error('email_exists');
-
     
     const existingNid = await Student.findOne({ where: { nationalId: national_id }, transaction: t });
     if (existingNid) throw new Error('national_id_exists');
-
     
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
     
     const user = await User.create({
       email,
@@ -104,13 +102,15 @@ async function registerUser(payload,idImage) {
       type:type,
       fullName: name_ar,
       NameEn: name_En,
+      StudyLan,
+      Mobile,
       nationality,
       nationalId:national_id,
       university,
       college: faculty,
       department,
       nationalIdImage: idImage, 
-      courseType: "EXAM_ONLY",
+      courseType: training_type,
       userId: user.userId,
     }, { transaction: t });
     

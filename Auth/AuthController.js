@@ -82,7 +82,7 @@ const verifyOTP=async(req, res) => {
   const { email, otp } = req.body;
   const isValid = await OTP.verifyOTP(email, otp);
   if (isValid) return res.json({success:true, message: 'تم التأكد من الايميل بنجاح' });
-  res.status(500).json({ success: false,error:'خطأ في السيرفر'})
+  res.status(400).json({ success: false,error:'الرقم السرى غير صحيح'})
 }
 
 module.exports = { register, login ,updatePassword ,sendOtp,verifyOTP};

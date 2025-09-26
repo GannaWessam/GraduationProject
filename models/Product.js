@@ -10,7 +10,7 @@ module.exports = (sequelize) => {
       allowNull: false,
       defaultValue: 'OTHER',
     },
-    user:{type: DataTypes.ENUM('1','2'), allowNull: false,}
+    user:{type: DataTypes.ENUM('1','2','3','4'), allowNull: false,}
   }, {
     tableName: 'products',
   });

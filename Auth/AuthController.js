@@ -85,4 +85,22 @@ const verifyOTP=async(req, res) => {
   res.status(400).json({ success: false,error:'الرقم السرى غير صحيح'})
 }
 
-module.exports = { register, login ,updatePassword ,sendOtp,verifyOTP};
+const verifyEmail=async(req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, error: 'اسم المستخدم مطلوب' });
+
+    const result = await authService.verifyEmail(email);
+    
+    return res.json({ success: true, user: result });
+
+  } catch (err) {
+    if (err.message === 'invalid_email') {
+      return res.status(401).json({ success: false, error: 'بيانات تسجيل الدخول غير صحيحة' });
+    }
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'خطأ في السيرفر' });
+  }
+}
+
+module.exports = { register, login ,updatePassword ,sendOtp,verifyOTP , verifyEmail};

@@ -70,7 +70,7 @@ async function registerUser(payload,idImage) {
   if (nationality == "Sudan" && national_id.length !== 9 &&  /^[A-Za-z]/.test(national_id) ) {
       throw new Error('national id not valid');}
 
-  var cate = "egyption" ;
+  var cate = "egyptian" ;
 
   if(nationality !== "Egypt"){
       cate = "other";
@@ -182,5 +182,14 @@ async function resetPassword(email, NewPassword) {
     return {email: user.email}
 
   };
+  async function verifyEmail(email) {
+    
+    const user = await User.findOne({ where: { email }});
 
-module.exports = { registerUser, loginUser , resetPassword};
+    if (!user) throw new Error('invalid_email');
+
+    return {email: user.email}
+  
+    };
+
+module.exports = { registerUser, loginUser , resetPassword , verifyEmail};

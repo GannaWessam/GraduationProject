@@ -17,13 +17,24 @@ async function addProduct (ProductInfo) {
 
 }
 async function getProductByType (ProductInfo) {
-    const {type} = ProductInfo ;
-    if ( !type ) {
+
+    const {type , nationality} = ProductInfo ;
+
+
+
+    if ( !type || !nationality ) {
         throw new Error('missing_required_fields');
     }
+
+    var cate = "egyptian" ;
+
+    if(nationality !== "Egypt"){
+        cate = "other";
+    }
+
     
     const service = await Product.findAll({
-        where: { user: type }
+        where: { user: type  ,Category : cate }
         });
 
         if ( !service ) {

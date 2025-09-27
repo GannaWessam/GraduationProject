@@ -4,6 +4,7 @@ const authController = require('./AuthController');
 const { uploadSingleFile } = require("../fileUpload");
 
 router.post('/register',uploadSingleFile("nationalIdImage"), authController.register);
+router.post('/verify-email', authController.verifyEmail);
 router.post('/login', authController.login);
 router.post('/resetPassword', authController.updatePassword);
 router.post("/send-otp", authController.sendOtp)

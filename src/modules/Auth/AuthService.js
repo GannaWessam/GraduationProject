@@ -12,6 +12,8 @@ const {
   checkEmailExists,
   checkNationalIdExists,
   findProduct,
+  generateQr,
+  getUser
 } = require("./helpers/userHelper");
 
 const {
@@ -19,6 +21,7 @@ const {
   validateName,
   validatePassword,
   validateNationalId,
+  
 } = require("./validations/registerValidation");
 
 const {
@@ -51,6 +54,10 @@ async function registerUser(payload, idImage) {
   validateName(name_ar);
   validatePassword(password, confirmPassword);
   validateNationalId(nationality, national_id);
+  const res = await generateQr(name_ar , national_id);
+  
+  console.log(res);
+  
 
 
   const product = await findProduct(training_type, nationality);
@@ -121,4 +128,9 @@ async function resetPassword(email, newPassword) {
   return { email: user.email };
 }
 
-module.exports = { registerUser, loginUser, resetPassword };
+async function getuser (email) {
+  const user = await getUser(email);
+  return { user };
+}
+
+module.exports = { registerUser, loginUser, resetPassword , getuser};

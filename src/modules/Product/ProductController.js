@@ -6,9 +6,37 @@ async function addProduct(req, res) {
   return res.status(201).json(ApiResponse.created(result));
 }
 
-async function getProductByType(req, res) {
-  const result = await ProductService.getProductByType(req.body.type , req.body.nationality);
+async function getAllProductsController(req, res) {
+  try {
+    const result = await ProductService.getAllProductsService(req.query || {});
+    return res.status(200).json(ApiResponse.success(result));
+  } catch (err) {
+    return res
+      .status(500)
+      .json(ApiResponse.error(err.message || "Internal Server Error"));
+  }
+}
+
+
+async function getProductById(req, res) {
+  const result = await ProductService.getProductById(req.params.id);
   return res.status(200).json(ApiResponse.success(result));
 }
 
-module.exports = { addProduct, getProductByType };
+async function updateProduct(req, res) {
+  const result = await ProductService.updateProduct(req.params.id, req.body);
+  return res.status(200).json(ApiResponse.success(result));
+}
+
+async function deleteProduct(req, res) {
+  const result = await ProductService.deleteProduct(req.params.id);
+  return res.status(200).json(ApiResponse.success(result));
+}
+
+module.exports = {
+  addProduct,
+  getAllProductsController,
+  getProductById,
+  updateProduct,
+  deleteProduct,
+};

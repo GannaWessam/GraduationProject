@@ -7,5 +7,5 @@ const router = express.Router();
 
 
 router.use("/api", authRoutes);
-router.use("/api/products", validateToken, productRoutes);
+router.use("/api/products",  productRoutes);
 module.exports = router;

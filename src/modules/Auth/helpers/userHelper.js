@@ -1,5 +1,5 @@
 const { Model } = require("sequelize");
-const { User, Student, Product } = require("../../../models");
+const { User, Student, Product ,ProductAllowedUserType } = require("../../../models");
 const QRCode = require("qrcode");
 
 
@@ -9,12 +9,22 @@ const findUserByEmail = async (email, t = null) =>
 const findStudentByNationalId = async (national_id, t = null) =>
   Student.findOne({ where: { nationalId: national_id }, transaction: t });
 
-const findProduct = async (training_type, nationality) => {
-  const category = nationality === "Egypt" ? "egyptian" : "other";
+const findProduct = async (training_type, studentType) => {
   const product = await Product.findOne({
-    where: { product: training_type, Category: category },
+    where: { courseName: training_type },
+    include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
   });
-  if (!product) throw new Error("not found service");
+
+  if (!product) {
+    throw new Error("service_not_found");
+  }
+
+  const allowedTypes = product.allowedUserTypes.map((t) => t.userType);
+
+  if (!allowedTypes.includes(studentType)) {
+    throw new Error("this_type_not_allowed_for_this_product");
+  }
+
   return product;
 };
 const getUser = async (email) => {

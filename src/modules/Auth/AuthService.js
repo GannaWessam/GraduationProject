@@ -60,7 +60,7 @@ async function registerUser(payload, idImage) {
   
 
 
-  const product = await findProduct(training_type, nationality);
+const product = await findProduct(training_type, type);
 
 
   return sequelize.transaction(async (t) => {

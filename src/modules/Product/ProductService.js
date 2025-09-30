@@ -1,8 +1,8 @@
-const { spread } = require("axios");
 const { Product, ProductAllowedUserType } = require("../../models");
-
 const ApiFeature = require("../../Util/ApiFeatures");
 const { Op } = require("sequelize");
+const { concatLang } = require("../../Helpers/langHelper");
+const { formatProduct } = require("./helpers/responseHelper");
 
 async function getAllProductsService(reqQuery = {}) {
   const apiFeature = new ApiFeature(reqQuery)
@@ -36,13 +36,12 @@ async function getAllProductsService(reqQuery = {}) {
   ];
 
   const products = await Product.findAll(apiFeature.options);
-
   const totalProducts = await Product.count();
 
   return {
     status: 200,
     message: "Products fetched successfully",
-    data: products,
+    data: products.map(formatProduct), 
     meta: {
       page: apiFeature.page,
       limit: apiFeature.limit,
@@ -54,19 +53,20 @@ async function getAllProductsService(reqQuery = {}) {
 
 async function addProduct(productInfo) {
   const {
-    courseName,
+    courseNameEn,
+    courseNameAr,
     priceEgyptian,
     priceOther,
     allowedUserTypes = [],
   } = productInfo;
 
-  if (!courseName || !priceEgyptian || !priceOther) {
+  if (!courseNameEn || !courseNameAr || !priceEgyptian || !priceOther) {
     throw new Error("missing_required");
   }
 
   const newProduct = await Product.create(
     {
-      courseName,
+      courseName: concatLang(courseNameEn, courseNameAr), // ✅ concat before saving
       priceEgyptian,
       priceOther,
       allowedUserTypes: allowedUserTypes.map((type) => ({ userType: type })),
@@ -76,7 +76,7 @@ async function addProduct(productInfo) {
     }
   );
 
-  return newProduct;
+  return formatProduct(newProduct);
 }
 
 async function getProductById(id) {
@@ -85,11 +85,11 @@ async function getProductById(id) {
   });
 
   if (!product) throw new Error("not_found");
-  return product;
+  return formatProduct(product); // ✅ ensure split
 }
 
 async function updateProduct(id, updateInfo) {
-  const { courseName, priceEgyptian, priceOther, allowedUserTypes } =
+  const { courseNameEn, courseNameAr, priceEgyptian, priceOther, allowedUserTypes } =
     updateInfo;
 
   const product = await Product.findByPk(id, {
@@ -97,16 +97,18 @@ async function updateProduct(id, updateInfo) {
   });
   if (!product) throw new Error("not_found");
 
-  if (courseName) product.courseName = courseName;
+  if (courseNameEn || courseNameAr) {
+    product.courseName = concatLang(courseNameEn, courseNameAr); 
+  }
   if (priceEgyptian) product.priceEgyptian = priceEgyptian;
   if (priceOther) product.priceOther = priceOther;
 
   await product.save();
 
   if (allowedUserTypes) {
-    // clear old
+
     await ProductAllowedUserType.destroy({ where: { productId: id } });
-    // insert new (cast to string if using ENUM)
+  
     await ProductAllowedUserType.bulkCreate(
       allowedUserTypes.map((type) => ({
         productId: id,
@@ -115,9 +117,11 @@ async function updateProduct(id, updateInfo) {
     );
   }
 
-  return await Product.findByPk(id, {
+  const updated = await Product.findByPk(id, {
     include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
   });
+
+  return formatProduct(updated); d
 }
 
 async function deleteProduct(id) {

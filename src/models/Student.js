@@ -16,6 +16,7 @@ module.exports = (sequelize) => {
     nationalIdImage: { type: DataTypes.STRING(300), allowNull: true, },
     university: { type: DataTypes.STRING(150), allowNull: true },
     college: { type: DataTypes.STRING(150), allowNull: true },
+    department: { type: DataTypes.STRING(150), allowNull: true },
     type: {type: DataTypes.ENUM('1', '2' ,'3','4'), allowNull: true,},
     status: { type: DataTypes.STRING(200), allowNull: false, }
   }, {

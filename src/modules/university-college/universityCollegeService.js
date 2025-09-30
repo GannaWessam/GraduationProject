@@ -1,6 +1,8 @@
 const { university_college, university, college } = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 
+const { formatCollege } = require("./helpers/responseHelper");
+
 async function getAllUniversityCollegesService(reqQuery = {}) {
   const apiFeature = new ApiFeature(reqQuery)
     .pagination()
@@ -66,18 +68,17 @@ async function getCollegesByUniversityId(universityId) {
     include: [
       {
         model: university_college,
-        
         where: { universityId },
-        attributes: [], 
+        attributes: [],
       },
     ],
-    attributes: ["collegeId", "Name"], 
+    attributes: ["collegeId", "Name"],
   });
 
   return {
     status: 200,
     message: "Colleges fetched successfully",
-    data: colleges,
+    data: colleges.map(formatCollege), 
   };
 }
 module.exports = {

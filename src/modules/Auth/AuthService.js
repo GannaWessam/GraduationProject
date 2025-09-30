@@ -109,7 +109,8 @@ if(nationality === "Egypt"){
         nationalIdImage: idImage,
         courseType: training_type,
         userId: user.userId,
-        status
+        status,
+        profilePhoto:res
       },
       { transaction: t }
     );

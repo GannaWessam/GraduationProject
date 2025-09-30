@@ -14,13 +14,10 @@ module.exports = (sequelize) => {
     nationality: { type: DataTypes.STRING(100), allowNull: true },
     nationalId: { type: DataTypes.STRING(50), allowNull: false, unique: true, },
     nationalIdImage: { type: DataTypes.STRING(300), allowNull: true, },
-    examType: { type: DataTypes.ENUM('ONE_EXAM', 'SEVEN_EXAM'), allowNull: true, },
-    courseType: {
-      type: DataTypes.STRING(200), allowNull: false,
-    },
     university: { type: DataTypes.STRING(150), allowNull: true },
     college: { type: DataTypes.STRING(150), allowNull: true },
-    type: {type: DataTypes.ENUM('1', '2' ,'3','4'), allowNull: true,}
+    type: {type: DataTypes.ENUM('1', '2' ,'3','4'), allowNull: true,},
+    status: { type: DataTypes.STRING(200), allowNull: false, }
   }, {
     tableName: 'students',
     // indexes: [

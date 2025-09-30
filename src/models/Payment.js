@@ -6,7 +6,7 @@ module.exports = (sequelize) => {
     userId: { type: DataTypes.UUID, allowNull: false,},
     productId: { type: DataTypes.UUID, allowNull: false,},
     amount: { type: DataTypes.DECIMAL(12, 2), allowNull: false },
-    orderId: { type: DataTypes.STRING(100), allowNull: false,},
+    orderId: { type: DataTypes.STRING(100), allowNull: true,},
     timestamp: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
     status: { type: DataTypes.ENUM('PENDING', 'SUCCESS', 'FAILED'), allowNull: false, defaultValue: 'PENDING' },
   }, {

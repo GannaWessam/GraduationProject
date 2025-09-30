@@ -1,5 +1,5 @@
 const { Model } = require("sequelize");
-const { User, Student, Product ,ProductAllowedUserType } = require("../../../models");
+const { User, Student, Product ,ProductAllowedUserType,Payment } = require("../../../models");
 const QRCode = require("qrcode");
 
 
@@ -38,6 +38,17 @@ const getUser = async (email) => {
   return user;
 };
 
+const getUserFees = async (userId) => {
+  const user = await Payment.findAll({
+    where: { userId },
+    include: [{ model: Product }] 
+  });
+  
+  if (!user) throw new Error("invalid_email");
+
+  return user;
+};
+
 const checkEmailExists = async (email, t) => {
   if (await findUserByEmail(email, t)) throw new Error("email_exists");
 };
@@ -68,5 +79,6 @@ module.exports = {
   checkEmailExists,
   checkNationalIdExists,
   generateQr,
-  getUser
+  getUser,
+  getUserFees
 };

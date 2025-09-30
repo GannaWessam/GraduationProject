@@ -60,29 +60,31 @@ async function deleteUniversityCollege(id) {
   await uc.destroy();
   return { deleted: true };
 }
+  
+async function getCollegesByUniversityId(universityId) {
+  const colleges = await college.findAll({
+    include: [
+      {
+        model: university_college,
+        
+        where: { universityId },
+        attributes: [], 
+      },
+    ],
+    attributes: ["collegeId", "Name"], 
+  });
 
-async function getCollegesByUniversity(universityId) {
-    if (!universityId) throw new Error("missing_required");
-  
-    const data = await university_college.findAll({
-      where: { universityId },
-      include: [
-        { model: college, attributes: ["collegeId", "Name"] },
-      ],
-    });
-  
-    return {
-      status: 200,
-      message: "Colleges fetched successfully for this university",
-      data
-    };
-  }
-  
+  return {
+    status: 200,
+    message: "Colleges fetched successfully",
+    data: colleges,
+  };
+}
 module.exports = {
   addUniversityCollege,
   getAllUniversityCollegesService,
   getUniversityCollegeById,
   updateUniversityCollege,
   deleteUniversityCollege,
-  getCollegesByUniversity
+  getCollegesByUniversityId
 };

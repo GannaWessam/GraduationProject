@@ -33,7 +33,7 @@ async function deleteUniversityCollege(req, res) {
 }
 
 async function getCollegesByUniversity(req, res) {
-    const result = await UniversityCollegeService.getCollegesByUniversity(req.params.universityId);
+    const result = await UniversityCollegeService.getCollegesByUniversityId(req.params.universityId);
     return res.status(200).json(ApiResponse.success(result));
   }
 

@@ -16,7 +16,8 @@ router.post("/login", authController.login);
 router.post("/resetPassword", authController.updatePassword);
 router.post("/send-otp", catchError(authController.sendOtp));
 router.post("/verify-otp", catchError(authController.verifyOTP));
-router.post("/getUser", authController.getUser);
+router.get("/getUser", authController.getUser);
+router.get("/getUserFees", authController.getUserFees);
 router.post("/verify-email", catchError(authController.verifyEmail));
 
 module.exports = router;

@@ -13,7 +13,8 @@ const {
   checkNationalIdExists,
   findProduct,
   generateQr,
-  getUser
+  getUser,
+  getUserFees
 } = require("./helpers/userHelper");
 
 const {
@@ -28,10 +29,11 @@ const {
   formatRegisterResponse,
   formatLoginResponse,
 } = require("./helpers/responseHelper");
-const { User, Student } = require('../../models/index.js');
+const { User, Student ,Payment } = require('../../models/index.js');
 
 async function registerUser(payload, idImage) {
   const {
+    OCR,
     email,
     password,
     confirmPassword,
@@ -59,8 +61,21 @@ async function registerUser(payload, idImage) {
   console.log(res);
   
 
-
+let status ;
+if(OCR === "true"){
+  status = "active"
+}else{
+  status = "PENDING"
+}
 const product = await findProduct(training_type, type);
+
+let productPrice ;
+
+if(nationality === "Egypt"){
+  productPrice = product.priceEgyptian
+}else{
+  productPrice = product.priceOther
+}
 
 
   return sequelize.transaction(async (t) => {
@@ -73,6 +88,11 @@ const product = await findProduct(training_type, type);
       { email, passwordHash: hashedPassword, role },
       { transaction: t }
     );
+
+    const payment = await Payment.create(
+      { userId:user.userId, productId:product.productId,status: "PENDING" ,amount:productPrice},
+      { transaction: t }
+    ); 
 
     const student = await Student.create(
       {
@@ -89,6 +109,7 @@ const product = await findProduct(training_type, type);
         nationalIdImage: idImage,
         courseType: training_type,
         userId: user.userId,
+        status
       },
       { transaction: t }
     );
@@ -133,6 +154,11 @@ async function getuser (email) {
   return { user };
 }
 
+async function getuserfees (userId) {
+  const fees = await getUserFees(userId);
+  return { fees };
+}
+
 async function verifyEmail(email) {
     
   const user = await User.findOne({ where: { email }});
@@ -144,4 +170,4 @@ async function verifyEmail(email) {
   };
 
 
-module.exports = { registerUser, loginUser, resetPassword , verifyEmail ,getuser};
+module.exports = { registerUser, loginUser, resetPassword , verifyEmail ,getuser ,getuserfees };

@@ -1,5 +1,5 @@
 
-const { registerUser, loginUser, resetPassword , verifyEmail ,getuser } = require("./AuthService");
+const { registerUser, loginUser, resetPassword , verifyEmail ,getuser ,getuserfees } = require("./AuthService");
 const ApiResponse = require("../../Util/ApiResponse.js");
 const OtpService = require("../../Services/OtpService.js");
 
@@ -53,6 +53,15 @@ exports.verifyOTP = async (req, res) => {
 exports.getUser = async (req, res, next) => {
   try {
     const result = await getuser(req.body.email);
+    return res.status(201).json(ApiResponse.created(result));
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getUserFees = async (req, res, next) => {
+  try {
+    const result = await getuserfees(req.body.userId);
     return res.status(201).json(ApiResponse.created(result));
   } catch (err) {
     next(err);

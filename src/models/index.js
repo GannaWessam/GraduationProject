@@ -62,4 +62,18 @@ university_college.belongsTo(college, {
   
 });
 
+university.belongsToMany(college, {
+  through: university_college,
+  foreignKey: "universityId",
+  otherKey: "collegeId",
+  as: "colleges"
+});
+
+college.belongsToMany(university, {
+  through: university_college,
+  foreignKey: "collegeId",
+  otherKey: "universityId",
+  as: "universities"
+});
+
 module.exports = { sequelize, User, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college };

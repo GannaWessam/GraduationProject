@@ -10,11 +10,18 @@ async function getAllUniversitiesService(reqQuery = {}) {
     .search();
 
   const universities = await university.findAll(apiFeature.options);
+  const totalProducts = await university.count();
 
   return {
     status: 200,
-    message: "Universities fetched successfully",
+    message: "Products fetched successfully",
     data: universities,
+    meta: {
+      page: apiFeature.page,
+      limit: apiFeature.limit,
+      total: totalProducts,
+      totalPages: Math.ceil(totalProducts / apiFeature.limit),
+    },
   };
 }
 

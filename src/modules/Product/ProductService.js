@@ -12,12 +12,10 @@ async function getAllProductsService(reqQuery = {}) {
     .selectedFields()
     .search();
 
-  // remove `userType` from product-level filter
   if (apiFeature.options.where?.userType) {
     delete apiFeature.options.where.userType;
   }
 
-  // Handle allowed user types
   let allowedUserTypeWhere = undefined;
   if (reqQuery.userType) {
     let types = Array.isArray(reqQuery.userType)
@@ -33,20 +31,26 @@ async function getAllProductsService(reqQuery = {}) {
       as: "allowedUserTypes",
       attributes: ["userType"],
       where: allowedUserTypeWhere,
-      required: !!allowedUserTypeWhere, // inner join if filtering
+      required: !!allowedUserTypeWhere,
     },
   ];
 
   const products = await Product.findAll(apiFeature.options);
 
+  const totalProducts = await Product.count();
+
   return {
     status: 200,
     message: "Products fetched successfully",
     data: products,
+    meta: {
+      page: apiFeature.page,
+      limit: apiFeature.limit,
+      total: totalProducts,
+      totalPages: Math.ceil(totalProducts / apiFeature.limit),
+    },
   };
 }
-
-
 
 async function addProduct(productInfo) {
   const {

@@ -4,7 +4,6 @@ const authController = require("./AuthController");
 const { uploadSingleFile } = require("../../fileUpload");
 const catchError = require("../../middlewares/catchError");
 
-
 router.post(
   "/register",
 

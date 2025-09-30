@@ -52,7 +52,7 @@ exports.verifyOTP = async (req, res) => {
 
 exports.getUser = async (req, res, next) => {
   try {
-    const result = await getuser(req.body.email);
+    const result = await getuser(req.query.email);
     return res.status(201).json(ApiResponse.created(result));
   } catch (err) {
     next(err);
@@ -61,7 +61,7 @@ exports.getUser = async (req, res, next) => {
 
 exports.getUserFees = async (req, res, next) => {
   try {
-    const result = await getuserfees(req.body.userId);
+    const result = await getuserfees(req.query.userId);
     return res.status(201).json(ApiResponse.created(result));
   } catch (err) {
     next(err);

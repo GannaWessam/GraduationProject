@@ -18,8 +18,9 @@ const formatLoginResponse = (user, tok) => ({
   id: user.userId,
   email: user.email,
   role: user.role,
-  profile: user.Student,
+  // profile: user.Student,
   token: tok,
+
 });
 
 module.exports = { formatRegisterResponse, formatLoginResponse };

@@ -30,6 +30,7 @@ const {
   formatLoginResponse,
 } = require("./helpers/responseHelper");
 const { User, Student ,Payment } = require('../../models/index.js');
+const { where } = require("sequelize");
 
 async function registerUser(payload, idImage) {
   const {
@@ -123,16 +124,19 @@ async function loginUser(email, password) {
   const user = await findUserByEmail(email);
   if (!user) throw new Error("invalid_email");
 
-  const student = await findStudentByNationalId(user.userId);
-  user.Student = student;
+  const student = await Student.findOne({where : {userId : user.userId}});
+  // user.Student = student;
 
+  // console.log(student);
+  
   await comparePassword(password, user.passwordHash);
 
   const tok = token.generateToken(
     email,
-    user.Student?.fullName,
+    student?.fullName,
     user.userId,
-    user.role
+    user.role,
+
   );
 
   return formatLoginResponse(user, tok);

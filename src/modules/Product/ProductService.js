@@ -3,6 +3,7 @@ const ApiFeature = require("../../Util/ApiFeatures");
 const { Op } = require("sequelize");
 const { concatLang } = require("../../Helpers/langHelper");
 const { formatProduct } = require("./helpers/responseHelper");
+const PaginatedResponse = require("../../Util/PaginatedResponse");
 
 async function getAllProductsService(reqQuery = {}) {
   const apiFeature = new ApiFeature(reqQuery)
@@ -38,17 +39,12 @@ async function getAllProductsService(reqQuery = {}) {
   const products = await Product.findAll(apiFeature.options);
   const totalProducts = await Product.count();
 
-  return {
-    status: 200,
-    message: "Products fetched successfully",
-    data: products.map(formatProduct), 
-    meta: {
-      page: apiFeature.page,
-      limit: apiFeature.limit,
-      total: totalProducts,
-      totalPages: Math.ceil(totalProducts / apiFeature.limit),
-    },
-  };
+  return PaginatedResponse.fromApiFeature(
+    apiFeature,
+    totalProducts,
+    products.map(formatProduct),
+    "Products fetched successfully"
+  );
 }
 
 async function addProduct(productInfo) {

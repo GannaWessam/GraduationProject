@@ -1,4 +1,4 @@
-const nationalIdRules = {
+const nationalIdRules = { // TODO : nzwd elba'y
   Egypt: [(id) => id.length === 14 || 'national id must be 14 chars'],
   Sudan: [
     (id) => id.length === 9 || 'national id not valid',
@@ -38,7 +38,7 @@ const validateRequiredFields = (payload) => {
   ) {
     throw new Error("missing_required_fields");
   }
-  if (!["1", "2"].includes(type)) throw new Error("type not valied");
+  if (!["1", "2","3","4"].includes(type)) throw new Error("type not valied");//
 };
 
 const validateName = (name_ar) => {

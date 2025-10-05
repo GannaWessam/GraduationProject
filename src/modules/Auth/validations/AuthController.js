@@ -1,4 +1,3 @@
-
 const { registerUser, loginUser, resetPassword , verifyEmail ,getuser ,getuserfees } = require("./AuthService");
 const ApiResponse = require("../../Util/ApiResponse.js");
 const OtpService = require("../../Services/OtpService.js");
@@ -37,7 +36,7 @@ exports.updatePassword = async (req, res, next) => {
 };
 
 exports.sendOtp = async (req, res) => {
-  await OTP.sendOTP(req.body.email, 6, 120); //otp didgits + expiration
+  await OTP.sendOTP(req.body.email, 6, 120);
   return res
     .status(200)
     .json(ApiResponse.success("تم ارسال الرقم السرى الى الايميل المذكور"));

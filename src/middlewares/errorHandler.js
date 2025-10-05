@@ -6,7 +6,7 @@ function errorHandler(err, req, res, next) {
 
   if (err.message && errorMessages[err.message]) {
     const { code, msg } = errorMessages[err.message];
-    return res.status(code).json(ApiResponse.error(code, msg, [msg]));
+    return res.status(code).json(ApiResponse.error(code, msg, [msg]));///???
   }
 
   return res

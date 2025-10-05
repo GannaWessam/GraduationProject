@@ -24,7 +24,7 @@ module.exports = (sequelize) => {
       college: { type: DataTypes.STRING(150), allowNull: true },
       department: { type: DataTypes.STRING(150), allowNull: true },
       type: { type: DataTypes.ENUM("1", "2", "3", "4"), allowNull: true },
-      status: { type: DataTypes.STRING(200), allowNull: false },
+      status: { type: DataTypes.STRING(200), allowNull: false }, // allowed values: approved | pending
       profilePhoto: { type: DataTypes.STRING(10000), allowNull: true },
     },
     {

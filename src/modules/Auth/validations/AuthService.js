@@ -10,7 +10,7 @@ const {
   findUserByEmail,
   findStudentByNationalId,
   checkEmailExists,
-  checkNationalIdExists, 
+  checkNationalIdExists,
   findProduct,
   generateQr,
   getUser,
@@ -140,7 +140,7 @@ async function loginUser(email, password) {
 
   );
 
-  return formatLoginResponse(user, tok);//msh 3ayz el name?
+  return formatLoginResponse(user, tok);
 }
 
 async function resetPassword(email, newPassword) {
@@ -155,7 +155,6 @@ async function resetPassword(email, newPassword) {
   return { email: user.email };
 }
 
-///mkanha msh hna
 async function getuser (email) {
   const user = await getUser(email);
   return { user };

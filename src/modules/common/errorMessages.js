@@ -6,6 +6,8 @@ const errorMessages = {
   "national_id_invalid": { code: 400, msg: "national id not valid" },
   "nid_length":          { code: 400, msg: "يجب ان يكون الرقم القومى متكون من 14 رقم" },
   "not_found_service":   { code: 400, msg: "not found service" },
+  "not_found":           { code: 404, msg: "not found" },
+  "id_not_found":        { code: 404, msg: "id_not_found" },
   "missing_required":    { code: 400, msg: "حقول مطلوبة ناقصة" },
   "email_exists":        { code: 409, msg: "اسم المستخدم موجود" },
   "national_id_exists":  { code: 409, msg: "الرقم القومي مسجل مسبقاً" },

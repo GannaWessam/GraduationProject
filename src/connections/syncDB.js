@@ -14,3 +14,4 @@ const { sequelize } = require('../models');
     console.error('❌ DB Sync failed', e);
   }
 })();
+

@@ -3,7 +3,9 @@ const { generateToken, validateToken } = require("./src/middlewares/token.js");
 require('./src/connections/syncDB.js');
 const cors = require("cors");
 const errorHandler = require("./src/middlewares/errorHandler.js"); 
-const routes = require("./src/routes.js")
+const routes = require("./src/routes.js");
+const syncDB = require("./src/connections/syncDB.js")
+
 
 require("./src/models/User.js");
 require("./src/models/Student.js");

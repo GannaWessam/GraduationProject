@@ -1,4 +1,4 @@
-const { Model } = require("sequelize");
+const { Model } = require("sequelize");///////////??
 const { User, Student, Product ,ProductAllowedUserType,Payment } = require("../../../models");
 const QRCode = require("qrcode");
 
@@ -49,6 +49,8 @@ const getUserFees = async (userId) => {
   return user;
 };
 
+// الـ transaction مش "لازم" في أول  functions
+// لكن وجوده بيخلي الـ check جزء من الـ atomic operation كلها
 const checkEmailExists = async (email, t) => {
   if (await findUserByEmail(email, t)) throw new Error("email_exists");
 };
@@ -61,7 +63,7 @@ const checkNationalIdExists = async (national_id, t) => {
 const generateQr = async (name, national_id) => {
   const qrData = `الاسم: ${name}\nالرقم القومي: ${national_id}`;
 
-  const qrImage = await QRCode.toDataURL(qrData, {
+  const qrImage = await QRCode.toDataURL(qrData, { //بيرجع الصورة على شكل string يبدأ بـ data:image/png;base64
     errorCorrectionLevel: "H",
     width: 400,
     color: {

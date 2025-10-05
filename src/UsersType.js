@@ -1,5 +1,5 @@
 
-const UserType = Object.freeze({
+const UserType = Object.freeze({ //بيخلي الـ object immutable
     POSTGRAD_DIPLOMA: 1,
     POSTGRAD_MASTER: 2,
     POSTGRAD_PHD: 3,

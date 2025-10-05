@@ -32,7 +32,7 @@ User.hasMany(Payment, {
 Payment.belongsTo(User, { foreignKey: 'userId' });
 
 
-Product.hasMany(ProductAllowedUserType, {
+Product.hasMany(ProductAllowedUserType, { //hyakhod el types ka array
   foreignKey: { name: 'productId', allowNull: false },
   as: 'allowedUserTypes',
   onDelete: 'CASCADE',

@@ -3,7 +3,7 @@ require("dotenv").config();
 const ApiResponse = require("../Util/ApiResponse");
 
 function generateToken(email, name, id, role ,NameEn) {
-  const tokenData = { email, name, id, role , NameEn };
+  const tokenData = { email, name, id, role , NameEn };//
   const token = jwt.sign(tokenData, process.env.SecretKey, { expiresIn: "30d" });
   return token;
 }

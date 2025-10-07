@@ -50,4 +50,10 @@ router.put(
   catchError(usersController.updateUser)
 )
 
+router.put(
+  "/approve/:id", 
+  validateToken,
+  catchError(usersController.approveStudentByUserId)
+);
+
 module.exports = router;    

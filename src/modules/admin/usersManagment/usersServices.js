@@ -1,4 +1,4 @@
-const { where, Error } = require("sequelize");
+const {  Error } = require("sequelize");
 const { User, Student, sequelize } = require("../../../models");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
@@ -171,12 +171,21 @@ async function updateUser(userId, payload, idImage) {
   });
 }
 
+const approveStudentByUserId = async (userId) => {
+  const student = await Student.findOne({ where: { userId } });
+  if (!student) throw new Error("student_not_found");
 
+  student.status = "APPROVED";
+  await student.save();
+
+  return { message: "Student approved successfully", student };
+};
 module.exports = {
     getAllUsers,
     getAllUsersByStatus,
     deleteUserById,
     getuUserById,
     updateUser,
-    addAdmin
+    addAdmin,
+    approveStudentByUserId
 }

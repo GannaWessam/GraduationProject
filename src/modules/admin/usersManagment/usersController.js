@@ -57,11 +57,18 @@ const deleteUserById = async (req,res) =>{ //btrga3 num of deleted rows
     
 }
 
+const approveStudentByUserId = async (req, res) => {
+  const { id } = req.params; 
+  const result = await userServices.approveStudentByUserId(id);
+  res.status(200).json(ApiResponse.success(result));
+};
+
 module.exports = {
     getAllUsers,
     getAllUsersByStatus,
     deleteUserById,
     getUserById,
     updateUser,
-    addAdmin
+    addAdmin,
+    approveStudentByUserId
 }

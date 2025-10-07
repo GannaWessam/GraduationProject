@@ -1,4 +1,4 @@
-export const updateIfChanged = async (modelInstance, data, transaction) => {
+const updateIfChanged = async (modelInstance, data, transaction) => {
     if (!data || Object.keys(data).length === 0)
       return { updated: false, model: modelInstance };
   
@@ -12,3 +12,4 @@ export const updateIfChanged = async (modelInstance, data, transaction) => {
     return { updated: true, model: updatedModel };
   };
   
+  module.exports = { updateIfChanged };

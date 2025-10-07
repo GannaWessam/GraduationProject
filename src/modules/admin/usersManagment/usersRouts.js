@@ -7,6 +7,10 @@ const { validateToken } = require("../../../middlewares/token");
 const catchError = require("../../../middlewares/catchError");
 
 // Add new user (with file upload)
+router.post("/addAdmin",
+  catchError(usersController.addAdmin)
+);
+
 router.post(
   "/addUser",
   uploadSingleFile("nationalIdImage"),

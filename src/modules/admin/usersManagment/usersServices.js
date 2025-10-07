@@ -4,7 +4,7 @@ const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const {updateIfChanged} = require("./helpers/updateHelper");
 
-const { generateQr } = require("../../Auth/helpers/userHelper");
+const { generateQr, checkEmailExists } = require("../../Auth/helpers/userHelper");
 const { hashPassword } = require("../../Auth/helpers/passwordHelper");
 const {
   validateName,
@@ -17,6 +17,24 @@ const { formatStudentResponse, createStudentSuccessResponse } = require("./helpe
 
 ///   Update status only method 
 //msh h3ml create h3ml endpoint gdeda ala el register bs mbd'yan
+
+const addAdmin = async (info) => {
+  
+  const {email , password } =info;
+
+  return sequelize.transaction(async (t) => {
+    await checkEmailExists(email, t)
+
+    const hashedPassword = await hashPassword(password);
+
+    const user = await User.create(
+      { email, passwordHash: hashedPassword, role:"ADMIN" },
+      { transaction: t }
+    );
+
+  
+  return user;
+})};
 
 const getuUserById = async (id) => {
   const user = await User.findByPk(id);
@@ -160,4 +178,5 @@ module.exports = {
     deleteUserById,
     getuUserById,
     updateUser,
+    addAdmin
 }

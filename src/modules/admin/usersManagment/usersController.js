@@ -7,6 +7,11 @@ const ApiResponse = require("../../../Util/ApiResponse");
 
 //todo : users or students?? --- update by status method --- 
 
+const addAdmin = async (req,res) => {
+    const result = await userServices.addAdmin(req.body);
+    res.status(200).json(ApiResponse.success(result));
+}
+
 const getUserById = async (req,res) => {
     const id = req.params.id;
     const result = await userServices.getuUserById(id);
@@ -58,4 +63,5 @@ module.exports = {
     deleteUserById,
     getUserById,
     updateUser,
+    addAdmin
 }

@@ -19,7 +19,14 @@ module.exports = (sequelize) => {
         allowNull: false,
         unique: true,
       },
-      nationalIdImage: { type: DataTypes.STRING(300), allowNull: true },
+      nationalIdImage: {
+        type: DataTypes.STRING(300),
+        allowNull: true,
+        get() {
+          const rawValue = this.getDataValue("nationalIdImage");
+          return rawValue ? `http://localhost:3000/uploads/${rawValue}` : null;
+        },
+      },
       university: { type: DataTypes.STRING(150), allowNull: true },
       college: { type: DataTypes.STRING(150), allowNull: true },
       department: { type: DataTypes.STRING(150), allowNull: true },

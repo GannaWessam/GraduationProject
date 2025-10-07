@@ -6,7 +6,6 @@ const catchError = require("../../middlewares/catchError");
 
 router.post(
   "/register",
-
   uploadSingleFile("nationalIdImage"),
   authController.register
 );

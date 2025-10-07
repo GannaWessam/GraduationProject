@@ -36,7 +36,7 @@ const getAllUsersByStatus = async (req,res) => {
         .sort()
         .pagination()
         .selectedFields();
-    const {status} = req.body;
+    const {status} = req.params;
     const result = await userServices.getAllUsersByStatus(status,features); 
     res.status(200).json(ApiResponse.success(result));
 }

@@ -107,7 +107,7 @@ if(nationality === "Egypt"){
         university,
         college: faculty,
         department,
-        nationalIdImage: idImage,
+      nationalIdImage: idImage,
         courseType: training_type,
         userId: user.userId,
         status,

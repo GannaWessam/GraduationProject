@@ -22,7 +22,7 @@ app.use(
 );
 
 app.use(express.json()); // parse JSON body
-app.use("/src/uploads", express.static("uploads"));
+app.use("/uploads", express.static("uploads"));
 
 app.use(routes)
 app.post("/login", generateToken);

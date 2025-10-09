@@ -64,9 +64,9 @@ async function registerUser(payload, idImage) {
 
 let status ;
 if(OCR === "true"){
-  status = "active"
+  status = "approved"
 }else{
-  status = "PENDING"
+  status = "pending"
 }
 const product = await findProduct(training_type, type);
 

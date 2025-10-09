@@ -18,7 +18,7 @@ router.post(
 );
 
 router.get(
-  "/byStatus",
+  "/byStatus/:status",
   validateToken,
   catchError(usersController.getAllUsersByStatus)
 );

@@ -57,13 +57,18 @@ const getuUserById = async (id) => {
 
 const getAllUsers = async (features) => {
   // const users = await User.findAll(features.options);
-  const { count, rows: users } = await User.findAndCountAll(features.options);
-  if (!users) throw new Error("not_found");
+  const { count, rows: students } = await Student.findAndCountAll({
+    ...features.options,
+    include: [{
+      model: User,
+    }]
+  });
+  if (!students) throw new Error("not_found");
 
   return PaginatedResponse.fromApiFeature(
     features,
     count,
-    users,
+    students,
     "Users fetched successfully"
   );
 };

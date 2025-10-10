@@ -7,6 +7,7 @@ const Payment = require('./Payment')(sequelize);
 const university = require('./University')(sequelize);
 const college = require('./College')(sequelize);
 const university_college = require('./university_college')(sequelize);
+const Department = require('./Department')(sequelize);
 const ProductAllowedUserType = require('./ProductAllowedUserType')(sequelize);
 
 // Associations
@@ -76,4 +77,15 @@ college.belongsToMany(university, {
   as: "universities"
 });
 
-module.exports = { sequelize, User, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college };
+college.hasMany(Department, {
+  foreignKey: 'CollegeId',
+  onDelete: 'CASCADE',
+});
+
+Department.belongsTo(college, {
+  foreignKey: 'CollegeId',
+});
+
+
+
+module.exports = { sequelize, User, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department };

@@ -74,7 +74,7 @@ const getAllUsers = async (features) => {
 };
 
 const getAllUsersByStatus = async (status, features) => {
-  const where = {};
+  const where = {...features.options.where};
   if (status) where.status = status;
 
   const { count, rows: students } = await Student.findAndCountAll({
@@ -150,11 +150,13 @@ const approveStudentByUserId = async (userId) => {
   const student = await Student.findOne({ where: { userId } });
   if (!student) throw new Error("student_not_found");
 
-  student.status = "APPROVED";
+  student.status = "approved";
   await student.save();
 
   return { message: "Student approved successfully", student };
 };
+
+
 module.exports = {
   getAllUsers,
   getAllUsersByStatus,

@@ -1,5 +1,5 @@
 const { Error } = require("sequelize");
-const { User, Student, sequelize } = require("../../../models");
+const { User, Student, sequelize ,Payment ,Product } = require("../../../models");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const WebSocket = require('../../../Services/WebSocket')
@@ -75,8 +75,45 @@ const getAllUsers = async (features) => {
   );
 };
 
+// const getAllUsersByStatus = async (status, features) => {
+//   const where = {...features.options.where};
+//   if (status) where.status = status;
+
+//   const { count, rows: students } = await Student.findAndCountAll({
+//     ...features.options,
+//     where,
+//     include: [
+//       {
+//         model: User,
+//         attributes: ["email"],include: [
+//           {
+//             model: Payment,
+//             attributes: ["amount", "status", "timestamp"],
+//             include: [
+//               {
+//                 model: Product,
+//                 attributes: ["courseName"], 
+//               },
+//             ],
+//           },
+//         ],
+        
+//       },
+//     ],
+//   });
+
+//   if (!students || students.length === 0) throw new Error("not_found");
+
+//   return PaginatedResponse.fromApiFeature(
+//     features,
+//     count,
+//     students,
+//     "Users fetched successfully"
+//   );
+// };
+
 const getAllUsersByStatus = async (status, features) => {
-  const where = {...features.options.where};
+  const where = { ...(features.options?.where || {}) };
   if (status) where.status = status;
 
   const { count, rows: students } = await Student.findAndCountAll({
@@ -86,11 +123,25 @@ const getAllUsersByStatus = async (status, features) => {
       {
         model: User,
         attributes: ["email"],
+        include: [
+          {
+            model: Payment,
+            as: "payments", // ✅ alias مطابق للعلاقة
+            attributes: ["amount", "status", "timestamp"],
+            include: [
+              {
+                model: Product,
+                as: "product", // ✅ alias مطابق للعلاقة
+                attributes: ["courseName"],
+              },
+            ],
+          },
+        ],
       },
     ],
   });
 
-  if (!students || students.length === 0) throw new Error("not_found");
+  if (!students?.length) throw new Error("not_found");
 
   return PaginatedResponse.fromApiFeature(
     features,
@@ -99,7 +150,6 @@ const getAllUsersByStatus = async (status, features) => {
     "Users fetched successfully"
   );
 };
-
 const deleteUserById = async (id) => {
   const deletedCount = await User.destroy({ where: { userId: id } });
   if (deletedCount) return deletedCount;

@@ -10,6 +10,26 @@ const university_college = require('./university_college')(sequelize);
 const Department = require('./Department')(sequelize);
 const ProductAllowedUserType = require('./ProductAllowedUserType')(sequelize);
 
+
+
+User.hasMany(Payment, {
+  foreignKey: 'userId',
+  as: 'payments', // ✅ alias
+});
+Payment.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'paymentUser', // ✅ alias مختلف
+});
+
+Payment.belongsTo(Product, {
+  foreignKey: 'productId',
+  as: 'product',
+});
+Product.hasMany(Payment, {
+  foreignKey: 'productId',
+  as: 'payments',
+});
+
 // Associations
 User.hasOne(Student, {
   foreignKey: { name: 'userId', allowNull: false },
@@ -85,6 +105,10 @@ college.hasMany(Department, {
 Department.belongsTo(college, {
   foreignKey: 'CollegeId',
 });
+
+
+
+
 
 
 

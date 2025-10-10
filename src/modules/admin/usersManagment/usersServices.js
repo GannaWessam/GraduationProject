@@ -2,6 +2,8 @@ const { Error } = require("sequelize");
 const { User, Student, sequelize } = require("../../../models");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
+const WebSocket = require('../../../Services/WebSocket')
+
 const {
   updateIfChanged,
   preparePassword,
@@ -146,12 +148,14 @@ async function updateUser(userId, payload, idImage) {
   });
 }
 
-const approveStudentByUserId = async (userId) => {
+const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||  ysma3 m3 elnas elly msgla real time
   const student = await Student.findOne({ where: { userId } });
   if (!student) throw new Error("student_not_found");
 
   student.status = "approved";
   await student.save();
+  
+  WebSocket.notifyClients(student, "approvedStudent");
 
   return { message: "Student approved successfully", student };
 };

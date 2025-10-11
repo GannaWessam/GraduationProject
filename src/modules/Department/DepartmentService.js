@@ -23,6 +23,18 @@ async function getAllDepartmentsService(reqQuery = {}) {
   );
 }
 
+async function getAllDepartmentsInCollegeService(id) {
+
+  const departments = await Department.findAll({where:{CollegeId : id}});
+  const totalDepartments = await Department.count();
+
+  return PaginatedResponse.fromApiFeature(
+    totalDepartments,
+    departments,
+    "Departments fetched successfully"
+  );
+}
+
 async function addDepartment(departmentInfo) {
   const { Name, CollegeId } = departmentInfo;
 
@@ -60,6 +72,7 @@ async function deleteDepartment(id) {
 
 module.exports = {
   getAllDepartmentsService,
+  getAllDepartmentsInCollegeService,
   addDepartment,
   getDepartmentById,
   updateDepartment,

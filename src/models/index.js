@@ -1,5 +1,6 @@
 const sequelize = require('../connections/db');
 
+const Nationality = require('./Nationality')(sequelize);
 const User = require('./User')(sequelize);
 const Student = require('./Student')(sequelize);
 const Product = require('./Product')(sequelize);
@@ -112,4 +113,4 @@ Department.belongsTo(college, {
 
 
 
-module.exports = { sequelize, User, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department };
+module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department };

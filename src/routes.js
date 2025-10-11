@@ -6,6 +6,8 @@ const collegeRoutes = require("./modules/college/collegeRoute");
 const universityCollegeRoutes = require("./modules/university-college/universityCollegeRoute");
 const adminRoutes = require("./modules/admin/routes");
 const Department = require("./modules/Department/DepartmentRoute");
+const Nationality = require("./modules/nationality/NationalityRoute");
+
 const { validateToken } = require("./middlewares/token");
 
 const router = express.Router();
@@ -17,4 +19,5 @@ router.use("/api/universities", universityRoutes);
 router.use("/api/colleges", collegeRoutes);
 router.use("/api/university-colleges", universityCollegeRoutes);
 router.use("/api/Department", Department);
+router.use("/api/nationality", Nationality);
 module.exports = router;

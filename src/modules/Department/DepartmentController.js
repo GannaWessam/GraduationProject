@@ -11,6 +11,11 @@ async function getAllDepartmentsController(req, res) {
   return res.status(200).json(ApiResponse.success(result));
 }
 
+async function getAllDepartmentsInCollegeController(req, res) {
+  const result = await DepartmentService.getAllDepartmentsInCollegeService(req.params.id);
+  return res.status(200).json(ApiResponse.success(result));
+}
+
 async function getDepartmentById(req, res) {
   const result = await DepartmentService.getDepartmentById(req.params.id);
   return res.status(200).json(ApiResponse.success(result));
@@ -29,6 +34,7 @@ async function deleteDepartment(req, res) {
 module.exports = {
   addDepartment,
   getAllDepartmentsController,
+  getAllDepartmentsInCollegeController,
   getDepartmentById,
   updateDepartment,
   deleteDepartment,

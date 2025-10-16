@@ -10,6 +10,11 @@ const college = require('./College')(sequelize);
 const university_college = require('./university_college')(sequelize);
 const Department = require('./Department')(sequelize);
 const ProductAllowedUserType = require('./ProductAllowedUserType')(sequelize);
+const course = require('./Course')(sequelize);
+const training = require('./Training')(sequelize);
+const event = require('./Event')(sequelize);
+const reservation = require('./Reservation')(sequelize);
+const exam= require('./Exam')(sequelize);
 
 
 
@@ -108,9 +113,35 @@ Department.belongsTo(college, {
 });
 
 
+Product.hasMany(course, { foreignKey: 'productId' });
+course.belongsTo(Product, { foreignKey: 'productId' });
 
 
+// Event ↔ Course
+event.belongsTo(course, { foreignKey: 'courseId' });
+course.hasMany(event, { foreignKey: 'courseId' });
+
+// Event ↔ Training
+event.belongsTo(training, { foreignKey: 'trainingId' });
+training.hasOne(event, { foreignKey: 'trainingId' });
+
+// Event ↔ Exam
+event.belongsTo(exam, { foreignKey: 'examId' });
+exam.hasOne(event, { foreignKey: 'examId' });
+
+//  Course و Reservation
+course.hasMany(reservation, { foreignKey: 'courseId' });
+reservation.belongsTo(course, { foreignKey: 'courseId' });
+
+// Event و Reservation
+event.hasMany(reservation, { foreignKey: 'eventId' });
+reservation.belongsTo(event, { foreignKey: 'eventId' });
+
+event.hasMany(reservation, { foreignKey: 'eventId' });
+reservation.belongsTo(event, { foreignKey: 'eventId' });
+
+User.hasMany(reservation, { foreignKey: 'userId' });
+reservation.belongsTo(User, { foreignKey: 'userId' });
 
 
-
-module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department };
+module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , reservation};

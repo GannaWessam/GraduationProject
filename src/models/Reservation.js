@@ -1,4 +1,5 @@
 const { DataTypes, UUIDV4 } = require('sequelize');
+const Product = require('./Product');
 
 module.exports = (sequelize) => {
   const reservation = sequelize.define('reservation', {
@@ -25,7 +26,11 @@ module.exports = (sequelize) => {
     },
     status:{
         type: DataTypes.STRING(200), allowNull: false   
-    }
+    },
+    ProductType:{
+      type: DataTypes.ENUM('1','2','3','4'), 
+      allowNull: false   
+  }
 
     
   }, {

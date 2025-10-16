@@ -15,6 +15,9 @@ const training = require('./Training')(sequelize);
 const event = require('./Event')(sequelize);
 const reservation = require('./Reservation')(sequelize);
 const exam= require('./Exam')(sequelize);
+const notification= require('./Notification')(sequelize);
+const resource= require('./Resource')(sequelize);
+
 
 
 
@@ -143,5 +146,14 @@ reservation.belongsTo(event, { foreignKey: 'eventId' });
 User.hasMany(reservation, { foreignKey: 'userId' });
 reservation.belongsTo(User, { foreignKey: 'userId' });
 
+course.hasMany(training, { foreignKey: 'courseId' });
+training.belongsTo(course, { foreignKey: 'courseId' });
 
-module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , reservation};
+course.hasMany(exam, { foreignKey: 'courseId' });
+exam.belongsTo(course, { foreignKey: 'courseId' });
+
+User.hasMany(notification, { foreignKey: 'userId' });
+notification.belongsTo(User, { foreignKey: 'userId' });
+
+
+module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , reservation , notification , resource};

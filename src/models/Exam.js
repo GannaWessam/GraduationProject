@@ -7,7 +7,10 @@ module.exports = (sequelize) => {
       primaryKey: true, 
       defaultValue: UUIDV4 
     },
-
+    courseId: { 
+      type:DataTypes.UUID, 
+      allowNull: true 
+    },
     supervisorId: { 
       type:DataTypes.UUID, 
       allowNull: true 

@@ -7,19 +7,6 @@ module.exports = (sequelize) => {
       primaryKey: true, 
       defaultValue: UUIDV4 
     },
-
-    courseId: { 
-        type:DataTypes.UUID, 
-        allowNull: false 
-    },
-    trainingId: { 
-        type:DataTypes.UUID, 
-        allowNull: true 
-    },
-    examId: { 
-        type:DataTypes.UUID, 
-        allowNull: true 
-    },
     startDate:{
     type: DataTypes.DATE,       
     allowNull: false

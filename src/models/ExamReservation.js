@@ -1,0 +1,53 @@
+const { DataTypes, UUIDV4 } = require('sequelize');
+
+module.exports = (sequelize) => {
+  const examReservation = sequelize.define('examReservation', {
+    reservationId: { 
+      type: DataTypes.UUID, 
+      primaryKey: true, 
+      defaultValue: UUIDV4 
+    },
+
+    userId: { 
+      type: DataTypes.UUID, 
+      allowNull: false,
+      references: { model: 'users', key: 'userId' },
+      onDelete: 'CASCADE'
+    },
+
+    examId: {
+      type: DataTypes.UUID, 
+      allowNull: true,
+      references: { model: 'exam', key: 'examId' },
+      onDelete: 'SET NULL'
+    },
+
+    type: {
+      type: DataTypes.STRING(200), 
+      allowNull: false     
+    },
+
+    attempts: {
+      type: DataTypes.INTEGER, 
+      allowNull: true,
+      defaultValue: 1    
+    },
+
+    result: {
+      type: DataTypes.STRING(200), 
+      allowNull: true   
+    },
+
+    reservationStatus: {
+      type: DataTypes.STRING(200), 
+      allowNull: false,
+      
+    },
+    
+  }, {
+    tableName: 'examReservation',
+    timestamps: true,
+  });
+
+  return examReservation;
+};

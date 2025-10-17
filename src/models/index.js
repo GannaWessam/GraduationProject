@@ -13,12 +13,13 @@ const ProductAllowedUserType = require('./ProductAllowedUserType')(sequelize);
 const course = require('./Course')(sequelize);
 const training = require('./Training')(sequelize);
 const event = require('./Event')(sequelize);
-const reservation = require('./Reservation')(sequelize);
+const trainingReservation = require('./TrainingReservation')(sequelize);
 const exam= require('./Exam')(sequelize);
 const notification= require('./Notification')(sequelize);
 const resource= require('./Resource')(sequelize);
-
-
+const productCourse= require('./ProductCourse')(sequelize);
+const studentCourse= require('./StudentCourse')(sequelize);
+const examReservation= require('./ExamReservation')(sequelize);
 
 
 User.hasMany(Payment, {
@@ -116,36 +117,6 @@ Department.belongsTo(college, {
 });
 
 
-Product.hasMany(course, { foreignKey: 'productId' });
-course.belongsTo(Product, { foreignKey: 'productId' });
-
-
-// Event ↔ Course
-event.belongsTo(course, { foreignKey: 'courseId' });
-course.hasMany(event, { foreignKey: 'courseId' });
-
-// Event ↔ Training
-event.belongsTo(training, { foreignKey: 'trainingId' });
-training.hasOne(event, { foreignKey: 'trainingId' });
-
-// Event ↔ Exam
-event.belongsTo(exam, { foreignKey: 'examId' });
-exam.hasOne(event, { foreignKey: 'examId' });
-
-//  Course و Reservation
-course.hasMany(reservation, { foreignKey: 'courseId' });
-reservation.belongsTo(course, { foreignKey: 'courseId' });
-
-// Event و Reservation
-event.hasMany(reservation, { foreignKey: 'eventId' });
-reservation.belongsTo(event, { foreignKey: 'eventId' });
-
-event.hasMany(reservation, { foreignKey: 'eventId' });
-reservation.belongsTo(event, { foreignKey: 'eventId' });
-
-User.hasMany(reservation, { foreignKey: 'userId' });
-reservation.belongsTo(User, { foreignKey: 'userId' });
-
 course.hasMany(training, { foreignKey: 'courseId' });
 training.belongsTo(course, { foreignKey: 'courseId' });
 
@@ -155,5 +126,58 @@ exam.belongsTo(course, { foreignKey: 'courseId' });
 User.hasMany(notification, { foreignKey: 'userId' });
 notification.belongsTo(User, { foreignKey: 'userId' });
 
+//=====================================================
+Product.belongsToMany(course, {
+  through: 'productCourse',
+  foreignKey: 'productId'
+});
 
-module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , reservation , notification , resource};
+course.belongsToMany(Product, {
+  through: 'productCourse',
+  foreignKey: 'courseId'
+});
+
+
+User.belongsToMany(course, {
+  through: 'studentCourse',
+  foreignKey: 'userId'
+});
+
+course.belongsToMany(User, {
+  through: 'studentCourse',
+  foreignKey: 'courseId'
+});
+
+
+event.hasMany(training, { foreignKey: 'eventId' });
+training.belongsTo(event, { foreignKey: 'eventId' });
+
+event.hasMany(exam, { foreignKey: 'eventId' });
+exam.belongsTo(event, { foreignKey: 'eventId' });
+
+
+// User ↔ ExamReservation
+User.hasMany(examReservation, { foreignKey: 'userId' });
+examReservation.belongsTo(User, { foreignKey: 'userId' });
+
+// Exam ↔ ExamReservation
+exam.hasMany(examReservation, { foreignKey: 'examId' });
+examReservation.belongsTo(exam, { foreignKey: 'examId' });
+
+// Training ↔ TrainingReservation
+training.hasMany(trainingReservation, { foreignKey: 'trainingId' });
+trainingReservation.belongsTo(training, { foreignKey: 'trainingId' });
+
+// User ↔ TrainingReservation
+User.hasMany(trainingReservation, { foreignKey: 'userId' });
+trainingReservation.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasMany(studentCourse, { foreignKey: 'userId' });
+studentCourse.belongsTo(User, { foreignKey: 'userId' });
+
+// Course ↔ StudentCourse
+course.hasMany(studentCourse, { foreignKey: 'courseId' });
+studentCourse.belongsTo(course, { foreignKey: 'courseId' });
+
+
+module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , trainingReservation , notification , resource, productCourse ,examReservation , studentCourse};

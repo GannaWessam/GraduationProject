@@ -21,7 +21,12 @@ module.exports = (sequelize) => {
     },
     place:{
         type: DataTypes.STRING(200),  
-    }
+    },
+
+    eventId: { 
+      type:DataTypes.UUID, 
+      allowNull: true 
+    },
 
     
   }, {

@@ -23,8 +23,9 @@ module.exports = (sequelize) => {
     type: DataTypes.DATE,
     allowNull: false    
     },
-    virtualLink:{
-        type: DataTypes.STRING(200),  
+    eventId:{
+      type:DataTypes.UUID, 
+      allowNull: false  
     }
 
     

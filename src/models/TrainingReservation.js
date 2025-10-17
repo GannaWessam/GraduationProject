@@ -1,8 +1,8 @@
 const { DataTypes, UUIDV4 } = require('sequelize');
-const Product = require('./Product');
+
 
 module.exports = (sequelize) => {
-  const reservation = sequelize.define('reservation', {
+  const trainingReservation = sequelize.define('trainingReservation', {
     reservationId: { 
       type: DataTypes.UUID, 
       primaryKey: true, 
@@ -13,29 +13,24 @@ module.exports = (sequelize) => {
         type:DataTypes.UUID, 
         allowNull: false 
     },
-    eventId:{
+    trainingId:{
         type:DataTypes.UUID, 
         allowNull: true 
-    },
-    courseId:{
-        type:DataTypes.UUID, 
-        allowNull: false 
     },
     type:{
         type: DataTypes.STRING(200), allowNull: false     
     },
-    status:{
+    reservationStatus:{
         type: DataTypes.STRING(200), allowNull: false   
     },
-    ProductType:{
-      type: DataTypes.ENUM('1','2','3','4'), 
-      allowNull: false   
-  }
+    trainigStatus:{
+      type: DataTypes.STRING(200), allowNull: false   
+  },
 
     
   }, {
-    tableName: 'reservation',
+    tableName: 'trainingReservation',
   });
 
-  return reservation;
+  return trainingReservation;
 };

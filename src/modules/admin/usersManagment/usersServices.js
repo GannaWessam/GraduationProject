@@ -26,6 +26,7 @@ const {
   formatStudentResponse,
   createStudentSuccessResponse,
 } = require("./helpers/responseHelper");
+const { sendNotificationToUser } = require("../../../Services/pushService");
 
 ///   Update status only method
 //msh h3ml create h3ml endpoint gdeda ala el register bs mbd'yan
@@ -206,6 +207,13 @@ const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||
   await student.save();
   
   WebSocket.notifyClients(student, "approvedStudent");
+
+  
+  const payload={
+    title:"Acceptance Message",
+    body:"Your data has been modified and now you can regiester your course or exam"
+  }
+  await sendNotificationToUser(userId,payload)
 
   return { message: "Student approved successfully", student };
 };

@@ -7,6 +7,7 @@ const universityCollegeRoutes = require("./modules/university-college/university
 const adminRoutes = require("./modules/admin/routes");
 const Department = require("./modules/Department/DepartmentRoute");
 const Nationality = require("./modules/nationality/NationalityRoute");
+const notifications=require('./modules/Notifications/NotificationRoutes')
 
 const { validateToken } = require("./middlewares/token");
 
@@ -20,4 +21,5 @@ router.use("/api/colleges", collegeRoutes);
 router.use("/api/university-colleges", universityCollegeRoutes);
 router.use("/api/Department", Department);
 router.use("/api/nationality", Nationality);
+router.use('/api/notifications', notifications);
 module.exports = router;

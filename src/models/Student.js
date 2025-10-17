@@ -39,7 +39,7 @@ module.exports = (sequelize) => {
       profilePhoto: { type: DataTypes.STRING(10000), allowNull: true },
       productId:{
         type: DataTypes.UUID,
-        allowNull: false,
+        allowNull: true,
       }
     },
     {

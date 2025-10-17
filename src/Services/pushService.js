@@ -2,6 +2,7 @@ const webpush = require('web-push');
 const sequelize = require('../connections/db');
 const SubscriptionModel = require('../models/Subscription');
 const Subscription = SubscriptionModel(sequelize);
+const {addNotification} = require('../modules/Notifications/helper/NotificationHelper');
 
 webpush.setVapidDetails(
   'mailto:your-email@example.com',
@@ -47,6 +48,10 @@ async function sendNotificationToUser(userId, payload) {
         console.error(`Push error for user ${userId}:`, err);
       }
     }
+  }
+
+  if(sentCount > 0){
+    addNotification(userId,payload);
   }
 
   return sentCount > 0

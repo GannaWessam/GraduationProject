@@ -184,4 +184,7 @@ course.hasMany(studentCourse, { foreignKey: 'courseId' });
 studentCourse.belongsTo(course, { foreignKey: 'courseId' });
 
 
+
+
+
 module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , trainingReservation , notification , resource, productCourse ,examReservation , studentCourse};

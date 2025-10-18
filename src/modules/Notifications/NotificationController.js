@@ -1,4 +1,6 @@
 const { saveSubscription, sendNotificationToUser, sendNotificationToUsers } = require('../../Services/pushService');
+const {getAllNotificationToUserService} = require('./NotificationService');
+const ApiResponse = require("../../Util/ApiResponse");
 
 exports.subscribeUser = async (req, res) => {
   try {
@@ -43,4 +45,10 @@ exports.sendToMultipleUsers = async (req, res) => {
     console.error('SendToMultipleUsers Error:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+};
+
+
+exports.getAllNotificationToUserController = async (req, res) => {
+  const result = await getAllNotificationToUserService(req.params.id);
+  return res.status(200).json(ApiResponse.success(result));
 };

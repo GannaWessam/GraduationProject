@@ -24,6 +24,17 @@ module.exports = (sequelize) => {
       allowNull: false, 
       defaultValue: 0 
     },
+    examStatus: { 
+      type: DataTypes.BOOLEAN, 
+      allowNull: true, 
+      defaultValue: true, 
+    },
+    trainingStatus: { 
+      type: DataTypes.BOOLEAN, 
+      allowNull: true, 
+      defaultValue: true, 
+    },
+
   }, {
     tableName: 'products',
   });

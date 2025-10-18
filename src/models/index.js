@@ -123,6 +123,10 @@ training.belongsTo(course, { foreignKey: 'courseId' });
 course.hasMany(exam, { foreignKey: 'courseId' });
 exam.belongsTo(course, { foreignKey: 'courseId' });
 
+// User ↔ Exam (supervisor relationship)
+User.hasMany(exam, { foreignKey: 'supervisorId', as: 'supervisedExams' });
+exam.belongsTo(User, { foreignKey: 'supervisorId', as: 'supervisor' });
+
 User.hasMany(notification, { foreignKey: 'userId' });
 notification.belongsTo(User, { foreignKey: 'userId' });
 
@@ -149,16 +153,16 @@ course.belongsToMany(User, {
 });
 
 
-event.hasMany(training, { foreignKey: 'eventId' });
+event.hasOne(training, { foreignKey: 'eventId' });
 training.belongsTo(event, { foreignKey: 'eventId' });
 
-event.hasMany(exam, { foreignKey: 'eventId' });
+event.hasOne(exam, { foreignKey: 'eventId' , });
 exam.belongsTo(event, { foreignKey: 'eventId' });
 
 
 // User ↔ ExamReservation
-User.hasMany(examReservation, { foreignKey: 'userId' });
-examReservation.belongsTo(User, { foreignKey: 'userId' });
+Student.hasMany(examReservation, { foreignKey: 'userId' });
+examReservation.belongsTo(Student, { foreignKey: 'userId' });
 
 // Exam ↔ ExamReservation
 exam.hasMany(examReservation, { foreignKey: 'examId' });
@@ -169,11 +173,11 @@ training.hasMany(trainingReservation, { foreignKey: 'trainingId' });
 trainingReservation.belongsTo(training, { foreignKey: 'trainingId' });
 
 // User ↔ TrainingReservation
-User.hasMany(trainingReservation, { foreignKey: 'userId' });
-trainingReservation.belongsTo(User, { foreignKey: 'userId' });
+Student.hasMany(trainingReservation, { foreignKey: 'userId' });
+trainingReservation.belongsTo(Student, { foreignKey: 'userId' });
 
-User.hasMany(studentCourse, { foreignKey: 'userId' });
-studentCourse.belongsTo(User, { foreignKey: 'userId' });
+Student.hasMany(studentCourse, { foreignKey: 'userId' });
+studentCourse.belongsTo(Student, { foreignKey: 'userId' });
 
 // Course ↔ StudentCourse
 course.hasMany(studentCourse, { foreignKey: 'courseId' });

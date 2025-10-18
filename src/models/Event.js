@@ -33,6 +33,9 @@ module.exports = (sequelize) => {
     },
     status: { type: DataTypes.STRING(200), allowNull: false },
 
+    //either course or training
+    type: {type: DataTypes.STRING(200), allowNull: false }
+
     
   }, {
     tableName: 'event',

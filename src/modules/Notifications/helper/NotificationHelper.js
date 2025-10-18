@@ -4,9 +4,9 @@ async function addNotification(userId , payload) {
 
     const{title , body} = payload;
 
-    const notification = await Department.creat({userId , name: title , description:body });
+    const res = await notification.create({userId , name: title , description:body });
 
-    return{notification}
+    return{res}
 
 }
 

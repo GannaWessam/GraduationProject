@@ -14,6 +14,10 @@ module.exports = (sequelize) => {
       Mobile: { type: DataTypes.STRING(200), allowNull: false },
       StudyLan: { type: DataTypes.STRING(200), allowNull: false },
       nationality: { type: DataTypes.STRING(100), allowNull: true },
+      QRdata: {
+        type: DataTypes.STRING(200),
+        allowNull: true,
+      },
       nationalId: {
         type: DataTypes.STRING(50),
         allowNull: false,
@@ -33,6 +37,10 @@ module.exports = (sequelize) => {
       type: { type: DataTypes.ENUM("1", "2", "3", "4"), allowNull: true },
       status: { type: DataTypes.STRING(200), allowNull: false }, // allowed values: approved | pending
       profilePhoto: { type: DataTypes.STRING(10000), allowNull: true },
+      productId:{
+        type: DataTypes.UUID,
+        allowNull: true,
+      }
     },
     {
       tableName: "students",

@@ -1,7 +1,9 @@
 const { Error } = require("sequelize");
-const { User, Student, sequelize } = require("../../../models");
+const { User, Student, sequelize ,Payment ,Product } = require("../../../models");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
+const WebSocket = require('../../../Services/WebSocket')
+
 const {
   updateIfChanged,
   preparePassword,
@@ -24,6 +26,7 @@ const {
   formatStudentResponse,
   createStudentSuccessResponse,
 } = require("./helpers/responseHelper");
+const { sendNotificationToUser } = require("../../../Services/pushService");
 
 ///   Update status only method
 //msh h3ml create h3ml endpoint gdeda ala el register bs mbd'yan
@@ -73,8 +76,45 @@ const getAllUsers = async (features) => {
   );
 };
 
+// const getAllUsersByStatus = async (status, features) => {
+//   const where = {...features.options.where};
+//   if (status) where.status = status;
+
+//   const { count, rows: students } = await Student.findAndCountAll({
+//     ...features.options,
+//     where,
+//     include: [
+//       {
+//         model: User,
+//         attributes: ["email"],include: [
+//           {
+//             model: Payment,
+//             attributes: ["amount", "status", "timestamp"],
+//             include: [
+//               {
+//                 model: Product,
+//                 attributes: ["courseName"], 
+//               },
+//             ],
+//           },
+//         ],
+        
+//       },
+//     ],
+//   });
+
+//   if (!students || students.length === 0) throw new Error("not_found");
+
+//   return PaginatedResponse.fromApiFeature(
+//     features,
+//     count,
+//     students,
+//     "Users fetched successfully"
+//   );
+// };
+
 const getAllUsersByStatus = async (status, features) => {
-  const where = {};
+  const where = { ...(features.options?.where || {}) };
   if (status) where.status = status;
 
   const { count, rows: students } = await Student.findAndCountAll({
@@ -84,11 +124,25 @@ const getAllUsersByStatus = async (status, features) => {
       {
         model: User,
         attributes: ["email"],
+        include: [
+          {
+            model: Payment,
+            as: "payments", // ✅ alias مطابق للعلاقة
+            attributes: ["amount", "status", "timestamp"],
+            include: [
+              {
+                model: Product,
+                as: "product", // ✅ alias مطابق للعلاقة
+                attributes: ["courseName"],
+              },
+            ],
+          },
+        ],
       },
     ],
   });
 
-  if (!students || students.length === 0) throw new Error("not_found");
+  if (!students?.length) throw new Error("not_found");
 
   return PaginatedResponse.fromApiFeature(
     features,
@@ -97,7 +151,6 @@ const getAllUsersByStatus = async (status, features) => {
     "Users fetched successfully"
   );
 };
-
 const deleteUserById = async (id) => {
   const deletedCount = await User.destroy({ where: { userId: id } });
   if (deletedCount) return deletedCount;
@@ -146,15 +199,26 @@ async function updateUser(userId, payload, idImage) {
   });
 }
 
-const approveStudentByUserId = async (userId) => {
+const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||  ysma3 m3 elnas elly msgla real time
   const student = await Student.findOne({ where: { userId } });
   if (!student) throw new Error("student_not_found");
 
-  student.status = "APPROVED";
+  student.status = "approved";
   await student.save();
+  
+  WebSocket.notifyClients(student, "approvedStudent");
+
+  
+  const payload={
+    title:"Acceptance Message",
+    body:"Your data has been modified and now you can regiester your course or exam"
+  }
+  await sendNotificationToUser(userId,payload)
 
   return { message: "Student approved successfully", student };
 };
+
+
 module.exports = {
   getAllUsers,
   getAllUsersByStatus,

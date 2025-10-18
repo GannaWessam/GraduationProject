@@ -68,14 +68,14 @@ const getAllTrainings = async (features) => {
     ...features.options,
     include: [
       { model: course, attributes: ['name'] },
-      { model: User, as: 'trainer', attributes: ['userId', 'email'] },
+      // { model: User, attributes: ['userId', 'email'] },
       { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
     ]
   });
 
-  if (!trainings || trainings.length === 0) {
-    throw new Error("no_trainings_found");
-  }
+  // if (!trainings || trainings.length === 0) {
+  //   throw new Error("no_trainings_found");
+  // }
 
   return PaginatedResponse.fromApiFeature(
     features,

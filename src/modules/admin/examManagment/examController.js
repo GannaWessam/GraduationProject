@@ -28,35 +28,7 @@ const getAllExams = async (req, res) => {
   res.status(200).json(ApiResponse.success(result));
 };
 
-// Get exams by course ID
-const getExamsByCourseId = async (req, res) => {
-  const { courseId } = req.params;
-  const features = new ApiFeature(req.query)
-    .filter()
-    .search()
-    .sort()
-    .pagination()
-    .selectedFields();
-  
-  const result = await examService.getExamsByCourseId(courseId, features);
-  res.status(200).json(ApiResponse.success(result));
-};
 
-// Get exams by supervisor ID
-const getExamsBySupervisorId = async (req, res) => {
-  const { supervisorId } = req.params;
-  const features = new ApiFeature(req.query)
-    .filter()
-    .search()
-    .sort()
-    .pagination()
-    .selectedFields();
-  
-  const result = await examService.getExamsBySupervisorId(supervisorId, features);
-  res.status(200).json(ApiResponse.success(result));
-};
-
-// Update exam by ID
 const updateExam = async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
@@ -65,14 +37,13 @@ const updateExam = async (req, res) => {
   res.status(200).json(ApiResponse.success(result, "Exam and linked event updated successfully"));
 };
 
-// Delete exam by ID
 const deleteExam = async (req, res) => {
   const { id } = req.params;
   const result = await examService.deleteExam(id);
   res.status(200).json(ApiResponse.success(result));
 };
 
-// Get exam reservations (users connected to exam)
+// Get exam reservations (students connected to exam)
 const getExamReservations = async (req, res) => {
   const { id } = req.params;
   const features = new ApiFeature(req.query)
@@ -86,7 +57,6 @@ const getExamReservations = async (req, res) => {
   res.status(200).json(ApiResponse.success(result));
 };
 
-// Get upcoming exams
 const getUpcomingExams = async (req, res) => {
   const features = new ApiFeature(req.query)
     .filter()
@@ -103,8 +73,6 @@ module.exports = {
   createExam,
   getExamById,
   getAllExams,
-  getExamsByCourseId,
-  getExamsBySupervisorId,
   updateExam,
   deleteExam,
   getUpcomingExams,

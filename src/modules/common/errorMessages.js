@@ -14,6 +14,20 @@ const errorMessages = {
   "invalid_pass":        { code: 401, msg: "بيانات تسجيل الدخول غير صحيحة" },
   "invalid_email":       { code: 401, msg: "بيانات تسجيل الدخول غير صحيحة" },
   "otp_invalid":         { code: 400, msg: "OTP غير صالح أو منتهي" },
+  "no_exams_found":      { code: 404, msg: "no_exams_found" },
+  "training_not_found":  { code: 404, msg: "training_not_found" },
+  "course_not_found":    { code: 404, msg: "course_not_found" },
+  "trainer_not_found":   { code: 404, msg: "trainer_not_found" },
+  "no_trainings_found":  { code: 404, msg: "no_trainings_found" },
+  "Event not found":     { code: 404, msg: "Event not found" },
+  "Failed to fetch event":  { code: 404, msg: "Failed to fetch event" },
+  "Invalid event type":  { code: 404, msg: "Invalid event type" },
+  "Training not found for this event":  { code: 404, msg: "Training not found for this event" },
+  "Exam not found for this event":  { code: 404, msg: "Exam not found for this event" },
+  "no_reservations_found_for_training":   { code: 404, msg: "no_reservations_found_for_training" },
+
+
+
 };
 
 module.exports = { errorMessages };

@@ -1,4 +1,4 @@
-const { Event, Exam, Training, Course, User } = require("../../../models");
+const { event, exam, training, course, User } = require("../../../models/index.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 
@@ -9,20 +9,20 @@ const getAllEvents = async (features) => {
     const queryOptions = {
       include: [
         {
-          model: Exam,
+          model: exam,
           as: 'exam',
           required: false, //lw ml'ahosh 3ady
           include: [
-            { model: Course, attributes: ['courseName'] },
+            { model: course, attributes: ['name'] },
             { model: User, as: 'supervisor', attributes: ['email'] }
           ]
         },
         {
-          model: Training,
+          model: training,
           as: 'training',
           required: false,
           include: [
-            { model: Course, attributes: ['courseName'] },
+            { model: course, attributes: ['name'] },
             { model: User, as: 'trainer', attributes: ['email'] }
           ]
         }
@@ -35,26 +35,68 @@ const getAllEvents = async (features) => {
     };
 
     // Execute the query
-    const { count, rows: events } = await Event.findAndCountAll(queryOptions);
+    const { count, rows: events } = await event.findAndCountAll(queryOptions);
 
-    // Create paginated response
-    const paginatedResponse = new PaginatedResponse(
-      events,
-      features.page,
-      features.limit,
-      count
+    return PaginatedResponse.fromApiFeature(
+      features,
+      count,
+      reservations,
+      "all events fetched successfully"
     );
-
-    return paginatedResponse;
   } catch (error) {
     throw new Error(`Failed to fetch events: ${error.message}`);
   }
 };
 
 // Get event by ID (both training and exam events)
-// const getEventById = async (eventId) => {
-  
-// };
+const getEventById = async (eventId) => {
+  try {
+    // First get the event to check its type
+    const event = await event.findByPk(eventId);
+    
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Check the event type and call the appropriate method
+    if (event.type === 'training') {
+      // Find the training associated with this event
+      const training = await training.findOne({ 
+        where: { eventId: eventId },
+        include: [
+          { model: course, attributes: ['name'] },
+          { model: User, as: 'trainer', attributes: ['email'] },
+          { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
+        ]
+      });
+      
+      if (!training) {
+        throw new Error("Training not found for this event");
+      }
+      
+      return training;
+    } else if (event.type === 'exam') {
+      // Find the exam associated with this event
+      const exam = await exam.findOne({ 
+        where: { eventId: eventId },
+        include: [
+          { model: course, attributes: ['name'] },
+          { model: User, as: 'supervisor', attributes: ['email'] },
+          { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
+        ]
+      });
+      
+      if (!exam) {
+        throw new Error("Exam not found for this event");
+      }
+      return exam;
+    } else {
+      throw new Error("Invalid event type");
+    }
+  } catch (error) {
+    throw new Error("Failed to fetch event");
+  }
+};
 
 
 module.exports = {

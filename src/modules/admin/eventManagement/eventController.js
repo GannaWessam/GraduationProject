@@ -22,9 +22,16 @@ const getEventById = async (req, res) => {
     res.status(200).json(ApiResponse.success(result, "Event retrieved successfully"));
 };
 
+const closeEventById = async (req, res) => {
+  const { eventId } = req.params;
+  const result = await eventsService.closeEventById(eventId);
+  res.status(200).json(ApiResponse.success(result));
+};
+
 
 
 module.exports = {
   getAllEvents,
   getEventById,
+  closeEventById,
 };

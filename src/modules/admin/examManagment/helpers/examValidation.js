@@ -13,27 +13,48 @@ const validateExamData = (examData) => {
     errors.push("Capacity is required");
   }
 
-  // Optional field validations
-  if (examData.place && examData.place.length > 200) {
-    errors.push("Place description cannot exceed 200 characters");
-  }
-
   return errors;
 };
 
-// Validate exam update data
-const validateExamUpdate = (updateData) => {
-  const errors = [];
+const validateUpdateEvent = (updateData) => {
+  if (
+    updateData.startDate ||
+    updateData.endDate ||
+    updateData.capacity ||
+    updateData.numberOfRegistered ||
+    updateData.status ||
+    updateData.type
+  ) 
+  {
+      const eventUpdateData = {};
   
-  // Validate place length if provided
-  if (updateData.place && updateData.place.length > 200) {
-    errors.push("Place description cannot exceed 200 characters");
-  }
+      if (updateData.startDate) eventUpdateData.startDate = updateData.startDate;
+      if (updateData.endDate) eventUpdateData.endDate = updateData.endDate;
+      if (updateData.capacity) eventUpdateData.capacity = updateData.capacity;
+      if (updateData.numberOfRegistered !== undefined)
+        eventUpdateData.numberOfRegistered = updateData.numberOfRegistered;
+      if (updateData.status) eventUpdateData.status = updateData.status;
+      if (updateData.type) eventUpdateData.type = updateData.type;
 
-  return errors;
-};
+      return eventUpdateData;
+    }
+    return null;
+  }
+  
+// // Validate exam update data
+// const validateExamUpdate = (updateData) => {
+//   const errors = [];
+  
+//   // Validate place length if provided
+//   if (updateData.place && updateData.place.length > 200) {
+//     errors.push("Place description cannot exceed 200 characters");
+//   }
+
+//   return errors;
+// };
 
 module.exports = {
   validateExamData,
-  validateExamUpdate
+  // validateExamUpdate,
+  validateUpdateEvent,
 };

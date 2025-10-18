@@ -15,14 +15,6 @@ module.exports = (sequelize) => {
       type:DataTypes.UUID, 
       allowNull: true 
     },
-    startDate:{
-    type: DataTypes.DATE,       
-    allowNull: false
-    },
-    endDate:{
-    type: DataTypes.DATE,
-    allowNull: false    
-    },
     eventId:{
       type:DataTypes.UUID, 
       allowNull: false  

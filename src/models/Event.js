@@ -31,6 +31,7 @@ module.exports = (sequelize) => {
         min: 0
         }
     },
+    // opend or closed only
     status: { type: DataTypes.STRING(200), allowNull: false },
 
     //either exam or training

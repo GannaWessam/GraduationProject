@@ -25,7 +25,6 @@ async function sendNotificationToUser(userId, payload) {
   if (subscriptions.length === 0) {
     return { success: false, message: `No subscription found for user ${userId}` };
   }
-
   let sentCount = 0;
   for (const sub of subscriptions) {
     try {

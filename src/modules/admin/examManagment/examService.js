@@ -60,7 +60,7 @@ const getExamById = async (examId) => {
 };
 
 const getAllExams = async (features) => {
-  const exams = await exam.findAll({
+  const {count, rows:exams} = await exam.findAndCountAll({
     ...features.options,
     include: [
       { model: course, attributes: ['name'] },
@@ -69,7 +69,7 @@ const getAllExams = async (features) => {
     ]
   });
 
-  if (!exams || exams.length === 0) {
+  if (!exams) {
     throw new Error("no_exams_found");
   }
 

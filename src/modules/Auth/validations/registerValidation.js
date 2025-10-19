@@ -41,7 +41,7 @@ const validateRequiredFields = (payload) => {
     throw new Error("missing_required_fields");
   }
 
-  if (!["1", "2"].includes(type)) throw new Error("type not valid");
+  if (!["1", "2","3","4"].includes(type)) throw new Error("type not valid");
 };
 
 const validateName = (name_ar) => {

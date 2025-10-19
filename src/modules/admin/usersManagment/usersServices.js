@@ -232,6 +232,35 @@ const getAllUserss = async () => {
 };
 
 
+
+async function updateStudentNationalId(userId, nationalId) {
+  if (!nationalId) throw new Error("nationalId_required");
+
+ 
+  // validateNationalId(nationalId);
+
+  return sequelize.transaction(async (t) => {
+    const student = await Student.findOne({ where: { userId }, transaction: t });
+    if (!student) throw new Error("student_not_found");
+
+    const updateData = { nationalId };
+   
+
+ 
+    const { updated, model: updatedStudent } = await updateIfChanged(student, updateData, t);
+
+    return {
+      updated,
+      student: updatedStudent,
+      message: "National ID updated successfully",
+    };
+  });
+}
+
+
+
+
+
 module.exports = {
   getAllUsers,
   getAllUsersByStatus,
@@ -240,5 +269,6 @@ module.exports = {
   updateUser,
   addAdmin,
   approveStudentByUserId,
-  getAllUserss
+  getAllUserss,
+  updateStudentNationalId
 };

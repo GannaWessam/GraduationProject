@@ -72,6 +72,21 @@ const getAllUserss = async (req, res) => {
     return res.status(500).json(ApiResponse.error("Failed to get users", error.message));
   }
 };
+
+const updateStudentNationalIdController = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { nationalId } = req.body;
+
+    const result = await userServices.updateStudentNationalId(userId, nationalId);
+
+    return res.status(200).json(ApiResponse.success(result));
+  } catch (error) {
+    console.error("Error updating national ID:", error);
+    return res.status(400).json(ApiResponse.error(error.message));
+  }
+};
+
 module.exports = {
     getAllUsers,
     getAllUsersByStatus,
@@ -80,5 +95,6 @@ module.exports = {
     updateUser,
     addAdmin,
     approveStudentByUserId,
-    getAllUserss
+    getAllUserss,
+    updateStudentNationalIdController
 }

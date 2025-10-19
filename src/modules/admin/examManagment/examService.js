@@ -27,7 +27,7 @@ const createExam = async (examData) => {
       capacity: examData.capacity,
       numberOfRegistered: 0,
       status: examData.status || "opend",
-      type:examData.type
+      type:"exam"
     };
 
     const eventt = await event.create(eventData, { transaction: t });

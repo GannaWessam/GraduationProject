@@ -14,6 +14,12 @@ router.post("/addAdmin",
   catchError(usersController.addAdmin)
 );
 
+router.put(
+  "/updateNationalId/:id",
+  validateToken,
+  catchError(usersController.updateStudentNationalIdController)
+);
+
 router.post(
   "/addUser",
   uploadSingleFile("nationalIdImage"),

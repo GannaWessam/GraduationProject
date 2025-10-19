@@ -1,7 +1,7 @@
 const { training, course, User, event, trainingReservation, sequelize } = require("../../../models/index.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
-
+const {validateUpdateEvent} = require("../examManagment/helpers/examValidation.js")
 
 const createTraining = async (trainingData) => {
   if (!trainingData.startDate || !trainingData.endDate) {
@@ -28,7 +28,7 @@ const createTraining = async (trainingData) => {
       endDate: trainingData.endDate,
       capacity: trainingData.capacity,
       numberOfRegistered: 0,
-      status: trainingData.status || 'opend',
+      status: 'opend',
       type: 'training'
     };
 
@@ -38,8 +38,6 @@ const createTraining = async (trainingData) => {
     const training = await training.create({
       courseId: trainingData.courseId,
       trainerId: trainingData.trainerId,
-      startDate: trainingData.startDate,
-      endDate: trainingData.endDate,
       eventId: event.eventId
     }, { transaction: t });
     
@@ -68,14 +66,14 @@ const getAllTrainings = async (features) => {
     ...features.options,
     include: [
       { model: course, attributes: ['name'] },
-      // { model: User, attributes: ['userId', 'email'] },
+      { model: User, as: 'trainer', attributes: ['userId', 'email'] },
       { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
     ]
   });
 
-  // if (!trainings || trainings.length === 0) {
-  //   throw new Error("no_trainings_found");
-  // }
+  if (!trainings) {
+    throw new Error("no_trainings_found");
+  }
 
   return PaginatedResponse.fromApiFeature(
     features,
@@ -116,16 +114,10 @@ const updateTraining = async (trainingId, updateData) => {
     await training.update(updateData, { transaction: t });
 
     // Update associated event if event data is provided
-    if (updateData.startDate || updateData.endDate || updateData.capacity || updateData.status) {
-      const eventUpdateData = {};
-      if (updateData.startDate) eventUpdateData.startDate = updateData.startDate;
-      if (updateData.endDate) eventUpdateData.endDate = updateData.endDate;
-      if (updateData.capacity) eventUpdateData.capacity = updateData.capacity;
-      if (updateData.status) eventUpdateData.status = updateData.status;
-
+    const eventData = validateUpdateEvent(updateData);
+    if (eventData) {
       await training.event.update(eventUpdateData, { transaction: t });
     }
-
     return { trainingId: training.trainingId };
   });
 };

@@ -40,7 +40,7 @@ const getAllEvents = async (features) => {
     return PaginatedResponse.fromApiFeature(
       features,
       count,
-      reservations,
+      events,
       "all events fetched successfully"
     );
   } catch (error) {
@@ -98,8 +98,20 @@ const getEventById = async (eventId) => {
   }
 };
 
+const closeEventById = async (eventId) => {
+    const eventInstance  = await event.findByPk(eventId);
+    if (!eventInstance ) {
+      throw new Error("Event not found");
+    }
+    eventInstance.status = "closed";
+    const updatedEvent = await eventInstance.save(); //=> offline update
+    if(updatedEvent)
+      return "event closed successfully"
+    throw new Error("Failed to close event");
+};
 
 module.exports = {
   getAllEvents,
   getEventById,
+  closeEventById,
 };

@@ -1,7 +1,7 @@
 const { exam, course, User, event, examReservation, sequelize, Student} = require("../../../models/index.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
-const { validateExamData, validateExamUpdate } = require("./helpers/examValidation");
+const { validateExamData, validateUpdateEvent } = require("./helpers/examValidation");
 
 // Create a new exam (which is also an event)
 const createExam = async (examData) => {
@@ -20,8 +20,8 @@ const createExam = async (examData) => {
     }
 
     const eventData = {
-      startDate: examData.date,
-      endDate: examData.endDate || examData.date, // If no end date, use start date
+      startDate: examData.startDate,
+      endDate: examData.endDate || examData.startDate, // If no end date, use start date
       capacity: examData.capacity,
       numberOfRegistered: 0,
       status: examData.status || 'opend'
@@ -83,12 +83,7 @@ const getAllExams = async (features) => {
 
 // Update exam by ID
 const updateExam = async (examId, updateData) => {
-  // Validate update data
-  const validationErrors = validateExamUpdate(updateData);
-  if (validationErrors.length > 0) {
-    throw new Error(`Validation failed: ${validationErrors.join(', ')}`);
-  }
-
+  
   return sequelize.transaction(async (t) => {
     const exam = await exam.findByPk(examId, { transaction: t });
     if (!exam) {
@@ -104,19 +99,15 @@ const updateExam = async (examId, updateData) => {
     }
 
     // Update the exam
-    await exam.update(updateData, { transaction: t });
+    await exam.update(updateData, { transaction: t }); //لو فيه columns مش حابة تتغير → ماتضيفيهاش في updateData.
 
-    // If date is being updated, also update the linked event
-    if (updateData.date) {
+    const eventData = validateUpdateEvent(updateData);
+    if (eventData) {
       const event = await event.findByPk(exam.eventId, { transaction: t });
       if (event) {
-        await event.update({
-          startDate: updateData.date,
-          endDate: updateData.endDate || updateData.date
-        }, { transaction: t });
+        await event.update(eventData, { transaction: t });
       }
     }
-
     // Return updated exam with associations
     const updatedExam = await exam.findByPk(examId, {
       include: [

@@ -1,40 +1,64 @@
 const { event, exam, training, course, User } = require("../../../models/index.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
+const { Op } = require("sequelize");
 
-// Get all events (both training and exam events) with filtering, searching, and pagination
+
 const getAllEvents = async (features) => {
   try {
-    // Build the base query with includes
-    const queryOptions = {
+    
+    const opts = { ...(features.options || {}) };
+
+    // base where is whatever ApiFeature produced for event fields (e.g. type, status, date, etc.)
+    const baseWhere = opts.where || {};
+
+    // handle courseId specially because courseId lives on exam/training, not on event
+    const courseIdFilter = baseWhere.courseId;
+    if (courseIdFilter) {
+      // remove it from top-level where so it doesn't try to match event.courseId
+      delete baseWhere.courseId;
+    }
+
+    // Build includes for exam and training with nested course/user includes
+    const examInclude = {
+      model: exam,
+      as: 'exam',
+      required: false,
       include: [
-        {
-          model: exam,
-          as: 'exam',
-          required: false, //lw ml'ahosh 3ady
-          include: [
-            { model: course, attributes: ['name'] },
-            { model: User, as: 'supervisor', attributes: ['email'] }
-          ]
-        },
-        {
-          model: training,
-          as: 'training',
-          required: false,
-          include: [
-            { model: course, attributes: ['name'] },
-            { model: User, as: 'trainer', attributes: ['email'] }
-          ]
-        }
-      ],
-      where: features.where,
-      order: features.order,
-      limit: features.limit,
-      offset: features.offset,
+        { model: course, attributes: ['name'] },
+        { model: User, as: 'supervisor', attributes: ['email'] }
+      ]
+    };
+
+    const trainingInclude = {
+      model: training,
+      as: 'training',
+      required: false,
+      include: [
+        { model: course, attributes: ['name'] },
+        { model: User, as: 'trainer', attributes: ['email'] }
+      ]
+    };
+
+    if (courseIdFilter) {
+      baseWhere[Op.or] = [
+        { ['$exam.courseId$']: courseIdFilter },
+        { ['$training.courseId$']: courseIdFilter }
+      ];
+
+    }
+
+ 
+    const queryOptions = {
+      include: [examInclude, trainingInclude],
+      where: baseWhere,
+      order: opts.order || [['createdAt', 'DESC']],
+      limit: opts.limit,
+      offset: opts.offset,
+      attributes: opts.attributes, 
       distinct: true
     };
 
-    // Execute the query
     const { count, rows: events } = await event.findAndCountAll(queryOptions);
 
     return PaginatedResponse.fromApiFeature(
@@ -48,20 +72,21 @@ const getAllEvents = async (features) => {
   }
 };
 
+
 // Get event by ID (both training and exam events)
 const getEventById = async (eventId) => {
   try {
     // First get the event to check its type
-    const event = await event.findByPk(eventId);
+    const eventt = await event.findByPk(eventId);
     
-    if (!event) {
+    if (!eventt) {
       throw new Error("Event not found");
     }
 
     // Check the event type and call the appropriate method
-    if (event.type === 'training') {
+    if (eventt.type === 'training') {
       // Find the training associated with this event
-      const training = await training.findOne({ 
+      const trainingg = await training.findOne({ 
         where: { eventId: eventId },
         include: [
           { model: course, attributes: ['name'] },
@@ -70,14 +95,14 @@ const getEventById = async (eventId) => {
         ]
       });
       
-      if (!training) {
+      if (!trainingg) {
         throw new Error("Training not found for this event");
       }
       
-      return training;
-    } else if (event.type === 'exam') {
+      return trainingg;
+    } else if (eventt.type === 'exam') {
       // Find the exam associated with this event
-      const exam = await exam.findOne({ 
+      const examm = await exam.findOne({ 
         where: { eventId: eventId },
         include: [
           { model: course, attributes: ['name'] },
@@ -86,10 +111,10 @@ const getEventById = async (eventId) => {
         ]
       });
       
-      if (!exam) {
+      if (!examm) {
         throw new Error("Exam not found for this event");
       }
-      return exam;
+      return examm;
     } else {
       throw new Error("Invalid event type");
     }

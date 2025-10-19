@@ -25,6 +25,13 @@ const errorMessages = {
   "Training not found for this event":  { code: 404, msg: "Training not found for this event" },
   "Exam not found for this event":  { code: 404, msg: "Exam not found for this event" },
   "no_reservations_found_for_training":   { code: 404, msg: "no_reservations_found_for_training" },
+  "exam_not_found":        { code: 404, msg: "Exam not found" },
+"training_not_found":    { code: 404, msg: "Training not found" },
+"event_not_found":       { code: 404, msg: "Event not found" },
+"event_closed":          { code: 400, msg: "Event is closed" },
+"invalid_event_type":    { code: 400, msg: "Invalid event type" },
+"already_registered":    { code: 409, msg: "User already registered for this event" },
+"event_full":            { code: 400, msg: "Event capacity is full" },
 
 
 

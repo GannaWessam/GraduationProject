@@ -219,6 +219,19 @@ const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||
 };
 
 
+const getAllUserss = async () => {
+  try {
+    const users = await User.findAll({
+      attributes: ["userId", "email", "role"], // select only relevant fields
+      order: [["createdAt", "DESC"]],
+    });
+    return users;
+  } catch (error) {
+    throw new Error("Failed to fetch users: " + error.message);
+  }
+};
+
+
 module.exports = {
   getAllUsers,
   getAllUsersByStatus,
@@ -227,4 +240,5 @@ module.exports = {
   updateUser,
   addAdmin,
   approveStudentByUserId,
+  getAllUserss
 };

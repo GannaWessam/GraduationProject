@@ -24,7 +24,7 @@ const getEventById = async (req, res) => {
 
 const closeEventById = async (req, res) => {
   const { eventId } = req.params;
-  const result = await eventsService.closeEventById(eventId);
+  const result = await eventService.closeEventById(eventId);
   res.status(200).json(ApiResponse.success(result));
 };
 

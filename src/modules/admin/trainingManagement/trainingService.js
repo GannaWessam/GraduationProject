@@ -11,8 +11,8 @@ const createTraining = async (trainingData) => {
   return sequelize.transaction(async (t) => {
     // Validate course exists *if provided*
     if (trainingData.courseId) {
-      const course = await course.findByPk(trainingData.courseId, { transaction: t });
-      if (!course) {
+      const coursee = await course.findByPk(trainingData.courseId, { transaction: t });
+      if (!coursee) {
         throw new Error("course_not_found");
       }
     }
@@ -32,21 +32,21 @@ const createTraining = async (trainingData) => {
       type: 'training'
     };
 
-    const event = await event.create(eventData, { transaction: t });
+    const eventt = await event.create(eventData, { transaction: t });
 
     // Create the training linked to the event
-    const training = await training.create({
+    const trainingg = await training.create({
       courseId: trainingData.courseId,
       trainerId: trainingData.trainerId,
-      eventId: event.eventId
+      eventId: eventt.dataValues.eventId
     }, { transaction: t });
     
-    return { trainingId: training.trainingId };
+    return { trainingId: trainingg.dataValues.trainingId };
   });
 };
 
 const getTrainingById = async (trainingId) => {
-  const training = await training.findByPk(trainingId, {
+  const trainingg = await training.findByPk(trainingId, {
     include: [
       { model: course, attributes: ['name'] },
       { model: User, as: 'trainer', attributes: ['email'] },
@@ -54,11 +54,11 @@ const getTrainingById = async (trainingId) => {
     ]
   });
 
-  if (!training) {
+  if (!trainingg) {
     throw new Error("training_not_found");
   }
 
-  return training;
+  return trainingg;
 };
 
 const getAllTrainings = async (features) => {
@@ -86,19 +86,19 @@ const getAllTrainings = async (features) => {
 
 const updateTraining = async (trainingId, updateData) => {
   return sequelize.transaction(async (t) => {
-    const training = await training.findByPk(trainingId, { 
+    const trainingg = await training.findByPk(trainingId, { 
       include: [{ model: event }],
       transaction: t 
     });
 
-    if (!training) {
+    if (!trainingg) {
       throw new Error("training_not_found");
     }
 
     // lw ba3t course id at'ked eno mwgod
     if (updateData.courseId) {
-      const course = await course.findByPk(updateData.courseId, { transaction: t });
-      if (!course) {
+      const coursee = await course.findByPk(updateData.courseId, { transaction: t });
+      if (!coursee) {
         throw new Error("course_not_found");
       }
     }
@@ -111,14 +111,14 @@ const updateTraining = async (trainingId, updateData) => {
       }
     }
 
-    await training.update(updateData, { transaction: t });
+    await trainingg.update(updateData, { transaction: t });
 
     // Update associated event if event data is provided
     const eventData = validateUpdateEvent(updateData);
     if (eventData) {
-      await training.event.update(eventUpdateData, { transaction: t });
+      await trainingg.event.update(eventData, { transaction: t });
     }
-    return { trainingId: training.trainingId };
+    return { trainingId: trainingg.trainingId };
   });
 };
 

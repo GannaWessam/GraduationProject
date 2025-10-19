@@ -1,4 +1,6 @@
+uploads
 node_modules/
-.env
 src/uploads
 reports
+.env
+

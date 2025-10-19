@@ -7,44 +7,54 @@ const { validateExamData, validateUpdateEvent } = require("./helpers/examValidat
 const createExam = async (examData) => {
   const validationErrors = validateExamData(examData);
   if (validationErrors.length > 0) {
-    throw new Error(`Validation failed: ${validationErrors.join(', ')}`);
+    throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
   }
 
   return sequelize.transaction(async (t) => {
     // Validate course exists *if provided*
     if (examData.courseId) {
-      const course = await course.findByPk(examData.courseId, { transaction: t });
-      if (!course) {
+      const coursee = await course.findByPk(examData.courseId, {
+        transaction: t,
+      });
+      if (!coursee) {
         throw new Error("course_not_found");
       }
     }
 
     const eventData = {
       startDate: examData.startDate,
-      endDate: examData.endDate || examData.startDate, // If no end date, use start date
+      endDate: examData.endDate || examData.startDate, 
       capacity: examData.capacity,
       numberOfRegistered: 0,
-      status: examData.status || 'opend'
+      status: examData.status || "opend",
+      type:examData.type
     };
 
-    const event = await event.create(eventData, { transaction: t });
+    const eventt = await event.create(eventData, { transaction: t });
+    // console.log("Event Created",eventt);
+    
+    console.log(eventt.dataValues.eventId);
+    
 
     // Create the exam linked to the event
-    const exam = await exam.create({
-      courseId: examData.courseId,
-      supervisorId: examData.supervisorId,
-      date: examData.date,
-      place: examData.place,
-      eventId: event.eventId
-    }, { transaction: t });
-    
+    const examm = await exam.create(
+      {
+        courseId: examData.courseId,
+        supervisorId: examData.supervisorId,
+        date: examData.date,
+        place: examData.place,
+        eventId: eventt.dataValues.eventId,
+      },
+      { transaction: t }
+    );
+
     // Return only the exam ID
-    return { examId: exam.examId };
+    return { examId: examm.examId };
   });
 };
 
 const getExamById = async (examId) => {
-  const exam = await exam.findByPk(examId, {
+  const examm = await exam.findByPk(examId, {
     include: [
       { model: course, attributes: ['name'] },
       { model: User, as: 'supervisor', attributes: ['email'] },
@@ -52,11 +62,11 @@ const getExamById = async (examId) => {
     ]
   });
 
-  if (!exam) {
+  if (!examm) {
     throw new Error("exam_not_found");
   }
 
-  return exam;
+  return examm;
 };
 
 const getAllExams = async (features) => {
@@ -85,27 +95,36 @@ const getAllExams = async (features) => {
 const updateExam = async (examId, updateData) => {
   
   return sequelize.transaction(async (t) => {
-    const exam = await exam.findByPk(examId, { transaction: t });
-    if (!exam) {
+    const examm = await exam.findByPk(examId, { transaction: t });
+    if (!examm) {
       throw new Error("exam_not_found");
     }
 
     // Validate course if being updated
     if (updateData.courseId) {
-      const course = await course.findByPk(updateData.courseId, { transaction: t });
-      if (!course) {
+      const coursee = await course.findByPk(updateData.courseId, { transaction: t });
+      if (!coursee) {
         throw new Error("course_not_found");
       }
     }
 
+     if (updateData.supervisorId) {
+      const supervisor = await User.findByPk(updateData.supervisorId, { transaction: t });
+      if (!supervisor) {
+        throw new Error("trainer_not_found");
+      }
+    }
+
+    
+
     // Update the exam
-    await exam.update(updateData, { transaction: t }); //لو فيه columns مش حابة تتغير → ماتضيفيهاش في updateData.
+    await examm.update(updateData, { transaction: t }); //لو فيه columns مش حابة تتغير → ماتضيفيهاش في updateData.
 
     const eventData = validateUpdateEvent(updateData);
     if (eventData) {
-      const event = await event.findByPk(exam.eventId, { transaction: t });
-      if (event) {
-        await event.update(eventData, { transaction: t });
+      const eventt = await event.findByPk(examm.eventId, { transaction: t });
+      if (eventt) {
+        await eventt.update(eventData, { transaction: t });
       }
     }
     // Return updated exam with associations

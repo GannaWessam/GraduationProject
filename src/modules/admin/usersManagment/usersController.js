@@ -63,6 +63,15 @@ const approveStudentByUserId = async (req, res) => {
   res.status(200).json(ApiResponse.success(result));
 };
 
+const getAllUserss = async (req, res) => {
+  try {
+    const users = await userServices.getAllUserss();
+    return res.status(200).json(ApiResponse.success("Users retrieved successfully", users));
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res.status(500).json(ApiResponse.error("Failed to get users", error.message));
+  }
+};
 module.exports = {
     getAllUsers,
     getAllUsersByStatus,
@@ -70,5 +79,6 @@ module.exports = {
     getUserById,
     updateUser,
     addAdmin,
-    approveStudentByUserId
+    approveStudentByUserId,
+    getAllUserss
 }

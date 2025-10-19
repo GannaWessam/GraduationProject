@@ -37,12 +37,12 @@ async function deleteCourse(req, res) {
 }
 
 
-
-
-
 async function getProductCoursesByIdController(req, res) {
     const id = req.userData.id;
+
+    
     const StudentData = await Student.findOne({where:{userId:id}});
+console.log(StudentData);
 
     const result = await CourseService.getProductCoursesById(StudentData.productId);
     return res.status(200).json(ApiResponse.success(result));

@@ -20,7 +20,16 @@ module.exports = (sequelize) => {
         allowNull: false,
     },
 
-    status: { type: DataTypes.STRING(200), allowNull: false },
+    examStatus: { 
+      type: DataTypes.STRING(200),
+      allowNull: true, 
+      
+    },
+    trainingStatus: { 
+      type: DataTypes.STRING(200),
+      allowNull: true, 
+      
+    },
 
     
   }, {

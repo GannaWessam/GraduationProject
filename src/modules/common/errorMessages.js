@@ -14,6 +14,27 @@ const errorMessages = {
   "invalid_pass":        { code: 401, msg: "بيانات تسجيل الدخول غير صحيحة" },
   "invalid_email":       { code: 401, msg: "بيانات تسجيل الدخول غير صحيحة" },
   "otp_invalid":         { code: 400, msg: "OTP غير صالح أو منتهي" },
+  "no_exams_found":      { code: 404, msg: "no_exams_found" },
+  "training_not_found":  { code: 404, msg: "training_not_found" },
+  "course_not_found":    { code: 404, msg: "course_not_found" },
+  "trainer_not_found":   { code: 404, msg: "trainer_not_found" },
+  "no_trainings_found":  { code: 404, msg: "no_trainings_found" },
+  "Event not found":     { code: 404, msg: "Event not found" },
+  "Failed to fetch event":  { code: 404, msg: "Failed to fetch event" },
+  "Invalid event type":  { code: 404, msg: "Invalid event type" },
+  "Training not found for this event":  { code: 404, msg: "Training not found for this event" },
+  "Exam not found for this event":  { code: 404, msg: "Exam not found for this event" },
+  "no_reservations_found_for_training":   { code: 404, msg: "no_reservations_found_for_training" },
+  "exam_not_found":        { code: 404, msg: "Exam not found" },
+"training_not_found":    { code: 404, msg: "Training not found" },
+"event_not_found":       { code: 404, msg: "Event not found" },
+"event_closed":          { code: 400, msg: "Event is closed" },
+"invalid_event_type":    { code: 400, msg: "Invalid event type" },
+"already_registered":    { code: 409, msg: "User already registered for this event" },
+"event_full":            { code: 400, msg: "Event capacity is full" },
+
+
+
 };
 
 module.exports = { errorMessages };

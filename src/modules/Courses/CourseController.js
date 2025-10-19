@@ -5,6 +5,41 @@ const { where } = require("sequelize");
 
 
 
+async function addCourse(req, res) {
+  const result = await CourseService.addCourse(req.body);
+  return res.status(201).json(ApiResponse.created(result));
+}
+
+async function getAllCoursesController(req, res) {
+  try {
+    const result = await CourseService.getAllCoursesService(req.query || {});
+    return res.status(200).json(ApiResponse.success(result));
+  } catch (err) {
+    return res
+      .status(500)
+      .json(ApiResponse.error(err.message || "Internal Server Error"));
+  }
+}
+
+async function getCourseById(req, res) {
+  const result = await CourseService.getCourseById(req.params.id);
+  return res.status(200).json(ApiResponse.success(result));
+}
+
+async function updateCourse(req, res) {
+  const result = await CourseService.updateCourse(req.params.id, req.body);
+  return res.status(200).json(ApiResponse.success(result));
+}
+
+async function deleteCourse(req, res) {
+  const result = await CourseService.deleteCourse(req.params.id);
+  return res.status(200).json(ApiResponse.success(result));
+}
+
+
+
+
+
 async function getProductCoursesByIdController(req, res) {
     const id = req.userData.id;
     const StudentData = await Student.findOne({where:{userId:id}});
@@ -36,5 +71,10 @@ async function chooseCoursesController(req, res) {
 
 module.exports = {
     getProductCoursesByIdController,
-    chooseCoursesController
+    chooseCoursesController,
+      addCourse,
+  getAllCoursesController,
+  getCourseById,
+  updateCourse,
+  deleteCourse,
 };

@@ -27,6 +27,37 @@ const findProduct = async (training_type, studentType) => {
 
   return product;
 };
+
+// const { Product, ProductAllowedUserType } = require("../../models");
+
+const findProductById = async (productId, studentType) => {
+  const product = await Product.findOne({
+    where: { productId },
+    include: [
+      {
+        model: ProductAllowedUserType,
+        as: "allowedUserTypes",
+        attributes: ["userType"],
+      },
+    ],
+  });
+
+  if (!product) {
+    throw new Error("Product not found");
+  }
+
+ 
+  const isAllowed = product.allowedUserTypes.some(
+    (p) => p.userType === studentType
+  );
+
+  if (!isAllowed) {
+    throw new Error("This user type is not allowed for the selected product");
+  }
+
+  return product;
+};
+
 const getUser = async (email) => {
   const user = await User.findOne({
     where: { email },
@@ -82,5 +113,6 @@ module.exports = {
   checkNationalIdExists,
   generateQr,
   getUser,
-  getUserFees
+  getUserFees,
+  findProductById
 };

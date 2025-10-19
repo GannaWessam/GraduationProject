@@ -22,8 +22,8 @@ const validateUpdateEvent = (updateData) => {
     updateData.endDate ||
     updateData.capacity ||
     updateData.numberOfRegistered ||
-    updateData.status ||
-    updateData.type
+    updateData.status 
+    // updateData.type
   ) 
   {
       const eventUpdateData = {};
@@ -34,7 +34,7 @@ const validateUpdateEvent = (updateData) => {
       if (updateData.numberOfRegistered !== undefined)
         eventUpdateData.numberOfRegistered = updateData.numberOfRegistered;
       if (updateData.status) eventUpdateData.status = updateData.status;
-      if (updateData.type) eventUpdateData.type = updateData.type;
+      // if (updateData.type) eventUpdateData.type = updateData.type;
 
       return eventUpdateData;
     }

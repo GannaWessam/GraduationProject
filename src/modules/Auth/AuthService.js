@@ -11,7 +11,7 @@ const {
   findStudentByNationalId,
   checkEmailExists,
   checkNationalIdExists, 
-  findProduct,
+  findProductById,
   generateQr,
   getUser,
   getUserFees
@@ -29,8 +29,303 @@ const {
   formatRegisterResponse,
   formatLoginResponse,
 } = require("./helpers/responseHelper");
-const { User, Student ,Payment } = require('../../models/index.js');
+const { User, Student ,Payment ,productCourse, studentCourse} = require('../../models/index.js');
 const { where } = require("sequelize");
+
+// async function registerUser(payload, idImage) {
+//   const {
+//     OCR,
+//     email,
+//     password,
+//     confirmPassword,
+//     name_ar,
+//     name_En,
+//     StudyLan,
+//     national_id,
+//     nationality,
+//     university,
+//     faculty,
+//     department,
+//     Mobile,
+//     ProductId,
+//     type,
+//     role = "STUDENT",
+//   } = payload;
+
+  
+//   validateRequiredFields(payload);
+//   validateName(name_ar);
+//   validatePassword(password, confirmPassword);
+//   validateNationalId(nationality, national_id);
+//   const res = await generateQr(name_ar , national_id);
+  
+//   console.log(res);
+  
+
+// let status ;
+// if(OCR === "true"){
+//   status = "active"
+// }else{
+//   status = "PENDING"
+// }
+// const product = await findProduct(training_type, type);
+
+// let productPrice ;
+
+// if(nationality === "Egypt"){
+//   productPrice = product.priceEgyptian
+// }else{
+//   productPrice = product.priceOther
+// }
+
+
+//   return sequelize.transaction(async (t) => {
+//     await checkEmailExists(email, t);
+//     await checkNationalIdExists(national_id, t);
+
+//     const hashedPassword = await hashPassword(password);
+
+//     const user = await User.create(
+//       { email, passwordHash: hashedPassword, role },
+//       { transaction: t }
+//     );
+
+//     const payment = await Payment.create(
+//       { userId:user.userId, productId:product.productId,status: "PENDING" ,amount:productPrice},
+//       { transaction: t }
+//     ); 
+
+//     const student = await Student.create(
+//       {
+//         type,
+//         fullName: name_ar,
+//         NameEn: name_En,
+//         StudyLan,
+//         Mobile,
+//         nationality,
+//         nationalId: national_id,
+//         university,
+//         college: faculty,
+//         department,
+//       nationalIdImage: idImage,
+//         courseType: training_type,
+//         userId: user.userId,
+//         status,
+//         profilePhoto:res
+//       },
+//       { transaction: t }
+//     );
+
+//     return formatRegisterResponse(user, student, product.price);
+//   });
+// }
+// const { sequelize, User, Student, Payment, Product, ProductAllowedUserType } = require("../../models");
+// const { validateRequiredFields, validateName, validatePassword, validateNationalId } = require("../../validators");
+// const { hashPassword } = require("../../helpers/hashHelper");
+// const { generateQr } = require("../../helpers/qrHelper");
+// const { checkEmailExists, checkNationalIdExists } = require("../../helpers/validationHelpers");
+// const ApiError = require("../../Util/ApiError");
+//!=====================================================------------------------------------------------------------------------------
+// async function registerUser(payload, idImage) {
+//   const {
+//     OCR,
+//     email,
+//     password,
+//     confirmPassword,
+//     name_ar,
+//     name_En,
+//     StudyLan,
+//     national_id,
+//     nationality,
+//     university,
+//     faculty,
+//     department,
+//     Mobile,
+//     ProductId,
+//     type,
+//     role = "STUDENT",
+//   } = payload;
+
+//   // ✅ Step 1: Validation
+//   validateRequiredFields(payload);
+//   validateName(name_ar);
+//   validatePassword(password, confirmPassword);
+//   validateNationalId(nationality, national_id);
+
+//   // ✅ Step 2: Generate QR
+//   const qrResult = await generateQr(name_ar, national_id);
+
+//   // ✅ Step 3: Determine student status
+//   const status = OCR === "true" ? "active" : "PENDING";
+
+//   // ✅ Step 4: Fetch product and validate allowed type
+//   const product = await findProductById(ProductId, type);
+
+//   // ✅ Step 5: Determine product price
+//   const productPrice =
+//     nationality === "Egypt" ? product.priceEgyptian : product.priceOther;
+
+//   // ✅ Step 6: Perform all DB actions in a transaction
+//   return sequelize.transaction(async (t) => {
+//     await checkEmailExists(email, t);
+//     await checkNationalIdExists(national_id, t);
+
+//     const hashedPassword = await hashPassword(password);
+
+//     // ✅ Create User
+//     const user = await User.create(
+//       { email, passwordHash: hashedPassword, role },
+//       { transaction: t }
+//     );
+
+//     // ✅ Create Payment
+//     await Payment.create(
+//       {
+//         userId: user.userId,
+//         productId: product.productId,
+//         status: "PENDING",
+//         amount: productPrice,
+//       },
+//       { transaction: t }
+//     );
+
+//     // ✅ Create Student
+//     const student = await Student.create(
+//       {
+//         userId: user.userId,
+//         type,
+//         fullName: name_ar,
+//         NameEn: name_En,
+//         StudyLan,
+//         Mobile,
+//         nationality,
+//         nationalId: national_id,
+//         university,
+//         college: faculty,
+//         department,
+//         nationalIdImage: idImage,
+//         status,
+//         productId: product.productId,
+//         profilePhoto: qrResult,
+//       },
+//       { transaction: t }
+//     );
+
+//     return {
+//       success: true,
+//       message: "Registration completed successfully",
+//       data: {
+//         user,
+//         student,
+//         product: {
+//           id: product.productId,
+//           name: product.courseName,
+//           price: productPrice,
+//         },
+//       },
+//     };
+//   });
+// }
+
+//!=====================================================------------------------------------------------------------------------------
+
+
+// async function registerUser(payload, idImage) {
+//   const {
+//     OCR,
+//     email,
+//     password,
+//     confirmPassword,
+//     name_ar,
+//     name_En,
+//     StudyLan,
+//     national_id,
+//     nationality,
+//     university,
+//     faculty,
+//     department,
+//     Mobile,
+//     ProductId,
+//     type,
+//     role = "STUDENT",
+//   } = payload;
+
+//   validateRequiredFields(payload);
+//   validateName(name_ar);
+//   validatePassword(password, confirmPassword);
+//   validateNationalId(nationality, national_id);
+
+//   const res = await generateQr(name_ar, national_id);
+
+//   let status = OCR === "true" ? "active" : "PENDING";
+//   const product = await findProductById(ProductId, type);
+
+//   const productPrice =
+//     nationality === "Egypt" ? product.priceEgyptian : product.priceOther;
+
+//   return sequelize.transaction(async (t) => {
+//     await checkEmailExists(email, t);
+//     await checkNationalIdExists(national_id, t);
+
+//     const hashedPassword = await hashPassword(password);
+
+//     const user = await User.create(
+//       { email, passwordHash: hashedPassword, role },
+//       { transaction: t }
+//     );
+
+//     const payment = await Payment.create(
+//       {
+//         userId: user.userId,
+//         productId: product.productId,
+//         status: "PENDING",
+//         amount: productPrice,
+//       },
+//       { transaction: t }
+//     );
+
+//     const student = await Student.create(
+//       {
+//         type,
+//         fullName: name_ar,
+//         NameEn: name_En,
+//         StudyLan,
+//         Mobile,
+//         nationality,
+//         nationalId: national_id,
+//         university,
+//         college: faculty,
+//         department,
+//         nationalIdImage: idImage,
+//         productId: product.productId, // ✅ optional but recommended
+//         userId: user.userId,
+//         status,
+//         profilePhoto: res,
+//       },
+//       { transaction: t }
+//     );
+
+//     // ✅ NEW PART: assign courses automatically
+//     const productCourses = await productCourse.findAll({
+//       where: { productId: product.productId },
+//       transaction: t,
+//     });
+
+//     if (productCourses.length > 0) {
+//       const studentCourses = productCourses.map((pc) => ({
+//         userId: user.userId,
+//         courseId: pc.courseId,
+//         examStatus: "PENDING",
+//         trainingStatus: "PENDING",
+//       }));
+
+//       await studentCourse.bulkCreate(studentCourses, { transaction: t });
+//     }
+
+//     return formatRegisterResponse(user, student, productPrice);
+//   });
+// }
+//!=====================================================------------------------------------------------------------------------------
 
 async function registerUser(payload, idImage) {
   const {
@@ -47,56 +342,58 @@ async function registerUser(payload, idImage) {
     faculty,
     department,
     Mobile,
-    training_type,
+    ProductId,
     type,
     role = "STUDENT",
   } = payload;
 
-  
+  // ✅ Step 1: Validation
   validateRequiredFields(payload);
   validateName(name_ar);
   validatePassword(password, confirmPassword);
   validateNationalId(nationality, national_id);
-  const res = await generateQr(name_ar , national_id);
-  
-  console.log(res);
-  
 
-let status ;
-if(OCR === "true"){
-  status = "active"
-}else{
-  status = "PENDING"
-}
-const product = await findProduct(training_type, type);
+  // ✅ Step 2: Generate QR
+  const qrResult = await generateQr(name_ar, national_id);
 
-let productPrice ;
+  // ✅ Step 3: Determine student status
+  const status = OCR === "true" ? "active" : "PENDING";
 
-if(nationality === "Egypt"){
-  productPrice = product.priceEgyptian
-}else{
-  productPrice = product.priceOther
-}
+  // ✅ Step 4: Fetch product and validate allowed type
+  const product = await findProductById(ProductId, type);
 
+  // ✅ Step 5: Determine product price
+  const productPrice =
+    nationality === "Egypt" ? product.priceEgyptian : product.priceOther;
 
+  // ✅ Step 6: Perform all DB actions in a transaction
   return sequelize.transaction(async (t) => {
     await checkEmailExists(email, t);
     await checkNationalIdExists(national_id, t);
 
     const hashedPassword = await hashPassword(password);
 
+    // ✅ Create User
     const user = await User.create(
       { email, passwordHash: hashedPassword, role },
       { transaction: t }
     );
 
-    const payment = await Payment.create(
-      { userId:user.userId, productId:product.productId,status: "PENDING" ,amount:productPrice},
+    // ✅ Create Payment
+    await Payment.create(
+      {
+        userId: user.userId,
+        productId: product.productId,
+        status: "PENDING",
+        amount: productPrice,
+      },
       { transaction: t }
-    ); 
+    );
 
+    // ✅ Create Student
     const student = await Student.create(
       {
+        userId: user.userId,
         type,
         fullName: name_ar,
         NameEn: name_En,
@@ -107,18 +404,51 @@ if(nationality === "Egypt"){
         university,
         college: faculty,
         department,
-      nationalIdImage: idImage,
-        courseType: training_type,
-        userId: user.userId,
+        nationalIdImage: idImage,
         status,
-        profilePhoto:res
+        productId: product.productId,
+        profilePhoto: qrResult,
       },
       { transaction: t }
     );
 
-    return formatRegisterResponse(user, student, product.price);
+    // ✅ Assign all courses from productCourse
+    const productCourses = await productCourse.findAll({
+      where: { productId: product.productId },
+      transaction: t,
+    });
+
+    let assignedCourses = [];
+    if (productCourses.length > 0) {
+      const studentCourses = productCourses.map((pc) => ({
+        userId: user.userId,
+        courseId: pc.courseId,
+        examStatus: "PENDING",
+        trainingStatus: "PENDING",
+      }));
+
+      const createdCourses = await studentCourse.bulkCreate(studentCourses, { transaction: t });
+      assignedCourses = createdCourses.map((c) => c.courseId);
+    }
+
+    // ✅ Return the formatted response
+    return {
+      success: true,
+      message: "Registration completed successfully",
+      data: {
+        user,
+        student,
+        product: {
+          id: product.productId,
+          name: product.courseName,
+          price: productPrice,
+        },
+        assignedCourses, // ✅ Array of course IDs assigned to student
+      },
+    };
   });
 }
+
 
 async function loginUser(email, password) {
   const user = await findUserByEmail(email);

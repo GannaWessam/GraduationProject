@@ -191,6 +191,18 @@ async function updateUser(userId, payload, idImage) {
         t
       );
 
+      const message={
+        title:"Data Modified",
+        body:"Your data has been modified plase go to your profile to check it"
+      }
+      const translation={
+        title: "تم تعديل البيانات",
+        body: "تم تعديل بياناتك، يرجى الذهاب إلى ملفك الشخصي للتحقق منها",
+        type:"Edit"
+      }
+      await sendNotificationToUser(userId,message,translation)
+      
+
     return createStudentSuccessResponse(
       updatedStudent,
       updatedUser,
@@ -213,7 +225,12 @@ const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||
     title:"Acceptance Message",
     body:"Your data has been modified and now you can regiester your course or exam"
   }
-  await sendNotificationToUser(userId,payload)
+  const translation={
+    title: "رسالة القبول",
+    body: "تم تعديل بياناتك، ويمكنك الآن تسجيل دورتك أو امتحانك",
+    type:"Accept"
+  }
+  await sendNotificationToUser(userId,payload,translation)
 
   return { message: "Student approved successfully", student };
 };
@@ -248,6 +265,17 @@ async function updateStudentNationalId(userId, nationalId) {
 
  
     const { updated, model: updatedStudent } = await updateIfChanged(student, updateData, t);
+    
+    const payload={
+      title:"Data Modified",
+      body:"Your data has been modified plase go to your profile to check it"
+    }
+    const translation={
+      title: "تم تعديل البيانات",
+      body: "تم تعديل بياناتك، يرجى الذهاب إلى ملفك الشخصي للتحقق منها",
+      type:"Edit"
+    }
+    await sendNotificationToUser(userId,payload,translation)
 
     return {
       updated,

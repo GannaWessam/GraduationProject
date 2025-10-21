@@ -192,14 +192,15 @@ async function updateUser(userId, payload, idImage) {
       );
 
       const message={
-        title:"Data Modified",
+        title:"Update personal data",
         body:"Your data has been modified plase go to your profile to check it"
       }
       const translation={
-        title: "تم تعديل البيانات",
+        title: "تحديث البيانات الشخصية",
         body: "تم تعديل بياناتك، يرجى الذهاب إلى ملفك الشخصي للتحقق منها",
         type:"Edit"
       }
+      WebSocket.notifyClients("update","message")
       await sendNotificationToUser(userId,message,translation)
       
 
@@ -227,10 +228,11 @@ const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||
   }
   const translation={
     title: "رسالة القبول",
-    body: "تم تعديل بياناتك، ويمكنك الآن تسجيل دورتك أو امتحانك",
+    body: "تم قبول بياناتك، ويمكنك الآن تسجيل دورتك أو امتحانك",
     type:"Accept"
   }
   await sendNotificationToUser(userId,payload,translation)
+  WebSocket.notifyClients("update","message")
 
   return { message: "Student approved successfully", student };
 };
@@ -267,16 +269,16 @@ async function updateStudentNationalId(userId, nationalId) {
     const { updated, model: updatedStudent } = await updateIfChanged(student, updateData, t);
     
     const payload={
-      title:"Data Modified",
-      body:"Your data has been modified plase go to your profile to check it"
+      title:"Update national ID",
+      body:"Your national id has been modified plase go to your profile to check it"
     }
     const translation={
-      title: "تم تعديل البيانات",
-      body: "تم تعديل بياناتك، يرجى الذهاب إلى ملفك الشخصي للتحقق منها",
+      title: "تحديث رقم الهوية",
+      body: "تم تعديل رقم الهوية الوطنية الخاص بك، يرجى الذهاب إلى ملفك الشخصي للتحقق منه",      
       type:"Edit"
     }
     await sendNotificationToUser(userId,payload,translation)
-
+    WebSocket.notifyClients("update","message")
     return {
       updated,
       student: updatedStudent,

@@ -1,75 +1,85 @@
-const { Exam, Course, User, Event, ExamReservation, sequelize } = require("../../../models");
+const { exam, course, User, event, examReservation, sequelize, Student} = require("../../../models/index.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
-const { validateExamData, validateExamUpdate } = require("./helpers/examValidation");
+const { validateExamData, validateUpdateEvent } = require("./helpers/examValidation");
 
 // Create a new exam (which is also an event)
 const createExam = async (examData) => {
   const validationErrors = validateExamData(examData);
   if (validationErrors.length > 0) {
-    throw new Error(`Validation failed: ${validationErrors.join(', ')}`);
+    throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
   }
 
   return sequelize.transaction(async (t) => {
     // Validate course exists *if provided*
     if (examData.courseId) {
-      const course = await Course.findByPk(examData.courseId, { transaction: t });
-      if (!course) {
+      const coursee = await course.findByPk(examData.courseId, {
+        transaction: t,
+      });
+      if (!coursee) {
         throw new Error("course_not_found");
       }
     }
 
     const eventData = {
-      startDate: examData.date,
-      endDate: examData.endDate || examData.date, // If no end date, use start date
+      startDate: examData.startDate,
+      endDate: examData.endDate || examData.startDate, 
       capacity: examData.capacity,
       numberOfRegistered: 0,
-      status: examData.status || 'scheduled'
+      status: examData.status || "opend",
+      type:"exam"
     };
 
-    const event = await Event.create(eventData, { transaction: t });
+    const eventt = await event.create(eventData, { transaction: t });
+    // console.log("Event Created",eventt);
+    
+    console.log(eventt.dataValues.eventId);
+    
 
     // Create the exam linked to the event
-    const exam = await Exam.create({
-      courseId: examData.courseId,
-      supervisorId: examData.supervisorId,
-      date: examData.date,
-      place: examData.place,
-      eventId: event.eventId
-    }, { transaction: t });
-    
+    const examm = await exam.create(
+      {
+        courseId: examData.courseId,
+        supervisorId: examData.supervisorId,
+        date: examData.date,
+        place: examData.place,
+        eventId: eventt.dataValues.eventId,
+      },
+      { transaction: t }
+    );
+
     // Return only the exam ID
-    return { examId: exam.examId };
+    return { examId: examm.examId };
   });
 };
 
 const getExamById = async (examId) => {
-  const exam = await Exam.findByPk(examId, {
+  const examm = await exam.findByPk(examId, {
     include: [
-      { model: Course, attributes: ['courseName'] },
+      { model: course, attributes: ['name'] },
       { model: User, as: 'supervisor', attributes: ['email'] },
-      { model: Event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
+      { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
     ]
   });
 
-  if (!exam) {
+  if (!examm) {
     throw new Error("exam_not_found");
   }
 
-  return exam;
+  return examm;
 };
 
 const getAllExams = async (features) => {
-  const { count, rows: exams } = await Exam.findAndCountAll({
+  const {count, rows:exams} = await exam.findAndCountAll({
     ...features.options,
     include: [
-      { model: Course, attributes: ['courseName'] },
+      { model: course, attributes: ['name'] },
       { model: User, as: 'supervisor', attributes: ['userId', 'email'] },
-      { model: Event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
+      { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
     ]
   });
 
-  if (!exams || exams.length === 0) {
+  if (!exams) {
     throw new Error("no_exams_found");
   }
 
@@ -81,102 +91,48 @@ const getAllExams = async (features) => {
   );
 };
 
-// Get exams by course ID
-const getExamsByCourseId = async (courseId, features) => {
-  const where = { ...(features.options?.where || {}) };
-  where.courseId = courseId;
-
-  const { count, rows: exams } = await Exam.findAndCountAll({
-    ...features.options,
-    where,
-    include: [
-      { model: Course, attributes: ['courseId', 'courseName'] },
-      { model: User, as: 'supervisor', attributes: ['userId', 'email'] },
-      { model: Event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
-    ]
-  });
-
-  if (!exams || exams.length === 0) {
-    throw new Error("no_exams_found_for_course");
-  }
-
-  return PaginatedResponse.fromApiFeature(
-    features,
-    count,
-    exams,
-    "Course exams fetched successfully"
-  );
-};
-
-// Get exams by supervisor ID
-const getExamsBySupervisorId = async (supervisorId, features) => {
-  const where = { ...(features.options?.where || {}) };
-  where.supervisorId = supervisorId;
-
-  const { count, rows: exams } = await Exam.findAndCountAll({
-    ...features.options,
-    where,
-    include: [
-      { model: Course, attributes: ['courseId', 'courseName'] },
-      { model: User, as: 'supervisor', attributes: ['userId', 'email'] },
-      { model: Event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
-    ]
-  });
-
-  if (!exams || exams.length === 0) {
-    throw new Error("no_exams_found_for_supervisor");
-  }
-
-  return PaginatedResponse.fromApiFeature(
-    features,
-    count,
-    exams,
-    "Supervisor exams fetched successfully"
-  );
-};
-
 // Update exam by ID
 const updateExam = async (examId, updateData) => {
-  // Validate update data
-  const validationErrors = validateExamUpdate(updateData);
-  if (validationErrors.length > 0) {
-    throw new Error(`Validation failed: ${validationErrors.join(', ')}`);
-  }
-
+  
   return sequelize.transaction(async (t) => {
-    const exam = await Exam.findByPk(examId, { transaction: t });
-    if (!exam) {
+    const examm = await exam.findByPk(examId, { transaction: t });
+    if (!examm) {
       throw new Error("exam_not_found");
     }
 
     // Validate course if being updated
     if (updateData.courseId) {
-      const course = await Course.findByPk(updateData.courseId, { transaction: t });
-      if (!course) {
+      const coursee = await course.findByPk(updateData.courseId, { transaction: t });
+      if (!coursee) {
         throw new Error("course_not_found");
       }
     }
 
-    // Update the exam
-    await exam.update(updateData, { transaction: t });
-
-    // If date is being updated, also update the linked event
-    if (updateData.date) {
-      const event = await Event.findByPk(exam.eventId, { transaction: t });
-      if (event) {
-        await event.update({
-          startDate: updateData.date,
-          endDate: updateData.endDate || updateData.date
-        }, { transaction: t });
+     if (updateData.supervisorId) {
+      const supervisor = await User.findByPk(updateData.supervisorId, { transaction: t });
+      if (!supervisor) {
+        throw new Error("trainer_not_found");
       }
     }
 
+    
+
+    // Update the exam
+    await examm.update(updateData, { transaction: t }); //لو فيه columns مش حابة تتغير → ماتضيفيهاش في updateData.
+
+    const eventData = validateUpdateEvent(updateData);
+    if (eventData) {
+      const eventt = await event.findByPk(examm.eventId, { transaction: t });
+      if (eventt) {
+        await eventt.update(eventData, { transaction: t });
+      }
+    }
     // Return updated exam with associations
-    const updatedExam = await Exam.findByPk(examId, {
+    const updatedExam = await exam.findByPk(examId, {
       include: [
-        { model: Course, attributes: ['courseId', 'courseName'] },
+        { model: course, attributes: ['name'] },
         { model: User, as: 'supervisor', attributes: ['userId', 'email'] },
-        { model: Event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
+        { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
       ],
       transaction: t
     });
@@ -188,17 +144,17 @@ const updateExam = async (examId, updateData) => {
 // Delete exam by ID (also deletes the linked event)
 const deleteExam = async (examId) => {
   return sequelize.transaction(async (t) => {
-    const exam = await Exam.findByPk(examId, { transaction: t });
+    const exam = await exam.findByPk(examId, { transaction: t });
     if (!exam) {
       throw new Error("exam_not_found");
     }
 
     // Delete the exam first
-    await Exam.destroy({ where: { examId }, transaction: t });
+    await exam.destroy({ where: { examId }, transaction: t });
     
     // Delete the linked event
     if (exam.eventId) {
-      await Event.destroy({ where: { eventId: exam.eventId }, transaction: t });
+      await event.destroy({ where: { eventId: exam.eventId }, transaction: t });
     }
 
     return { message: "Exam and linked event deleted successfully" };
@@ -212,13 +168,13 @@ const getUpcomingExams = async (features) => {
     [sequelize.Op.gte]: new Date()
   };
 
-  const { count, rows: exams } = await Exam.findAndCountAll({
+  const { count, rows: exams } = await exam.findAndCountAll({
     ...features.options,
     where,
     include: [
-      { model: Course, attributes: ['courseId', 'courseName'] },
+      { model: course, attributes: ['name'] },
       { model: User, as: 'supervisor', attributes: ['userId', 'email'] },
-      { model: Event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
+      { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
     ],
     order: [['date', 'ASC']]
   });
@@ -238,12 +194,12 @@ const getUpcomingExams = async (features) => {
 // Get exam reservations (Students connected to exam through ExamReservation)
 // todo
 const getExamReservations = async (examId, features) => {
-  const { count, rows: reservations } = await ExamReservation.findAndCountAll({
+  const { count, rows: reservations } = await examReservation.findAndCountAll({
     ...features.options,
     where: { examId },
     include: [
       { model: Student, attributes: ['userId', 'email'] },///todo : n7ot elly 3ayzeno
-      { model: Exam, attributes: ['examId', 'date', 'place'] }
+      { model: exam, attributes: ['examId', 'date', 'place'] }
     ]
   });
 
@@ -263,8 +219,6 @@ module.exports = {
   createExam,
   getExamById,
   getAllExams,
-  getExamsByCourseId,
-  getExamsBySupervisorId,
   updateExam,
   deleteExam,
   getUpcomingExams,

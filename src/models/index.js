@@ -129,6 +129,9 @@ exam.belongsTo(course, { foreignKey: 'courseId' });
 User.hasMany(exam, { foreignKey: 'supervisorId', as: 'supervisedExams' });
 exam.belongsTo(User, { foreignKey: 'supervisorId', as: 'supervisor' });
 
+User.hasMany(training, { foreignKey: 'trainerId', as: 'trainings' });
+training.belongsTo(User, { foreignKey: 'trainerId', as: 'trainer' });
+
 User.hasMany(notification, { foreignKey: 'userId' });
 notification.belongsTo(User, { foreignKey: 'userId' });
 

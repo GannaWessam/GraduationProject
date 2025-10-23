@@ -191,6 +191,19 @@ async function updateUser(userId, payload, idImage) {
         t
       );
 
+      const message={
+        title:"Update personal data",
+        body:"Your data has been modified plase go to your profile to check it"
+      }
+      const translation={
+        title: "تحديث البيانات الشخصية",
+        body: "تم تعديل بياناتك، يرجى الذهاب إلى ملفك الشخصي للتحقق منها",
+        type:"Edit"
+      }
+      WebSocket.notifyClients("update","message")
+      await sendNotificationToUser(userId,message,translation)
+      
+
     return createStudentSuccessResponse(
       updatedStudent,
       updatedUser,
@@ -213,10 +226,69 @@ const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||
     title:"Acceptance Message",
     body:"Your data has been modified and now you can regiester your course or exam"
   }
-  await sendNotificationToUser(userId,payload)
+  const translation={
+    title: "رسالة القبول",
+    body: "تم قبول بياناتك، ويمكنك الآن تسجيل دورتك أو امتحانك",
+    type:"Accept"
+  }
+  await sendNotificationToUser(userId,payload,translation)
+  WebSocket.notifyClients("update","message")
 
   return { message: "Student approved successfully", student };
 };
+
+
+const getAllUserss = async () => {
+  try {
+    const users = await User.findAll({
+      attributes: ["userId", "email", "role"], // select only relevant fields
+      order: [["createdAt", "DESC"]],
+    });
+    return users;
+  } catch (error) {
+    throw new Error("Failed to fetch users: " + error.message);
+  }
+};
+
+
+
+async function updateStudentNationalId(userId, nationalId) {
+  if (!nationalId) throw new Error("nationalId_required");
+
+ 
+  // validateNationalId(nationalId);
+
+  return sequelize.transaction(async (t) => {
+    const student = await Student.findOne({ where: { userId }, transaction: t });
+    if (!student) throw new Error("student_not_found");
+
+    const updateData = { nationalId };
+   
+
+ 
+    const { updated, model: updatedStudent } = await updateIfChanged(student, updateData, t);
+    
+    const payload={
+      title:"Update national ID",
+      body:"Your national id has been modified plase go to your profile to check it"
+    }
+    const translation={
+      title: "تحديث رقم الهوية",
+      body: "تم تعديل رقم الهوية الوطنية الخاص بك، يرجى الذهاب إلى ملفك الشخصي للتحقق منه",      
+      type:"Edit"
+    }
+    await sendNotificationToUser(userId,payload,translation)
+    WebSocket.notifyClients("update","message")
+    return {
+      updated,
+      student: updatedStudent,
+      message: "National ID updated successfully",
+    };
+  });
+}
+
+
+
 
 
 module.exports = {
@@ -227,4 +299,6 @@ module.exports = {
   updateUser,
   addAdmin,
   approveStudentByUserId,
+  getAllUserss,
+  updateStudentNationalId
 };

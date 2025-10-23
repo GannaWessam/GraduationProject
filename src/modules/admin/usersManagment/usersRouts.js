@@ -6,9 +6,18 @@ const { uploadSingleFile } = require("../../../fileUpload");
 const { validateToken } = require("../../../middlewares/token");
 const catchError = require("../../../middlewares/catchError");
 
+
+router.get("/getUsers", usersController.getAllUserss);
+
 // Add new user (with file upload)
 router.post("/addAdmin",
   catchError(usersController.addAdmin)
+);
+
+router.put(
+  "/updateNationalId/:id",
+  validateToken,
+  catchError(usersController.updateStudentNationalIdController)
 );
 
 router.post(
@@ -56,4 +65,6 @@ router.put(
   catchError(usersController.approveStudentByUserId)
 );
 
+
+router.get("/get", usersController.getAllUserss);
 module.exports = router;    

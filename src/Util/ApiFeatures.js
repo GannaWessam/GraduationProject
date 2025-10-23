@@ -94,22 +94,34 @@ class ApiFeature {
   }
 
   search() {
-    if (this.searchQuery.search) {
-      const searchFields = this.searchQuery.searchFields
-        ? this.searchQuery.searchFields.split(",")
-        : [];
+  if (this.searchQuery.search) {
+    const searchFields = this.searchQuery.searchFields
+      ? this.searchQuery.searchFields.split(",")
+      : [];
 
-      if (searchFields.length > 0) {
-        this.options.where = {
-          ...this.options.where,
-          [Op.or]: searchFields.map((field) => ({
+    if (searchFields.length > 0) {
+      const orConditions = searchFields.map((field) => {
+        if (field.includes(".")) {
+          return {
+            [`$${field}$`]: { [Op.iLike]: `%${this.searchQuery.search}%` },
+          };
+        } else {
+          return {
             [field]: { [Op.iLike]: `%${this.searchQuery.search}%` },
-          })),
-        };
-      }
+          };
+        }
+      });
+
+      this.options.where = {
+        ...this.options.where,
+        [Op.or]: orConditions,
+      };
     }
-    return this;
   }
+
+  return this;
+}
+
 }
 
 

@@ -34,6 +34,10 @@ module.exports = (sequelize) => {
       allowNull: true, 
       defaultValue: true, 
     },
+    requirdCourses: { 
+      type: DataTypes.INTEGER, 
+      allowNull: true,  
+    },
 
   }, {
     tableName: 'products',

@@ -22,6 +22,7 @@ const studentCourse= require('./StudentCourse')(sequelize);
 const examReservation= require('./ExamReservation')(sequelize);
 const package= require('./Packages')(sequelize);
 const packageCourse= require('./PackageCourse')(sequelize);
+const reservation= require('./Reservation')(sequelize);
 
 
 User.hasMany(Payment, {
@@ -205,7 +206,56 @@ course.belongsToMany(package, {
 });
 
 
+//  package -> event
+package.hasMany(event, {
+  foreignKey: 'packageId',
+  onDelete: 'SET NULL'
+});
+
+event.belongsTo(package, {
+  foreignKey: 'packageId'
+});
+
+//  product -> event
+Product.hasMany(event, {
+  foreignKey: 'productId',
+  onDelete: 'SET NULL'
+});
+
+event.belongsTo(Product, {
+  foreignKey: 'productId'
+});
+
+
+//  Student -> Reservations
+Student.hasMany(reservation, {
+  foreignKey: 'userId',
+  onDelete: 'CASCADE'
+});
+reservation.belongsTo(Student, { foreignKey: 'userId' });
+
+//  Event -> Reservations
+event.hasMany(reservation, {
+  foreignKey: 'eventId',
+  onDelete: 'CASCADE'
+});
+reservation.belongsTo(event, { foreignKey: 'eventId' });
+
+//  Reservation -> ExamReservation
+reservation.hasOne(examReservation, {
+  foreignKey: 'reservationId',
+  onDelete: 'SET NULL'
+});
+examReservation.belongsTo(reservation, { foreignKey: 'reservationId' });
+
+//  Reservation -> TrainReservation
+reservation.hasOne(trainingReservation, {
+  foreignKey: 'reservationId',
+  onDelete: 'SET NULL'
+});
+trainingReservation.belongsTo(reservation, { foreignKey: 'reservationId' });
 
 
 
-module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , trainingReservation , notification , resource, productCourse ,examReservation , studentCourse ,packageCourse ,package};
+
+module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , trainingReservation , notification , resource, productCourse ,examReservation , studentCourse ,packageCourse ,package ,reservation};

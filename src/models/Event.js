@@ -7,6 +7,18 @@ module.exports = (sequelize) => {
       primaryKey: true, 
       defaultValue: UUIDV4 
     },
+    eventName: { 
+      type: DataTypes.STRING(200), 
+      allowNull: false 
+    },
+    packageId:{
+      type: DataTypes.UUID,       
+      allowNull: true
+    },
+    productId:{
+      type: DataTypes.UUID,       
+      allowNull: false
+    },
     startDate:{
       type: DataTypes.DATE,       
       allowNull: false

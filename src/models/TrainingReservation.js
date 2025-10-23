@@ -3,10 +3,14 @@ const { DataTypes, UUIDV4 } = require('sequelize');
 
 module.exports = (sequelize) => {
   const trainingReservation = sequelize.define('trainingReservation', {
-    reservationId: { 
+    trainingReservationId: { 
       type: DataTypes.UUID, 
       primaryKey: true, 
       defaultValue: UUIDV4 
+    },
+
+    reservationId: { 
+      type: DataTypes.UUID,  
     },
 
     userId: { 

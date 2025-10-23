@@ -21,6 +21,8 @@ module.exports = (sequelize) => {
         allowNull: false,
     },
 
+    status: { type: DataTypes.STRING(200), allowNull: false },
+
     
   }, {
     tableName: 'productCourse',

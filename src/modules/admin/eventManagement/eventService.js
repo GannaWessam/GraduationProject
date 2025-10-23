@@ -59,5 +59,5 @@ const getAllEvents = async (features) => {
 
 module.exports = {
   getAllEvents,
-  getEventById,
+  
 };

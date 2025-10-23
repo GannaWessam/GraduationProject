@@ -8,10 +8,18 @@ module.exports = (sequelize) => {
       defaultValue: UUIDV4 
     },
     startDate:{
+      type: DataTypes.DATE,       
+      allowNull: false
+    },
+      endDate:{
+      type: DataTypes.DATE,
+      allowNull: false    
+    },
+    startDateRes:{
     type: DataTypes.DATE,       
     allowNull: false
     },
-    endDate:{
+    endDateRes:{
     type: DataTypes.DATE,
     allowNull: false    
     },

@@ -1,10 +1,12 @@
+const { concatLang } = require("../../../Helpers/langHelper");
 const {notification} = require("../../../models");
 
-async function addNotification(userId , payload) {
+async function addNotification(userId , payload,translation) {
 
     const{title , body} = payload;
-
-    const res = await notification.create({userId , name: title , description:body });
+    const {title:t,body:b,type}=translation
+    
+    const res = await notification.create({userId , name: concatLang(title,t) , description:concatLang(body,b),type:type});
 
     return{res}
 

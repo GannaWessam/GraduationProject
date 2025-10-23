@@ -56,13 +56,13 @@ async function registerUser(payload, idImage) {
   validateRequiredFields(payload);
   validateName(name_ar);
   validatePassword(password, confirmPassword);
-  validateNationalId(nationality, national_id);
+  // validateNationalId(nationality, national_id);
 
   // ✅ Step 2: Generate QR
   const qrResult = await generateQr(name_ar, national_id);
 
   // ✅ Step 3: Determine student status
-  const status = OCR === "true" ? "active" : "PENDING";
+  const status = OCR === "true" ? "approved" : "pending";
 
   // ✅ Step 4: Fetch product and validate allowed type
   const product = await findProductById(ProductId, type);

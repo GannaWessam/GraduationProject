@@ -20,7 +20,7 @@ async function saveSubscription(userId, subscription) {
   });
 }
 
-async function sendNotificationToUser(userId, payload) {
+async function sendNotificationToUser(userId, payload,translation) {
   const subscriptions = await Subscription.findAll({ where: { userId } });
   if (subscriptions.length === 0) {
     return { success: false, message: `No subscription found for user ${userId}` };
@@ -50,7 +50,7 @@ async function sendNotificationToUser(userId, payload) {
   }
 
   if(sentCount > 0){
-    addNotification(userId,payload);
+    addNotification(userId,payload,translation);
   }
 
   return sentCount > 0

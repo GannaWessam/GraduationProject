@@ -137,6 +137,7 @@ const closeEventById = async (eventId) => {
 
 module.exports = {
   getAllEvents,
+  
   getEventById,
   closeEventById,
 };

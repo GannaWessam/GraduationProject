@@ -1,7 +1,11 @@
+const { request } = require("express");
 const { exam, course, User, event, examReservation, sequelize, Student} = require("../../../models/index.js");
+const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { validateExamData, validateUpdateEvent } = require("./helpers/examValidation");
+const { getEligibleUserIdsForEvent } = require("./helpers/sendNotification.js");
+const ws = require('../../../Services/WebSocket')
 
 // Create a new exam (which is also an event)
 const createExam = async (examData) => {
@@ -47,6 +51,11 @@ const createExam = async (examData) => {
       },
       { transaction: t }
     );
+     const userIds = await getEligibleUserIdsForEvent(eventt.dataValues.eventId);
+  if (userIds.length === 0) return { message: "No eligible users found" };
+
+  const results = await sendNotificationToUsers(userIds, payload);
+  ws.notifyClients("new event has been opend", "newEvent");
 
     // Return only the exam ID
     return { examId: examm.examId };

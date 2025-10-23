@@ -4,6 +4,7 @@ const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const WebSocket = require('../../../Services/WebSocket')
 
+
 const {
   updateIfChanged,
   preparePassword,
@@ -190,6 +191,14 @@ async function updateUser(userId, payload, idImage) {
         buildStudentUpdateData(payload, idImage, qr),
         t
       );
+      const payload2={
+          title:"updated Message",
+          body:"Your data has been modified"
+        }
+
+      await sendNotificationToUser(userId,payload2)
+      WebSocket.notifyClients("user has been updated", "updateUser");
+      
 
     return createStudentSuccessResponse(
       updatedStudent,
@@ -248,6 +257,15 @@ async function updateStudentNationalId(userId, nationalId) {
 
  
     const { updated, model: updatedStudent } = await updateIfChanged(student, updateData, t);
+
+    const payload={
+          title:"updated Message",
+          body:"Your NationalId has been modified"
+        }
+
+      await sendNotificationToUser(userId,payload)
+      WebSocket.notifyClients("NI has been updated", "NIUpdate");
+
 
     return {
       updated,

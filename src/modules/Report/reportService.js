@@ -31,7 +31,7 @@ async function generateArabicReport(reqQuery) {
       fixArabic("الاسم"),
       fixArabic("الرقم القومي"),
       fixArabic("الهاتف"),
-      fixArabic("اسم الكورس"),
+      // fixArabic("اسم الكورس"),
     ],
     rows: records.map((r) => {
       const bookingDate = r.timestamp ? r.timestamp.toISOString().split("T")[0] : "";

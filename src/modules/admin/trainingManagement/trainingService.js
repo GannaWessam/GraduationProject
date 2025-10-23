@@ -1,7 +1,11 @@
 const { training, course, User, event, trainingReservation, sequelize } = require("../../../models/index.js");
+const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
-const {validateUpdateEvent} = require("../examManagment/helpers/examValidation.js")
+const {validateUpdateEvent} = require("../examManagment/helpers/examValidation.js");
+const { getEligibleUserIdsForEvent } = require("../examManagment/helpers/sendNotification.js");
+const ws = require('../../../Services/WebSocket')
+
 
 const createTraining = async (trainingData) => {
   if (!trainingData.startDate || !trainingData.endDate) {
@@ -41,6 +45,13 @@ const createTraining = async (trainingData) => {
       eventId: eventt.dataValues.eventId
     }, { transaction: t });
     
+      const userIds = await getEligibleUserIdsForEvent(eventt.dataValues.eventId);
+  if (userIds.length === 0) return { message: "No eligible users found" };
+
+  const results = await sendNotificationToUsers(userIds, payload);
+  await sendNotificationToUser(userId,payload)
+  ws.notifyClients("new event has been opend", "newEvent");
+  
     return { trainingId: trainingg.dataValues.trainingId };
   });
 };

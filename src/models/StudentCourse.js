@@ -19,7 +19,7 @@ module.exports = (sequelize) => {
         type: DataTypes.UUID, 
         allowNull: false,
     },
-
+    //null | pending | done 
     examStatus: { 
       type: DataTypes.STRING(200),
       allowNull: true, 

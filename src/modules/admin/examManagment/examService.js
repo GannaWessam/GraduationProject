@@ -14,7 +14,7 @@ const createExam = async (examData) => {
   if(examData.packageId)
     await createExamPackage(examData)
   else if(examData.courseId)
-    await createOneExam(examData)
+    await createOneExam(examData,true)
   else throw new Error("packageId or courseId is required");
 }
 
@@ -22,13 +22,15 @@ const createExamPackage = async (examData) => {
   const pkg = await packageService.getPackageById(examData.packageId)
   if(!pkg)
     throw new Error("package_not_found")
+  let createNewEventDespiteTheSameData = true;
   for (let i = 0; i < pkg.courses.length; i++) {
     examData.courseId = pkg.courses[i].courseId;     
-    await createOneExam(examData);
+    await createOneExam(examData, createNewEventDespiteTheSameData);
+    createNewEventDespiteTheSameData = false;
   }
 }
 
-const createOneExam = async (examData) => {
+const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
   const validationErrors = validateExamData(examData);
   if (validationErrors.length > 0) {
     throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
@@ -59,7 +61,12 @@ const createOneExam = async (examData) => {
       type:"exam"
     };
 
-    const eventt = await event.create(eventData, { transaction: t });
+    let eventt;
+    if(createNewEventDespiteTheSameData){ 
+      eventt = await event.create(eventData, { transaction: t })
+    }else{
+      eventt = await event.findOne({where : eventData, transaction: t})
+    }
     // console.log("Event Created",eventt);
     if(!eventt)
       throw new Error("///////////////////////////////")

@@ -6,13 +6,14 @@ const {validateUpdateEvent} = require("../examManagment/helpers/examValidation.j
 const { getEligibleUserIdsForEvent } = require("../examManagment/helpers/sendNotification.js");
 const ws = require('../../../Services/WebSocket')
 const packageService = require("../../admin/packageManagement/packageService.js");
+const { where } = require("sequelize");
 
 
 const createTraining = async (trainingData) => {
   if(trainingData.packageId)
     await createTrainingPackage(trainingData)
   else if(trainingData.courseId)
-    await createOneTraining(trainingData)
+    await createOneTraining(trainingData,true)
   else throw new Error("packageId or courseId is required");
 }
 
@@ -20,12 +21,14 @@ const createTrainingPackage = async (trainingData) => {
   const pkg = await packageService.getPackageById(trainingData.packageId)
   if(!pkg)
     throw new Error("package_not_found")
+  let createNewEventDespiteTheSameData = true;
   for (let i = 0; i < pkg.courses.length; i++) {
-    trainingData.courseId = pkg.courses[i].courseId;     
-    await createOneTraining(trainingData);
+    trainingData.courseId = pkg.courses[i].courseId;   
+    await createOneTraining(trainingData, createNewEventDespiteTheSameData);
+    createNewEventDespiteTheSameData = false;
   }
 }
-const createOneTraining = async (trainingData) => {
+const createOneTraining = async (trainingData,createNewEventDespiteTheSameData) => {
   if (!trainingData.startDate || !trainingData.endDate) {
     throw new Error("startDate and endDate are required");
   }
@@ -58,9 +61,12 @@ const createOneTraining = async (trainingData) => {
       status: 'opend',
       type: 'training'
     };
-
-    const eventt = await event.create(eventData, { transaction: t });
-
+    let eventt;
+    if(createNewEventDespiteTheSameData){ 
+      eventt = await event.create(eventData, { transaction: t })
+    }else{
+      eventt = await event.findOne({where : eventData, transaction: t})
+    }
     // Create the training linked to the event
     const trainingg = await training.create({
       courseId: trainingData.courseId,

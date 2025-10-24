@@ -35,7 +35,9 @@ const errorMessages = {
 "course_id_is_null" :    { code: 400, msg: "course id is null package must have at least one cours"},
 "product_id_is_null":    { code: 400, msg: "product id is null package must belong to at least one product"},
 "package_not_found" :    { code: 404, msg: "package_not_found"},
-"packageId or courseId is required" : {code: 400, msg:"You must send either packageId or courseId"}
+"packageId or courseId is required" : {code: 400, msg:"You must send either packageId or courseId"},
+"there is alraedy training with the same name" : {code: 400, msg:"there is alraedy training with the same name"},
+"there is alraedy exam with the same name" : {code: 400, msg:"there is alraedy exam with the same name"},
 
 
 };

@@ -63,6 +63,13 @@ const createOneTraining = async (trainingData,createNewEventDespiteTheSameData) 
     };
     let eventt;
     if(createNewEventDespiteTheSameData){ 
+      eventt = await event.findOne({
+        where :  {
+        eventName: trainingData.eventName,
+        type: "training",
+      }, transaction: t})
+      if(eventt)
+        throw new Error("there is alraedy training with the same name")
       eventt = await event.create(eventData, { transaction: t })
     }else{
       eventt = await event.findOne({where : eventData, transaction: t})

@@ -6,7 +6,7 @@ const ApiResponse = require("../../../Util/ApiResponse");
 const packageController = {
   async create(req, res) {
       const pkg = await packageService.createPackage(req.body);
-      res.status(201).jsonApiResponse.success((pkg));
+      res.status(201).json(ApiResponse.success(pkg));
   },
 
   async getAll(req, res) {

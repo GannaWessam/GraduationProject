@@ -7,10 +7,10 @@ module.exports = (sequelize) => {
       primaryKey: true, 
       defaultValue: UUIDV4 
     },
-    productId: { 
-      type:DataTypes.UUID, 
-      allowNull: false 
-    },
+    // productId: { 
+    //   type:DataTypes.UUID, 
+    //   allowNull: false 
+    // },
     packageName:{
         type: DataTypes.STRING(200),  
     },

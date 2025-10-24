@@ -5,16 +5,36 @@ const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { validateExamData, validateUpdateEvent } = require("./helpers/examValidation");
 const { getEligibleUserIdsForEvent } = require("./helpers/sendNotification.js");
-const ws = require('../../../Services/WebSocket')
+const ws = require('../../../Services/WebSocket');
+const packageService = require("../../admin/packageManagement/packageService.js");
 
 // Create a new exam (which is also an event)
+
 const createExam = async (examData) => {
+  if(examData.packageId)
+    await createExamPackage(examData)
+  else if(examData.courseId)
+    await createOneExam(examData)
+  else throw new Error("packageId or courseId is required");
+}
+
+const createExamPackage = async (examData) => {
+  const pkg = await packageService.getPackageById(examData.packageId)
+  if(!pkg)
+    throw new Error("package_not_found")
+  for (let i = 0; i < pkg.courses.length; i++) {
+    examData.courseId = pkg.courses[i].courseId;     
+    await createOneExam(examData);
+  }
+}
+
+const createOneExam = async (examData) => {
   const validationErrors = validateExamData(examData);
   if (validationErrors.length > 0) {
     throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
   }
-
-  return sequelize.transaction(async (t) => {
+  
+  const {eventt, examm}= await sequelize.transaction(async (t) => {
     // Validate course exists *if provided*
     if (examData.courseId) {
       const coursee = await course.findByPk(examData.courseId, {
@@ -30,18 +50,27 @@ const createExam = async (examData) => {
       endDate: examData.endDate || examData.startDate, 
       capacity: examData.capacity,
       numberOfRegistered: 0,
+      eventName: examData.eventName,
+      packageId: examData.packageId, // موجود فعلاً عندك
+      productId: examData.productId || null, // لازم يكون موجود في جدول product
+      startDateRes: examData.startDateRes,
+      endDateRes: examData.endDateRes,
       status: examData.status || "opend",
       type:"exam"
     };
 
     const eventt = await event.create(eventData, { transaction: t });
     // console.log("Event Created",eventt);
-    
-    console.log(eventt.dataValues.eventId);
+    if(!eventt)
+      throw new Error("///////////////////////////////")
+    console.log("\n\n\n\n\n");
+    console.log(eventt);
+    console.log("\n\n\n\n\n");
+
     
 
     // Create the exam linked to the event
-    const examm = await exam.create(
+     const examm = await exam.create(
       {
         courseId: examData.courseId,
         supervisorId: examData.supervisorId,
@@ -51,15 +80,17 @@ const createExam = async (examData) => {
       },
       { transaction: t }
     );
-     const userIds = await getEligibleUserIdsForEvent(eventt.dataValues.eventId);
-  if (userIds.length === 0) return { message: "No eligible users found" };
-
-  const results = await sendNotificationToUsers(userIds, payload);
-  ws.notifyClients("new event has been opend", "newEvent");
-
     // Return only the exam ID
-    return { examId: examm.examId };
+    return { eventt, examm};
   });
+  // const userIds = await getEligibleUserIdsForEvent(eventt.dataValues.eventId);
+  // if (userIds.length === 0) return { message: "No eligible users found" };
+
+  // const results = await sendNotificationToUsers(userIds, payload);
+  await ws.notifyClients("new event has been opend", "newEvent");
+
+  return { examId: examm.examId };
+
 };
 
 const getExamById = async (examId) => {

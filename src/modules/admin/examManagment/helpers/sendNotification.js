@@ -1,4 +1,4 @@
-const { studentCourse, training, exam, event } = require('../../../../models/index'); // adjust path
+const { studentCourse, training, exam, event, sequelize } = require('../../../../models/index'); // adjust path
 
 async function getEligibleUserIdsForEvent(eventId) {
 

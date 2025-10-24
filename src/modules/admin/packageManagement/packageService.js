@@ -60,7 +60,7 @@ const packageService = {
     const pkg = await Package.findByPk(packageId, {
       include: [
         { model: Product, through: { attributes: [] } },
-        { model: Course, through: { attributes: [] } },
+        { model: Course, through: { attributes: [] } }, //ht7otly array of courses
       ],
     });
     if (!pkg) throw new Error("package_not_found");

@@ -1,5 +1,4 @@
 const { sequelize, event, examReservation, trainingReservation, exam, training } = require("../../../models");
-
 const registerForExam = async (userId, examId) => {
   return sequelize.transaction(async (t) => {
     const examObj = await exam.findByPk(examId, { transaction: t });

@@ -4,6 +4,7 @@ const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const WebSocket = require('../../../Services/WebSocket')
 
+
 const {
   updateIfChanged,
   preparePassword,
@@ -200,7 +201,7 @@ async function updateUser(userId, payload, idImage) {
         body: "تم تعديل بياناتك، يرجى الذهاب إلى ملفك الشخصي للتحقق منها",
         type:"Edit"
       }
-      WebSocket.notifyClients("update","message")
+      WebSocket.notifyClients("message",userId)
       await sendNotificationToUser(userId,message,translation)
       
 
@@ -232,7 +233,7 @@ const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||
     type:"Accept"
   }
   await sendNotificationToUser(userId,payload,translation)
-  WebSocket.notifyClients("update","message")
+  WebSocket.notifyClients("message",userId)
 
   return { message: "Student approved successfully", student };
 };
@@ -278,7 +279,7 @@ async function updateStudentNationalId(userId, nationalId) {
       type:"Edit"
     }
     await sendNotificationToUser(userId,payload,translation)
-    WebSocket.notifyClients("update","message")
+    WebSocket.notifyClients("message",userId)
     return {
       updated,
       student: updatedStudent,

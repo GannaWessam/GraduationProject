@@ -1,9 +1,34 @@
 const { training, course, User, event, trainingReservation, sequelize } = require("../../../models/index.js");
+const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
-const {validateUpdateEvent} = require("../examManagment/helpers/examValidation.js")
+const {validateUpdateEvent} = require("../examManagment/helpers/examValidation.js");
+const { getEligibleUserIdsForEvent } = require("../examManagment/helpers/sendNotification.js");
+const ws = require('../../../Services/WebSocket')
+const packageService = require("../../admin/packageManagement/packageService.js");
+const { where } = require("sequelize");
+
 
 const createTraining = async (trainingData) => {
+  if(trainingData.packageId)
+    await createTrainingPackage(trainingData)
+  else if(trainingData.courseId)
+    await createOneTraining(trainingData,true)
+  else throw new Error("packageId or courseId is required");
+}
+
+const createTrainingPackage = async (trainingData) => {
+  const pkg = await packageService.getPackageById(trainingData.packageId)
+  if(!pkg)
+    throw new Error("package_not_found")
+  let createNewEventDespiteTheSameData = true;
+  for (let i = 0; i < pkg.courses.length; i++) {
+    trainingData.courseId = pkg.courses[i].courseId;   
+    await createOneTraining(trainingData, createNewEventDespiteTheSameData);
+    createNewEventDespiteTheSameData = false;
+  }
+}
+const createOneTraining = async (trainingData,createNewEventDespiteTheSameData) => {
   if (!trainingData.startDate || !trainingData.endDate) {
     throw new Error("startDate and endDate are required");
   }
@@ -28,12 +53,27 @@ const createTraining = async (trainingData) => {
       endDate: trainingData.endDate,
       capacity: trainingData.capacity,
       numberOfRegistered: 0,
+      eventName: trainingData.eventName,
+      packageId: trainingData.packageId, // 3ady lw mb3tosh - by allow null
+      productId: trainingData.productId || null, // لازم يكون موجود في جدول product
+      startDateRes: trainingData.startDateRes,
+      endDateRes: trainingData.endDateRes,
       status: 'opend',
       type: 'training'
     };
-
-    const eventt = await event.create(eventData, { transaction: t });
-
+    let eventt;
+    if(createNewEventDespiteTheSameData){ 
+      eventt = await event.findOne({
+        where :  {
+        eventName: trainingData.eventName,
+        type: "training",
+      }, transaction: t})
+      if(eventt)
+        throw new Error("there is alraedy training with the same name")
+      eventt = await event.create(eventData, { transaction: t })
+    }else{
+      eventt = await event.findOne({where : eventData, transaction: t})
+    }
     // Create the training linked to the event
     const trainingg = await training.create({
       courseId: trainingData.courseId,
@@ -41,6 +81,13 @@ const createTraining = async (trainingData) => {
       eventId: eventt.dataValues.eventId
     }, { transaction: t });
     
+  //   const userIds = await getEligibleUserIdsForEvent(eventt.dataValues.eventId);
+  // if (userIds.length === 0) return { message: "No eligible users found" };
+
+  // const results = await sendNotificationToUsers(userIds, payload);
+  // await sendNotificationToUser(userId,payload)
+  ws.notifyClients("new event has been opend", "newEvent");
+  
     return { trainingId: trainingg.dataValues.trainingId };
   });
 };

@@ -1,4 +1,5 @@
 const { DataTypes, UUIDV4 } = require('sequelize');
+ 
 
 module.exports = (sequelize) => {
   const course = sequelize.define('course', {

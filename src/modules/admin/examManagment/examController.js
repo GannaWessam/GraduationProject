@@ -4,6 +4,8 @@ const ApiResponse = require("../../../Util/ApiResponse");
 
 // Create a new exam (creates both exam and event)
 const createExam = async (req, res) => {
+  // const examData = req.body.examData;
+  // const packageId = req.body.packageId;
   const result = await examService.createExam(req.body);
   res.status(201).json(ApiResponse.success(result, "Exam and event created successfully"));
 };

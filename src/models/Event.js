@@ -17,7 +17,7 @@ module.exports = (sequelize) => {
     },
     productId:{
       type: DataTypes.UUID,       
-      allowNull: false
+      allowNull: true
     },
     startDate:{
       type: DataTypes.DATE,       

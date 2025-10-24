@@ -12,12 +12,22 @@ webpush.setVapidDetails(
 
 async function saveSubscription(userId, subscription) {
   const { endpoint, keys } = subscription;
-  return Subscription.upsert({
-    userId,
-    endpoint,
-    p256dh: keys.p256dh,
-    auth: keys.auth,
-  });
+
+  try {
+    await Subscription.create({
+      userId,
+      endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+    });
+  } catch (err) {
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      console.log(`Subscription already exists for user ${userId} and endpoint ${endpoint}`);
+    } else {
+      console.error('Error saving subscription:', err);
+      throw err;
+    }
+  }
 }
 
 async function sendNotificationToUser(userId, payload,translation) {

@@ -18,6 +18,7 @@ const exam= require('./Exam')(sequelize);
 const notification= require('./Notification')(sequelize);
 const resource= require('./Resource')(sequelize);
 const productCourse= require('./ProductCourse')(sequelize);
+const packageProduct = require('./PackageProduct')(sequelize);
 const studentCourse= require('./StudentCourse')(sequelize);
 const examReservation= require('./ExamReservation')(sequelize);
 const package= require('./Packages')(sequelize);
@@ -191,8 +192,15 @@ studentCourse.belongsTo(course, { foreignKey: 'courseId' });
 
 
 
-package.belongsTo(Product, { foreignKey: 'productId' });
-Product.hasMany(package, { foreignKey: 'productId' });
+package.belongsToMany(Product, { 
+  through: packageProduct,
+  foreignKey: 'packageId' }
+); 
+
+Product.belongsToMany(package, { 
+  through: packageProduct,
+  foreignKey: 'productId' }
+);
 
 
 package.belongsToMany(course, {
@@ -262,4 +270,4 @@ trainingReservation.belongsTo(reservation, { foreignKey: 'reservationId' });
 
 
 
-module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , trainingReservation , notification , resource, productCourse ,examReservation , studentCourse ,packageCourse ,package ,reservation};
+module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , trainingReservation , notification , resource, productCourse ,examReservation , studentCourse ,packageCourse ,packageProduct, package ,reservation};

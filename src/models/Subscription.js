@@ -11,7 +11,6 @@ module.exports = (sequelize) => {
       endpoint: {
         type: DataTypes.TEXT,
         allowNull: false,
-        unique: true,
       },
       p256dh: {
         type: DataTypes.TEXT,
@@ -25,8 +24,15 @@ module.exports = (sequelize) => {
     {
       tableName: "push_subscriptions",
       timestamps: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ["userId", "endpoint"],
+        },
+      ],
     }
   );
+  
 
   return Subscription;
 };

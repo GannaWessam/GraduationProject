@@ -42,6 +42,7 @@ const packageService = {
   async getAllPackages(features) {
     const {count, rows:packages} = await Package.findAndCountAll({
       ...features.options,
+      distinct: true,
       include: [
         { model: Product, through: { attributes: [] } }, //"خبّي بيانات الجدول الوسيط من النتيجة"
         { model: Course, through: { attributes: [] } },

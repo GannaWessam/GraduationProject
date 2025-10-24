@@ -206,6 +206,10 @@ course.belongsToMany(package, {
 });
 
 
+package.hasMany(packageCourse, { foreignKey: 'packageId' });
+packageCourse.belongsTo(package, { foreignKey: 'packageId' });
+
+
 //  package -> event
 package.hasMany(event, {
   foreignKey: 'packageId',

@@ -5,9 +5,27 @@ const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const {validateUpdateEvent} = require("../examManagment/helpers/examValidation.js");
 const { getEligibleUserIdsForEvent } = require("../examManagment/helpers/sendNotification.js");
 const ws = require('../../../Services/WebSocket')
+const packageService = require("../../admin/packageManagement/packageService.js");
 
 
 const createTraining = async (trainingData) => {
+  if(trainingData.packageId)
+    await createTrainingPackage(trainingData)
+  else if(trainingData.courseId)
+    await createOneTraining(trainingData)
+  else throw new Error("packageId or courseId is required");
+}
+
+const createTrainingPackage = async (trainingData) => {
+  const pkg = await packageService.getPackageById(trainingData.packageId)
+  if(!pkg)
+    throw new Error("package_not_found")
+  for (let i = 0; i < pkg.courses.length; i++) {
+    trainingData.courseId = pkg.courses[i].courseId;     
+    await createOneTraining(trainingData);
+  }
+}
+const createOneTraining = async (trainingData) => {
   if (!trainingData.startDate || !trainingData.endDate) {
     throw new Error("startDate and endDate are required");
   }
@@ -32,6 +50,11 @@ const createTraining = async (trainingData) => {
       endDate: trainingData.endDate,
       capacity: trainingData.capacity,
       numberOfRegistered: 0,
+      eventName: trainingData.eventName,
+      packageId: trainingData.packageId, // 3ady lw mb3tosh - by allow null
+      productId: trainingData.productId || null, // لازم يكون موجود في جدول product
+      startDateRes: trainingData.startDateRes,
+      endDateRes: trainingData.endDateRes,
       status: 'opend',
       type: 'training'
     };
@@ -45,11 +68,11 @@ const createTraining = async (trainingData) => {
       eventId: eventt.dataValues.eventId
     }, { transaction: t });
     
-      const userIds = await getEligibleUserIdsForEvent(eventt.dataValues.eventId);
-  if (userIds.length === 0) return { message: "No eligible users found" };
+  //   const userIds = await getEligibleUserIdsForEvent(eventt.dataValues.eventId);
+  // if (userIds.length === 0) return { message: "No eligible users found" };
 
-  const results = await sendNotificationToUsers(userIds, payload);
-  await sendNotificationToUser(userId,payload)
+  // const results = await sendNotificationToUsers(userIds, payload);
+  // await sendNotificationToUser(userId,payload)
   ws.notifyClients("new event has been opend", "newEvent");
   
     return { trainingId: trainingg.dataValues.trainingId };

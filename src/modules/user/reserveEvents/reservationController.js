@@ -17,8 +17,9 @@ const registerForExam = async (req, res, next) => {
 
 const registerForTraining = async (req, res, next) => {
   try {
-    const { userId, trainingId } = req.body;
-    const result = await reservationService.registerForTraining(userId, trainingId);
+    const userId =req.userData.id;
+    const {  eventId } = req.body;
+    const result = await reservationService.registerForTraining(userId, eventId);
     res.status(200).json(ApiResponse.success(result, "User registered for training"));
   } catch (error) {
     console.error("Error in registerForTrainingController:", error);

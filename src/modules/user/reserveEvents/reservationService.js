@@ -19,6 +19,9 @@ const registerForExam = async (userId, eventId) => {
     });
 
     if (!eventData) throw new Error("Event not found");
+    if (eventData.capacity<=eventData.numberOfRegistered){
+      throw new Error("Can not register for this event");
+    }
 
     let examsToReserve = [];
 
@@ -95,7 +98,8 @@ const registerForExam = async (userId, eventId) => {
     }));
 
     await examReservation.bulkCreate(examReservations, { transaction: t });
-
+    eventData.numberOfRegistered++;
+    await eventData.save();
     return {
       message: `Reserved event successfully with ${examReservations.length} exam(s).`,
       data: {
@@ -114,6 +118,10 @@ const registerForTraining = async (userId, eventId) => {
     });
 
     if (!eventData) throw new Error("Training event not found");
+
+        if (eventData.capacity<=eventData.numberOfRegistered){
+      throw new Error("Can not register for this event");
+    }
 
     const trainings = await training.findAll({
       where: { eventId },
@@ -158,7 +166,8 @@ const registerForTraining = async (userId, eventId) => {
     await trainingReservation.bulkCreate(trainingReservations, {
       transaction: t,
     });
-
+ eventData.numberOfRegistered++;
+    await eventData.save();
     return {
       message: `Training reserved successfully for ${trainingReservations.length} session(s).`,
       data: {

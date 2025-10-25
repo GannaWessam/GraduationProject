@@ -1,5 +1,20 @@
 const { Error } = require("sequelize");
-const { User, Student, sequelize ,Payment ,Product } = require("../../../models");
+// const { User, Student, sequelize ,Payment ,Product } = require("../../../models");
+const {
+  Student,
+  User,
+  Payment,
+  Product,
+  studentCourse,
+  course,
+  examReservation,
+  exam,
+  trainingReservation,
+  training,
+  reservation,
+  event,
+  sequelize
+} = require("../../../models");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const WebSocket = require('../../../Services/WebSocket')
@@ -113,10 +128,61 @@ const getAllUsers = async (features) => {
 //     "Users fetched successfully"
 //   );
 // };
+//--------------------------------------------------------------------
+// const getAllUsersByStatus = async (status, features) => {
+//   const where = { ...(features.options?.where || {}) };
+//   if (status) where.status = status;
+
+//   const { count, rows: students } = await Student.findAndCountAll({
+//     ...features.options,
+//     where,
+//     include: [
+//       {
+//         model: User,
+//         attributes: ["email"],
+//         include: [
+//           {
+//             model: Payment,
+//             as: "payments", // ✅ alias مطابق للعلاقة
+//             attributes: ["amount", "status", "timestamp"],
+//             include: [
+//               {
+//                 model: Product,
+//                 as: "product", // ✅ alias مطابق للعلاقة
+//                 attributes: ["courseName"],
+//               },
+//             ],
+//           },
+//         ],
+//       },
+//     ],
+//   });
+
+//   if (!students?.length) throw new Error("not_found");
+
+//   return PaginatedResponse.fromApiFeature(
+//     features,
+//     count,
+//     students,
+//     "Users fetched successfully"
+//   );
+// };
+//----------------------------------------------------------------------
+const { Op } = require("sequelize");
 
 const getAllUsersByStatus = async (status, features) => {
   const where = { ...(features.options?.where || {}) };
-  if (status) where.status = status;
+
+  if (status) {
+    if (status.startsWith("!")) {
+
+      const realStatus = status.substring(1); 
+      where.status = { [Op.ne]: realStatus };
+    } else {
+
+      where.status = status;
+    }
+  }
 
   const { count, rows: students } = await Student.findAndCountAll({
     ...features.options,
@@ -128,12 +194,12 @@ const getAllUsersByStatus = async (status, features) => {
         include: [
           {
             model: Payment,
-            as: "payments", // ✅ alias مطابق للعلاقة
+            as: "payments",
             attributes: ["amount", "status", "timestamp"],
             include: [
               {
                 model: Product,
-                as: "product", // ✅ alias مطابق للعلاقة
+                as: "product",
                 attributes: ["courseName"],
               },
             ],
@@ -152,6 +218,7 @@ const getAllUsersByStatus = async (status, features) => {
     "Users fetched successfully"
   );
 };
+
 const deleteUserById = async (id) => {
   const deletedCount = await User.destroy({ where: { userId: id } });
   if (deletedCount) return deletedCount;
@@ -291,6 +358,109 @@ async function updateStudentNationalId(userId, nationalId) {
 
 
 
+ // adjust path to your models folder
+
+const getStudentById = async (userId) => {
+  const student = await Student.findOne({
+    where: { userId },
+    include: [
+      // ===== User Info =====
+      {
+        model: User,
+        attributes: ["email", "role"],
+        include: [
+          {
+            model: Payment,
+            as: "payments",
+            attributes: ["amount", "status", "timestamp"],
+            include: [
+              {
+                model: Product,
+                as: "product",
+                attributes: ["courseName"],
+              },
+            ],
+          },
+        ],
+      },
+
+      // ===== Courses Taken =====
+      {
+        model: studentCourse,
+        attributes: ["examStatus", "trainingStatus"],
+        include: [
+          {
+            model: course,
+            attributes: ["name", "courseId"],
+          },
+        ],
+      },
+
+      // ===== Exam Reservations =====
+      {
+        model: examReservation,
+        attributes: [
+          "examReservationId",
+          "reservationStatus",
+          "type",
+          "result",
+          "attempts",
+        ],
+        include: [
+          {
+            model: exam,
+            attributes: ["examId"],
+            include: [
+              {
+                model: event,
+                attributes: ["eventId", "eventName", "startDate", "endDate"],
+              },
+            ],
+          },
+        ],
+      },
+
+      // ===== Training Reservations =====
+      {
+        model: trainingReservation,
+        attributes: [
+          "trainingReservationId",
+          "reservationStatus",
+          "trainigStatus",
+          "type",
+        ],
+        include: [
+          {
+            model: training,
+            attributes: ["trainingId"],
+            include: [
+              {
+                model: event,
+                attributes: ["eventId", "eventName", "startDate", "endDate"],
+              },
+            ],
+          },
+        ],
+      },
+
+      // ===== General Reservations =====
+      {
+        model: reservation,
+        attributes: ["reservationId"],
+        include: [
+          {
+            model: event,
+            attributes: ["eventId", "eventName", "type", "startDate", "endDate"],
+          },
+        ],
+      },
+    ],
+  });
+
+  if (!student) throw new Error("student_not_found");
+
+  return student;
+};
 
 module.exports = {
   getAllUsers,
@@ -301,5 +471,6 @@ module.exports = {
   addAdmin,
   approveStudentByUserId,
   getAllUserss,
-  updateStudentNationalId
+  updateStudentNationalId,
+  getStudentById
 };

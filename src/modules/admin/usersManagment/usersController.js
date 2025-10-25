@@ -87,6 +87,25 @@ const updateStudentNationalIdController = async (req, res) => {
   }
 };
 
+
+async function getStudentByIdController(req, res) {
+  try {
+    const { id } = req.params;
+    const student = await userServices.getStudentById(id);
+    res.status(200).json({
+      status: "success",
+      message: "Student fetched successfully",
+      data: student,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: "error",
+      message: error.message || "Failed to fetch student",
+    });
+  }
+}
+
+
 module.exports = {
     getAllUsers,
     getAllUsersByStatus,
@@ -96,5 +115,6 @@ module.exports = {
     addAdmin,
     approveStudentByUserId,
     getAllUserss,
-    updateStudentNationalIdController
+    updateStudentNationalIdController,
+    getStudentByIdController
 }

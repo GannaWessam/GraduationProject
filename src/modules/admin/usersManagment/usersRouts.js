@@ -31,6 +31,12 @@ router.get(
   
   catchError(usersController.getAllUsersByStatus)
 );
+router.get(
+  "/student/:id",
+  validateToken,
+  catchError(usersController.getStudentByIdController)
+);
+
 
 router.get(
   "/:id",

@@ -31,7 +31,7 @@ const getAvailableEventsForUserController = async (req, res, next) => {
   try {
     const userId = req.userData.id;
     const StudentData = await Student.findOne({where:{userId:userId}});
-    const result = await eventService.getAvailableEventsForUserService(userId,StudentData.productId);
+    const result = await eventService.getAvailableEventsForUserService(userId,StudentData.productId,req.query);
     res.status(200).json(ApiResponse.success(result, "User registered for exam"));
   } catch (error) {
     next(error); // Pass to global error handler

@@ -459,7 +459,7 @@ const {
 } = require("../../../../models");
 
 
-async function getAvailableEventsForUser(userId, productId) {
+async function getAvailableEventsForUser(userId, productId,query) {
   const product = await getProductById(productId);
   const { mandatoryCourses, optionalCourses, requiredTotal, optionalAllowed } =
     await getProductCourseRules(productId, product.requirdCourses);
@@ -467,7 +467,7 @@ async function getAvailableEventsForUser(userId, productId) {
   const { doneCourses, allowedForTraining, allowedForExam } =
     await getStudentCourseStatus(userId);
 
-  const events = await getAllOpenEvents(productId);
+  const events = await getAllOpenEvents(productId,query);
 
   return filterEligibleEvents(
     events,
@@ -541,17 +541,27 @@ async function getStudentCourseStatus(userId) {
 }
 
 
-async function getAllOpenEvents(productId) {
+const ApiFeature = require("../../../../Util/ApiFeatures"); // adjust path
+
+async function getAllOpenEvents(productId, query) {
+  const apiFeature = new ApiFeature(query)
+    .filter()
+    .pagination()
+    .sort()
+    .selectedFields();
+
+  apiFeature.options.where = {
+    ...apiFeature.options.where,
+    status: "opend",
+    productId,
+  };
+
   return event.findAll({
-    where: {
-      status: "opend",
-      productId,
-     
-    },
+    ...apiFeature.options,
     include: [
       {
         model: Package,
-        required: false, 
+        required: false,
         include: [{ model: packageCourse, attributes: ["courseId"] }],
       },
     ],

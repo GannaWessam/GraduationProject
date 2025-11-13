@@ -2,33 +2,23 @@ const express = require('express');
 const router = express.Router();
 const chatController = require('./chatController');
 
-// Create direct conversation
-router.post('/conversations', chatController.createConversation);
+// Send a message on a conversation
+router.post('/messages', chatController.sendMessageOnConversation);
 
-// Create training group conversation
-router.post('/conversations/training-group', chatController.createTrainingGroupConversation);
+// Create a group conversation
+router.post('/conversations/group', chatController.createGroupConversation);
 
-// Get user's conversations
-router.get('/conversations/user/:userId', chatController.getUserConversations);
+// Create a direct conversation
+router.post('/conversations/direct', chatController.createDirectConversation);
 
-// Get messages for a conversation
-router.get('/conversations/:conversationId/messages', chatController.getMessages);
+// Get online users
+router.get('/users/online', chatController.getOnlineUsers);
 
-// Send a message
-router.post('/messages', chatController.sendMessage);
+// Get group members
+router.get('/conversations/:conversationId/members', chatController.getGroupMembers);
 
-// Get message by ID
-router.get('/messages/:messageId', chatController.getMessageById);
-
-// Update message status
-router.put('/messages/:messageId/status', chatController.updateMessageStatus);
-
-// Mark all messages as read
-router.post('/conversations/:conversationId/read', chatController.markAllMessagesAsRead);
-
-// Get chatted users sorted by last message
-router.get('/users/:userId/chatted', chatController.getChattedUsers);
+// Handle message seen
+router.put('/messages/:messageId/seen', chatController.handleMessageSeen);
 
 module.exports = router;
-
 

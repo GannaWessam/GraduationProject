@@ -38,8 +38,8 @@ const errorMessages = {
 "packageId or courseId is required" : {code: 400, msg:"You must send either packageId or courseId"},
 "there is alraedy training with the same name" : {code: 400, msg:"there is alraedy training with the same name"},
 "there is alraedy exam with the same name" : {code: 400, msg:"there is alraedy exam with the same name"},
-
-
+"you can't reserve a closed training" : {code: 400, msg:"you can't reserve a closed training"},
+"Can not register for this event capacity have been reached" : {code: 400, msg:"Can not register for this event capacity have been reached"},
 };
 
 module.exports = { errorMessages };

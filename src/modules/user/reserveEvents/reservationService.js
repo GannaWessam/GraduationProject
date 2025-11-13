@@ -118,9 +118,13 @@ const registerForTraining = async (userId, eventId) => {
     });
 
     if (!eventData) throw new Error("Training event not found");
+    if (eventData.status == "closed") throw new Error("you can't reserve a closed training");
 
-        if (eventData.capacity<=eventData.numberOfRegistered){
-      throw new Error("Can not register for this event");
+    if (eventData.capacity<=eventData.numberOfRegistered){
+      //todo => call the method that creat group 
+      eventData.status = "closed";
+      await eventData.save();
+      throw new Error("Can not register for this event capacity have been reached");
     }
 
     const trainings = await training.findAll({
@@ -138,7 +142,7 @@ const registerForTraining = async (userId, eventId) => {
     });
 
     if (previousReservations.length > 0) {
-      const hasNonFail = previousReservations.some(
+      const hasNonFail = previousReservations.some( //ارجع true لو فيه أي عنصر واحد في القائمة بيحقق الشرط اللي جواه
         (r) => r.trainigStatus && r.trainigStatus.toLowerCase() !== "fail"
       );
 

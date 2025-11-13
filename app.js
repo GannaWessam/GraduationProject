@@ -10,6 +10,9 @@ const syncDB = require("./src/connections/syncDB.js")
 require("./src/models/User.js");
 require("./src/models/Student.js");
 
+// Initialize WebSocket service for chat
+require("./src/Services/WebSocket.js");
+
 const app = express();
 const port = 3000;
 

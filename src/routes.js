@@ -9,7 +9,8 @@ const Department = require("./modules/Department/DepartmentRoute");
 const Nationality = require("./modules/nationality/NationalityRoute");
 const notifications=require('./modules/Notifications/NotificationRoutes');
 const course = require('./modules/Courses/CourseRoute');
-const reservationRoute = require('./modules/user/reserveEvents/reservationRoutes')
+const reservationRoute = require('./modules/user/reserveEvents/reservationRoutes');
+const chatRoutes = require('./modules/Chat/chatRoutes');
 
 const { validateToken } = require("./middlewares/token");
 const reportRoutes = require("./modules/Report/ReportRoute");
@@ -27,5 +28,6 @@ router.use("/api/nationality", Nationality);
 router.use('/api/notifications', notifications);
 router.use('/api/courses', course);
 router.use('/api/reservations', reservationRoute);
+router.use('/api/chat', chatRoutes);
 router.use("/api/reports", reportRoutes);
 module.exports = router;

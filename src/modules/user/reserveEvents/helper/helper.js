@@ -458,7 +458,7 @@ const {
   studentCourse,
 } = require("../../../../models");
 
-
+//bfkr a3ml 3leha endpoint?
 async function getAvailableEventsForUser(userId, productId,query) {
   const product = await getProductById(productId);
   const { mandatoryCourses, optionalCourses, requiredTotal, optionalAllowed } =
@@ -609,6 +609,7 @@ function filterEligibleEvents(
 }
 
 
+//?
 function shouldSkipEvent(
   ev,
   courseIds,

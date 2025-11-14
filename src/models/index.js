@@ -24,6 +24,9 @@ const examReservation= require('./ExamReservation')(sequelize);
 const package= require('./Packages')(sequelize);
 const packageCourse= require('./PackageCourse')(sequelize);
 const reservation= require('./Reservation')(sequelize);
+const Conversation = require('./Conversation')(sequelize);
+const Message = require('./Message')(sequelize);
+const ConversationUser = require('./ConversationUser')(sequelize);
 
 
 User.hasMany(Payment, {
@@ -160,8 +163,8 @@ course.belongsToMany(User, {
 });
 
 
-event.hasOne(training, { foreignKey: 'eventId' });
-training.belongsTo(event, { foreignKey: 'eventId' });
+event.hasMany(training, { foreignKey: 'eventId', as: 'trainings' });
+training.belongsTo(event, { foreignKey: 'eventId', as: 'event' });
 
 event.hasOne(exam, { foreignKey: 'eventId' , });
 exam.belongsTo(event, { foreignKey: 'eventId' });
@@ -267,7 +270,95 @@ reservation.hasOne(trainingReservation, {
 });
 trainingReservation.belongsTo(reservation, { foreignKey: 'reservationId' });
 
+// Chat Associations
+// Conversation ↔ ConversationUser (many-to-many through ConversationUser)
+Conversation.belongsToMany(User, {
+  through: ConversationUser,
+  foreignKey: 'conversationId',
+  otherKey: 'userId',
+  as: 'users'
+});
+
+User.belongsToMany(Conversation, {
+  through: ConversationUser,
+  foreignKey: 'userId',
+  otherKey: 'conversationId',
+  as: 'conversations'
+});
+
+// Conversation ↔ Message (one-to-many)
+Conversation.hasMany(Message, {
+  foreignKey: 'conversationId',
+  as: 'messages',
+  onDelete: 'CASCADE'
+});
+Message.belongsTo(Conversation, {
+  foreignKey: 'conversationId',
+  as: 'conversation'
+});
+
+// User ↔ Message (sender relationship)
+User.hasMany(Message, {
+  foreignKey: 'senderId',
+  as: 'sentMessages',
+  onDelete: 'CASCADE'
+});
+Message.belongsTo(User, {
+  foreignKey: 'senderId',
+  as: 'sender'
+});
+
+// Conversation ↔ Event (for training groups)
+event.hasMany(Conversation, {
+  foreignKey: 'eventId',
+  as: 'conversations',
+  onDelete: 'SET NULL'
+});
+Conversation.belongsTo(event, {
+  foreignKey: 'eventId',
+  as: 'event'
+});
+
+// ConversationUser relationships
+ConversationUser.belongsTo(Conversation, {
+  foreignKey: 'conversationId',
+  as: 'conversation'
+});
+ConversationUser.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user'
+});
 
 
 
-module.exports = { sequelize, User,Nationality, Student, Product, Payment, ProductAllowedUserType, university , college ,university_college, Department,course , event, training , exam , trainingReservation , notification , resource, productCourse ,examReservation , studentCourse ,packageCourse ,packageProduct, package ,reservation};
+
+module.exports = { 
+  sequelize, 
+  User,
+  Nationality, 
+  Student, 
+  Product, 
+  Payment, 
+  ProductAllowedUserType, 
+  university, 
+  college, 
+  university_college, 
+  Department,
+  course, 
+  event, 
+  training, 
+  exam, 
+  trainingReservation, 
+  notification, 
+  resource, 
+  productCourse, 
+  examReservation, 
+  studentCourse, 
+  packageCourse, 
+  packageProduct, 
+  package, 
+  reservation,
+  Conversation,
+  Message,
+  ConversationUser
+};

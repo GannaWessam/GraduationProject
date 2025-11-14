@@ -32,7 +32,7 @@ const getAllEvents = async (features) => {
 
     const trainingInclude = {
       model: training,
-      as: 'training',
+      as: 'trainings',
       required: false,
       include: [
         { model: course, attributes: ['name'] },
@@ -137,7 +137,6 @@ const closeEventById = async (eventId) => {
 
 module.exports = {
   getAllEvents,
-  
   getEventById,
   closeEventById,
 };

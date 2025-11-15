@@ -274,8 +274,10 @@ event.hasMany(reservation, {
   foreignKey: 'eventId',
   onDelete: 'CASCADE'
 });
-reservation.belongsTo(event, { foreignKey: 'eventId' });
-
+reservation.belongsTo(event, {
+  foreignKey: 'eventId',
+  as: 'reservationEvent'   
+});
 //  Reservation -> ExamReservation
 reservation.hasOne(examReservation, {
   foreignKey: 'reservationId',

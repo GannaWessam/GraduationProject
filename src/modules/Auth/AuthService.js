@@ -172,7 +172,8 @@ async function loginUser(email, password) {
     user.userId,
     user.role,
     student?.NameEn,
-    student?.productId
+    student?.productId,
+    student?.status
 
   );
 

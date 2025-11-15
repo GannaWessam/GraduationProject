@@ -413,7 +413,6 @@ async function updateStudentNationalId(userId, nationalId) {
             include: [
               {
                 model: event,
-                as: "event", // keep this if exam.belongsTo(event, { as: 'event' })
                 attributes: ["eventId", "eventName", "startDate", "endDate"],
               },
             ],
@@ -437,7 +436,7 @@ async function updateStudentNationalId(userId, nationalId) {
             include: [
               {
                 model: event,
-                as: "event", // keep this if training.belongsTo(event, { as: 'event' })
+                as: "event",
                 attributes: ["eventId", "eventName", "startDate", "endDate"],
               },
             ],
@@ -452,7 +451,7 @@ async function updateStudentNationalId(userId, nationalId) {
         include: [
           {
             model: event,
-            as: "reservationEvent", // <<-- changed to match reservation association alias
+            as:"reservationEvent",
             attributes: ["eventId", "eventName", "type", "startDate", "endDate"],
           },
         ],
@@ -464,8 +463,6 @@ async function updateStudentNationalId(userId, nationalId) {
 
   return student;
 };
-
-
 
 
 module.exports = {

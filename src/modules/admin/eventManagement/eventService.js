@@ -6,20 +6,17 @@ const { Op } = require("sequelize");
 
 const getAllEvents = async (features) => {
   try {
-    
     const opts = { ...(features.options || {}) };
-
-    // base where is whatever ApiFeature produced for event fields (e.g. type, status, date, etc.)
     const baseWhere = opts.where || {};
 
-    // handle courseId specially because courseId lives on exam/training, not on event
+    // handle courseId specially
     const courseIdFilter = baseWhere.courseId;
-    if (courseIdFilter) {
-      // remove it from top-level where so it doesn't try to match event.courseId
-      delete baseWhere.courseId;
-    }
+    if (courseIdFilter) delete baseWhere.courseId;
 
-    // Build includes for exam and training with nested course/user includes
+    // handle trainerId specially
+    const trainerIdFilter = baseWhere.trainerId;
+    if (trainerIdFilter) delete baseWhere.trainerId;
+
     const examInclude = {
       model: exam,
       as: 'exam',
@@ -33,29 +30,29 @@ const getAllEvents = async (features) => {
     const trainingInclude = {
       model: training,
       as: 'trainings',
-      required: false,
+      required: trainerIdFilter ? true : false, // include only if filtering
+      where: trainerIdFilter ? { trainerId: trainerIdFilter } : undefined,
       include: [
         { model: course, attributes: ['name'] },
         { model: User, as: 'trainer', attributes: ['email'] }
       ]
     };
 
+    // OR condition for courseId only
     if (courseIdFilter) {
       baseWhere[Op.or] = [
         { ['$exam.courseId$']: courseIdFilter },
-        { ['$training.courseId$']: courseIdFilter }
+        { ['$trainings.courseId$']: courseIdFilter }
       ];
-
     }
 
- 
     const queryOptions = {
       include: [examInclude, trainingInclude],
       where: baseWhere,
       order: opts.order || [['createdAt', 'DESC']],
       limit: opts.limit,
       offset: opts.offset,
-      attributes: opts.attributes, 
+      attributes: opts.attributes,
       distinct: true
     };
 
@@ -65,7 +62,7 @@ const getAllEvents = async (features) => {
       features,
       count,
       events,
-      "all events fetched successfully"
+      "All events fetched successfully"
     );
   } catch (error) {
     throw new Error(`Failed to fetch events: ${error.message}`);

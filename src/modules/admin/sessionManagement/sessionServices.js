@@ -4,7 +4,7 @@ const { Op } = require("sequelize");
 
 const sessionService = {
 
-  async createSession(sessionData) {
+  async   createSession(sessionData) {
     // 1) تأكد إن ال training موجود
     const trainingObj = await Training.findByPk(sessionData.trainingId);
     if (!trainingObj) {

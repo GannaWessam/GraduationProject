@@ -25,6 +25,16 @@ const sessionController = {
     res.status(200).json(ApiResponse.success(session));
   },
 
+  async getTrainingSessionsById(req, res) {
+    const session = await sessionService.getSessionByTrainingId(req.params.id);
+    res.status(200).json(ApiResponse.success(session));
+  },
+
+  async getEventSessionsById(req, res) {
+    const session = await sessionService.getSessionsByEventId(req.params.id);
+    res.status(200).json(ApiResponse.success(session));
+  },
+
   async update(req, res) {
     const session = await sessionService.updateSession(req.params.id, req.body);
     res.status(200).json(ApiResponse.success(session));

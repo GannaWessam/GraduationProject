@@ -1,17 +1,51 @@
 const { session: Session, training: Training, sequelize } = require("../../../models/index");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
+const { Op } = require("sequelize");
 
 const sessionService = {
-  async createSession(data) {
-    const { trainingId, name, startTime, endTime, date, virtualLink } = data;
 
-    if (!trainingId || !name || !startTime || !endTime || !date || !virtualLink)
-      throw new Error("all_fields_required");
-
-    const training = await Training.findByPk(trainingId);
-    if (!training) throw new Error("training_not_found");
-
-    return Session.create(data);
+  async createSession(sessionData) {
+    // 1) تأكد إن ال training موجود
+    const trainingObj = await Training.findByPk(sessionData.trainingId);
+    if (!trainingObj) {
+      throw new Error("Training not found");
+    }
+  
+    const eventId = trainingObj.eventId;
+  
+    // 2) هات كل ال trainings اللي جوه نفس ال event
+    const trainingsInEvent = await Training.findAll({
+      where: { eventId },
+      attributes: ["trainingId"]
+    });
+  
+    const trainingIdsInEvent = trainingsInEvent.map(t => t.trainingId);
+  
+    // 3) اعمل تشيك تداخل
+    const conflict = await Session.findOne({
+      where: {
+        date: sessionData.date,
+        trainingId: {
+          [Op.in]: trainingIdsInEvent   // هنا التعديل المحترم
+        },
+        // overlap condition
+        [Op.and]: [
+          { startTime: { [Op.lt]: sessionData.endTime } },
+          { endTime: { [Op.gt]: sessionData.startTime } }
+        ]
+      }
+    });
+  
+    if (conflict) {
+      throw new Error("Session time overlaps with another session in the same training or event");
+    }
+  
+    // 4) create session
+    const newSession = await Session.create({
+      ...sessionData,
+    });
+  
+    return newSession;
   },
 
   async getAllSessions(features) {
@@ -22,7 +56,7 @@ const sessionService = {
         {
           model: Training,
           as: "sessionTraining",
-          attributes: ["trainingId", "name"],
+          attributes: ["trainingId", "courseId"],
         },
       ],
     });
@@ -41,13 +75,51 @@ const sessionService = {
         {
           model: Training,
           as: "sessionTraining",
-          attributes: ["trainingId", "name"],
+          attributes: ["trainingId", "courseId"],
         },
       ],
     });
 
     if (!session) throw new Error("session_not_found");
     return session;
+  },
+
+  async getSessionByTrainingId(id) {
+    const sessions = await Session.findAll({
+      where: { trainingId: id },
+      include: [
+        {
+          model: Training,
+          as: "sessionTraining",
+          attributes: ["trainingId", "courseId"]
+        }
+      ]
+    });
+  
+    if (!sessions || sessions.length === 0) {
+      throw new Error("session_not_found");
+    }
+  
+    return sessions;
+  },
+
+  async getSessionsByEventId(eventId) {
+    const sessions = await Session.findAll({
+      include: [
+        {
+          model: Training,
+          as: "sessionTraining", 
+          attributes: ["trainingId", "courseId", "eventId"],
+          where: { eventId }       
+        }
+      ]
+    });
+  
+    if (!sessions || sessions.length === 0) {
+      throw new Error("sessions_not_found");
+    }
+  
+    return sessions;
   },
 
   async updateSession(id, data) {

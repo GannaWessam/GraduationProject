@@ -1,4 +1,4 @@
-const { session: Session, training: Training, sequelize } = require("../../../models/index");
+const { session: Session, training: Training,trainingReservation, sequelize } = require("../../../models/index");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
 
@@ -141,6 +141,36 @@ const sessionService = {
       return { message: "Session deleted successfully" };
     });
   },
+
+  async getUserActiveSessions(userId) {
+    return trainingReservation.findAll({
+      where: {
+        userId,
+        reservationStatus: { [Op.ne]: "CANCEL" },  
+        trainigStatus: "ACTIVE",                   
+      },
+      include: [
+        {
+          model: Training,
+          include: [
+            {
+              model: Session,
+              as: "sessions",
+              attributes: [
+                "sessionId",
+                "name",
+                "startTime",
+                "endTime",
+                "date",
+                "virtualLink"
+              ]
+            }
+          ]
+        }
+      ]
+    });
+  },
+
 };
 
 module.exports = sessionService;

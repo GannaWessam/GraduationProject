@@ -4,6 +4,7 @@ const sessionController = require("./sessionController");
 const catchError = require("../../../middlewares/catchError");
 const { validateToken } = require("../../../middlewares/token");
 
+router.get("/activeSessions",validateToken,catchError(sessionController.getUserActiveSessions));
 router.post("/", validateToken, catchError(sessionController.create));
 router.get("/", validateToken, catchError(sessionController.getAll));
 router.get("/:id", validateToken, catchError(sessionController.getById));

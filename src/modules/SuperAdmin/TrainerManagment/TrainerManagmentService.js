@@ -69,9 +69,38 @@ async function addTrainer(TrainerInfo) {
   });
 }
 
+async function getAllTrainers() {
+  return trainer.findAll({
+    include: [
+      {
+        model: User,
+        attributes: ['userId', 'email', 'role']
+      }
+    ]
+  });
+}
+
+// Get trainer by ID
+async function getTrainerById(id) {
+  const tr = await trainer.findByPk(id, {
+    include: [
+      {
+        model: User,
+        attributes: ['userId', 'email', 'role']
+      }
+    ]
+  });
+
+  if (!tr) throw new Error('trainer_not_found');
+
+  return tr;
+}
+
 
 
 
 module.exports = {
   addTrainer,
+  getAllTrainers,
+  getTrainerById,
 };

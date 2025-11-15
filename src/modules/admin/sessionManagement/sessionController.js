@@ -44,6 +44,16 @@ const sessionController = {
     const result = await sessionService.deleteSession(req.params.id);
     res.status(200).json(ApiResponse.success(result));
   },
+
+  async getUserActiveSessions(req, res) {
+    try {
+      const userId =req.userData.id;
+      const data = await sessionService.getUserActiveSessions(userId);
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  },
 };
 
 module.exports = sessionController;

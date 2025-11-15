@@ -226,7 +226,7 @@ const registerForTraining = async (userId, eventId) => {
 
     const student = await Student.findOne({ where: { userId } });
     if (student) {
-      student.status = "reserved Exam";
+      student.status = "reserved Training";
       await student.save({ transaction: t });
     }
 

@@ -91,7 +91,7 @@ const getEventById = async (eventId) => {
         include: [
           { model: course, attributes: ['name'] },
           { model: User, as: 'trainer', attributes: ['email'] },
-          { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
+          { model: event ,as: 'event', attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
         ]
       });
       
@@ -107,7 +107,7 @@ const getEventById = async (eventId) => {
         include: [
           { model: course, attributes: ['name'] },
           { model: User, as: 'supervisor', attributes: ['email'] },
-          { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
+          { model: event, as: 'event', attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
         ]
       });
       

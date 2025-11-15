@@ -38,9 +38,21 @@ const getAvailableEventsForUserController = async (req, res, next) => {
   }
 };
 
+const getUserActiveReservationsController = async (req, res, next) => {
+  try {
+const userId = req.query.userId;
+    const reservations = await reservationService.getUserActiveReservations(userId);
+    res.status(200).json(ApiResponse.success(reservations, "Active reservations fetched successfully"));
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 
 module.exports = {
   registerForExam,
   registerForTraining,
   getAvailableEventsForUserController,
+  getUserActiveReservationsController
 };

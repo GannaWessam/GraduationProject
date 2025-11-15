@@ -27,6 +27,10 @@ const reservation= require('./Reservation')(sequelize);
 const Conversation = require('./Conversation')(sequelize);
 const Message = require('./Message')(sequelize);
 const ConversationUser = require('./ConversationUser')(sequelize);
+const session = require('./Session')(sequelize);
+const trainer = require('./Supervisor')(sequelize);
+const supervisor = require('./Trainer')(sequelize);
+
 
 
 User.hasMany(Payment, {
@@ -54,6 +58,22 @@ User.hasOne(Student, {
   onUpdate: 'CASCADE',
 });
 Student.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasOne(trainer, {
+  foreignKey: { name: 'userId', allowNull: false },
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+});
+trainer.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasOne(supervisor, {
+  foreignKey: { name: 'userId', allowNull: false },
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+});
+Student.belongsTo(supervisor, { foreignKey: 'userId' });
+
+
 
 Product.hasMany(Payment, {
   foreignKey: { name: 'productId', allowNull: false },
@@ -254,8 +274,10 @@ event.hasMany(reservation, {
   foreignKey: 'eventId',
   onDelete: 'CASCADE'
 });
-reservation.belongsTo(event, { foreignKey: 'eventId' });
-
+reservation.belongsTo(event, {
+  foreignKey: 'eventId',
+  as: 'reservationEvent'   
+});
 //  Reservation -> ExamReservation
 reservation.hasOne(examReservation, {
   foreignKey: 'reservationId',
@@ -330,6 +352,18 @@ ConversationUser.belongsTo(User, {
 });
 
 
+training.hasMany(session, {
+  foreignKey: 'trainingId',
+  as: 'sessions'
+});
+
+session.belongsTo(training, {
+  foreignKey: 'trainingId',
+  as: 'sessionTraining'
+});
+
+
+
 
 
 module.exports = { 
@@ -360,5 +394,6 @@ module.exports = {
   reservation,
   Conversation,
   Message,
-  ConversationUser
+  ConversationUser,
+  session
 };

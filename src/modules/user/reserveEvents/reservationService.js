@@ -9,7 +9,10 @@ const {
   sequelize,
   training,
   trainingReservation,
+  Student
 } = require("../../../models");
+// const Student = require("../../../models/Student");
+const { Op } = require('sequelize');
 
 const registerForExam = async (userId, eventId) => {
   return sequelize.transaction(async (t) => {
@@ -19,7 +22,7 @@ const registerForExam = async (userId, eventId) => {
     });
 
     if (!eventData) throw new Error("Event not found");
-    if (eventData.capacity<=eventData.numberOfRegistered){
+    if (eventData.capacity <= eventData.numberOfRegistered) {
       throw new Error("Can not register for this event");
     }
 
@@ -84,6 +87,33 @@ const registerForExam = async (userId, eventId) => {
       }
     }
 
+    const userReservations = await reservation.findAll({
+      where: { userId },
+      include: [
+        {
+          model: event,
+          as: "reservationEvent",
+          attributes: ["eventId", "startDate", "endDate", "type"],
+        },
+      ],
+      transaction: t,
+    });
+
+    for (let res of userReservations) {
+      const existingEvent = res.reservationEvent;
+      if (!existingEvent) continue;
+
+      const overlap =
+        eventData.startDate < existingEvent.endDate &&
+        existingEvent.startDate < eventData.endDate;
+
+      if (overlap) {
+        throw new Error(
+          `You already have a reservation (${existingEvent.type}) that overlaps with this event.`
+        );
+      }
+    }
+
     const newReservation = await reservation.create(
       { userId, eventId },
       { transaction: t }
@@ -96,6 +126,11 @@ const registerForExam = async (userId, eventId) => {
       type: "exam",
       reservationStatus: "reserved",
     }));
+    const student = await Student.findOne({ where: { userId } });
+    if (student) {
+      student.status = "reserved Exam";
+      await student.save({ transaction: t });
+    }
 
     await examReservation.bulkCreate(examReservations, { transaction: t });
     eventData.numberOfRegistered++;
@@ -118,13 +153,16 @@ const registerForTraining = async (userId, eventId) => {
     });
 
     if (!eventData) throw new Error("Training event not found");
-    if (eventData.status == "closed") throw new Error("you can't reserve a closed training");
+    if (eventData.status == "closed")
+      throw new Error("you can't reserve a closed training");
 
-    if (eventData.capacity<=eventData.numberOfRegistered){
-      //todo => call the method that creat group 
+    if (eventData.capacity <= eventData.numberOfRegistered) {
+      //todo => call the method that creat group
       eventData.status = "closed";
       await eventData.save();
-      throw new Error("Can not register for this event capacity have been reached");
+      throw new Error(
+        "Can not register for this event capacity have been reached"
+      );
     }
 
     const trainings = await training.findAll({
@@ -142,13 +180,41 @@ const registerForTraining = async (userId, eventId) => {
     });
 
     if (previousReservations.length > 0) {
-      const hasNonFail = previousReservations.some( //ارجع true لو فيه أي عنصر واحد في القائمة بيحقق الشرط اللي جواه
-        (r) => r.trainigStatus && r.trainigStatus.toLowerCase() !== "fail"
+      const hasNonFail = previousReservations.some(
+        (r) => r.trainigStatus && r.trainigStatus.toLowerCase() !== "finshed"
       );
 
       if (hasNonFail) {
         throw new Error(
-          "You cannot reserve this training again until all your previous training results are marked as 'fail'."
+          "You cannot reserve this training again until all your previous training results are marked as 'finshed'."
+        );
+      }
+    }
+
+    // Get all user's reservations
+    const userReservations = await reservation.findAll({
+      include: [
+        {
+          model: event,
+          as: "reservationEvent",
+          attributes: ["eventId", "startDate", "endDate", "type"],
+        },
+      ],
+      where: { userId },
+      transaction: t,
+    });
+
+    // Check for overlaps
+    for (let res of userReservations) {
+      const ev = res.reservationEvent;
+      if (!ev) continue;
+
+      const overlap =
+        eventData.startDate < ev.endDate && ev.startDate < eventData.endDate;
+
+      if (overlap) {
+        throw new Error(
+          `You already have a reservation (${ev.type}) that overlaps with this event.`
         );
       }
     }
@@ -157,6 +223,12 @@ const registerForTraining = async (userId, eventId) => {
       { userId, eventId },
       { transaction: t }
     );
+
+    const student = await Student.findOne({ where: { userId } });
+    if (student) {
+      student.status = "reserved Exam";
+      await student.save({ transaction: t });
+    }
 
     const trainingReservations = trainings.map((tr) => ({
       reservationId: newReservation.reservationId,
@@ -170,7 +242,7 @@ const registerForTraining = async (userId, eventId) => {
     await trainingReservation.bulkCreate(trainingReservations, {
       transaction: t,
     });
- eventData.numberOfRegistered++;
+    eventData.numberOfRegistered++;
     await eventData.save();
     return {
       message: `Training reserved successfully for ${trainingReservations.length} session(s).`,
@@ -182,4 +254,68 @@ const registerForTraining = async (userId, eventId) => {
   });
 };
 
-module.exports = { registerForExam, registerForTraining };
+
+const getUserActiveReservations = async (userId) => {
+  // Make sure user exists
+  const student = await Student.findOne({ where: { userId } });
+  if (!student) throw new Error('Student not found');
+
+  console.log("\n\n\n\n\n\n\n",student,"\n\n\n\n\n\n");
+  
+  // Get all reservations of the user
+  const userReservations = await reservation.findAll({
+    where: { userId },
+    include: [
+      {
+        model: event,
+        as: 'reservationEvent',
+        attributes: ['eventId', 'eventName', 'startDate', 'endDate', 'type'],
+        include: [
+         
+          {
+            model: exam,
+            include: [
+              {
+                model: examReservation,
+                where: { userId, reservationStatus: 'reserved' },
+                required: false,
+              },
+            ],
+            required: false,
+          },
+
+          {
+            model: training,
+            as: 'trainings',
+            include: [
+              {
+                model: trainingReservation,
+                where: { userId, trainigStatus: { [Op.not]: 'finshed' } },
+                required: false,
+              },
+            ],
+            required: false,
+          },
+        ],
+      },
+    ],
+  });
+
+  // Filter out reservations that have no active exams or trainings
+  // const activeReservations = userReservations.filter((res) => {
+  //   const ev = res.reservationEvent;
+  //   if (!ev) return false;
+
+  //   const hasPendingExam =
+  //     ev.exams?.some((ex) => ex.examReservations?.length > 0) ?? false;
+
+  //   const hasPendingTraining =
+  //     ev.trainings?.some((tr) => tr.trainingReservations?.length > 0) ?? false;
+
+  //   return hasPendingExam || hasPendingTraining;
+  // });
+
+  // return activeReservations;
+  return userReservations
+};
+module.exports = { registerForExam, registerForTraining, getUserActiveReservations  };

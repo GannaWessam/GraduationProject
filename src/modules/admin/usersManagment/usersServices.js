@@ -360,7 +360,7 @@ async function updateStudentNationalId(userId, nationalId) {
 
  // adjust path to your models folder
 
-const getStudentById = async (userId) => {
+ const getStudentById = async (userId) => {
   const student = await Student.findOne({
     where: { userId },
     include: [
@@ -371,12 +371,12 @@ const getStudentById = async (userId) => {
         include: [
           {
             model: Payment,
-            as: "payments",
+            as: "payments", // matches User.hasMany(Payment, { as: 'payments' })
             attributes: ["amount", "status", "timestamp"],
             include: [
               {
                 model: Product,
-                as: "product",
+                as: "product", // matches Payment.belongsTo(Product, { as: 'product' })
                 attributes: ["courseName"],
               },
             ],
@@ -436,6 +436,7 @@ const getStudentById = async (userId) => {
             include: [
               {
                 model: event,
+                as: "event", // matches training.belongsTo(event, { as: 'event' })
                 attributes: ["eventId", "eventName", "startDate", "endDate"],
               },
             ],
@@ -461,6 +462,7 @@ const getStudentById = async (userId) => {
 
   return student;
 };
+
 
 module.exports = {
   getAllUsers,

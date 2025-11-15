@@ -19,6 +19,9 @@ const registerForExam = async (userId, eventId) => {
     });
 
     if (!eventData) throw new Error("Event not found");
+    if (eventData.capacity<=eventData.numberOfRegistered){
+      throw new Error("Can not register for this event");
+    }
 
     let examsToReserve = [];
 
@@ -95,7 +98,8 @@ const registerForExam = async (userId, eventId) => {
     }));
 
     await examReservation.bulkCreate(examReservations, { transaction: t });
-
+    eventData.numberOfRegistered++;
+    await eventData.save();
     return {
       message: `Reserved event successfully with ${examReservations.length} exam(s).`,
       data: {
@@ -114,6 +118,14 @@ const registerForTraining = async (userId, eventId) => {
     });
 
     if (!eventData) throw new Error("Training event not found");
+    if (eventData.status == "closed") throw new Error("you can't reserve a closed training");
+
+    if (eventData.capacity<=eventData.numberOfRegistered){
+      //todo => call the method that creat group 
+      eventData.status = "closed";
+      await eventData.save();
+      throw new Error("Can not register for this event capacity have been reached");
+    }
 
     const trainings = await training.findAll({
       where: { eventId },
@@ -130,7 +142,7 @@ const registerForTraining = async (userId, eventId) => {
     });
 
     if (previousReservations.length > 0) {
-      const hasNonFail = previousReservations.some(
+      const hasNonFail = previousReservations.some( //ارجع true لو فيه أي عنصر واحد في القائمة بيحقق الشرط اللي جواه
         (r) => r.trainigStatus && r.trainigStatus.toLowerCase() !== "fail"
       );
 
@@ -158,7 +170,8 @@ const registerForTraining = async (userId, eventId) => {
     await trainingReservation.bulkCreate(trainingReservations, {
       transaction: t,
     });
-
+ eventData.numberOfRegistered++;
+    await eventData.save();
     return {
       message: `Training reserved successfully for ${trainingReservations.length} session(s).`,
       data: {

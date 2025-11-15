@@ -21,6 +21,8 @@ module.exports = (sequelize) => {
         allowNull: false,
     },
 
+    // true => mandatory
+    // false => optional
     status: { type: DataTypes.STRING(200), allowNull: true },
 
     

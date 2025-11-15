@@ -28,8 +28,8 @@ const Conversation = require('./Conversation')(sequelize);
 const Message = require('./Message')(sequelize);
 const ConversationUser = require('./ConversationUser')(sequelize);
 const session = require('./Session')(sequelize);
-const trainer = require('./Supervisor')(sequelize);
-const supervisor = require('./Trainer')(sequelize);
+const supervisor = require('./Supervisor')(sequelize);
+const trainer = require('./Trainer')(sequelize);
 
 
 
@@ -395,5 +395,7 @@ module.exports = {
   Conversation,
   Message,
   ConversationUser,
-  session
+  session,
+  trainer,
+  supervisor
 };

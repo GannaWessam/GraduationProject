@@ -1,5 +1,6 @@
 const chattingService = require('../../Services/chattingService');
 const ApiResponse = require('../../Util/ApiResponse');
+const {getMyTrainers,getMyUsers} = require("./chatService");
 
 /**
  * Send a message on a conversation
@@ -154,11 +155,82 @@ const handleMessageSeen = async (req, res, next) => {
   }
 };
 
+
+
+/**
+ * Get trainers for a student OR users for a trainer
+ * GET /api/chat/my-people
+ */
+
+const getMyPeople = async (req, res, next) => {
+  try {
+    const userId = req.userData.id;
+    const role = req.userData.role;
+
+    let data;
+
+    switch (role) {
+      case 'STUDENT':
+        data = await getMyTrainers(userId);
+        return res.status(200).json(
+          ApiResponse.success(data, 'Trainers retrieved successfully')
+        );
+
+      case 'TRAINER':
+        data = await getMyUsers(userId);
+        return res.status(200).json(
+          ApiResponse.success(data, 'Users retrieved successfully')
+        );
+
+      default:
+        return res.status(403).json(
+          ApiResponse.error(403, 'Only STUDENT or TRAINER can use this endpoint')
+        );
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+const fetchMessages = async (req, res, next) => {
+  try {
+    const { conversationId } = req.params;
+    const result = await getMessagesByConversationId(conversationId);
+    res.status(200).json(ApiResponse.success(result, 'Messages retrieved'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+const fetchConversations = async (req, res, next) => {
+  try {
+    const userId = req.userData.id;
+
+    if (!userId) {
+      return res.status(400).json(ApiResponse.error(400, 'User ID is required'));
+    }
+
+    const conversations = await getConversationsByUserId(userId);
+
+    return res.status(200).json(
+      ApiResponse.success(conversations, 'Conversations retrieved successfully')
+    );
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   sendMessageOnConversation,
   createGroupConversation,
   createDirectConversation,
   getOnlineUsers,
   getGroupMembers,
-  handleMessageSeen
+  handleMessageSeen,
+    getMyPeople,
+    fetchMessages,
+    fetchConversations
+
 };

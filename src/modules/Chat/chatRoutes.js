@@ -1,24 +1,38 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const chatController = require('./chatController');
+const chatController = require("./chatController");
+const { validateToken } = require("../../middlewares/token");
 
 // Send a message on a conversation
-router.post('/messages', chatController.sendMessageOnConversation);
+router.post("/messages", chatController.sendMessageOnConversation);
 
 // Create a group conversation
-router.post('/conversations/group', chatController.createGroupConversation);
+router.post("/conversations/group", chatController.createGroupConversation);
 
 // Create a direct conversation
-router.post('/conversations/direct', chatController.createDirectConversation);
+router.post("/conversations/direct", chatController.createDirectConversation);
 
 // Get online users
-router.get('/users/online', chatController.getOnlineUsers);
+router.get("/users/online", chatController.getOnlineUsers);
 
 // Get group members
-router.get('/conversations/:conversationId/members', chatController.getGroupMembers);
+router.get(
+  "/conversations/:conversationId/members",
+  chatController.getGroupMembers
+);
 
 // Handle message seen
-router.put('/messages/:messageId/seen', chatController.handleMessageSeen);
+router.put("/messages/:messageId/seen", chatController.handleMessageSeen);
+
+router.get("/my-people", validateToken, chatController.getMyPeople);
+
+router.get(
+  "/conversations/:conversationId/messages",
+  validateToken,
+  chatController.fetchMessages
+);
+
+router.get('/conversations', validateToken, chatController.fetchConversations);
+
 
 module.exports = router;
-

@@ -256,13 +256,10 @@ const registerForTraining = async (userId, eventId) => {
 
 
 const getUserActiveReservations = async (userId) => {
-  // Make sure user exists
   const student = await Student.findOne({ where: { userId } });
   if (!student) throw new Error('Student not found');
 
-  console.log("\n\n\n\n\n\n\n",student,"\n\n\n\n\n\n");
   
-  // Get all reservations of the user
   const userReservations = await reservation.findAll({
     where: { userId },
     include: [

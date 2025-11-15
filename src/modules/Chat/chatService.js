@@ -1,19 +1,7 @@
-const { User, event, training, trainingReservation, reservation, Student ,Conversation, ConversationUser,Message} = require('../../models');
-
-/* -------------------------- Helper Function -------------------------- */
-function formatUser(user) {
-  if (!user) return null;
-
-  return {
-    userId: user.userId,
-    email: user.email || null,
-    fullName: user.name || null,
-    imageUrl: user.imageUrl || null,
-  };
-}
-
-/* ----------------------- Get My Trainers ------------------------ */
+const { Where } = require('sequelize/lib/utils');
+const { User, event, training, trainingReservation, reservation, Student ,Conversation, ConversationUser,Message,trainer} = require('../../models');
 async function getMyTrainers(userId) {
+  // Get all reservations for the user
   const records = await reservation.findAll({
     where: { userId },
     include: [
@@ -37,6 +25,17 @@ async function getMyTrainers(userId) {
     ],
   });
 
+  // Fetch all trainers from trainer table
+  const trainersTable = await trainer.findAll({
+    where: {  },
+  });
+
+  // Create a map of trainerUserId => trainer info
+  const trainerMap = new Map();
+  trainersTable.forEach(t => {
+    trainerMap.set(t.userId, t);
+  });
+
   const map = new Map();
 
   for (const r of records) {
@@ -44,22 +43,31 @@ async function getMyTrainers(userId) {
 
     for (const tr of r.reservationEvent.trainings || []) {
       if (tr.trainer) {
-        map.set(tr.trainer.userId, tr.trainer);
+        const trainerInfo = trainerMap.get(tr.trainer.userId);
+        map.set(tr.trainer.userId, {
+          user: tr.trainer,
+          trainer: trainerInfo
+        });
       }
     }
   }
 
-  const trainers = [...map.values()].map(formatUser);
+  const formattedTrainers = [...map.values()].map(({ user, trainer }) => ({
+    userId: user.userId,
+    email: user.email || null,
+    fullName: trainer?.name || null
+  }));
 
+  console.log(formattedTrainers);
+  
   return {
     status: 200,
     message: "Trainers fetched successfully",
-    data: trainers,
-    total: trainers.length,
+    data: formattedTrainers,
+    total: formattedTrainers.length,
   };
 }
 
-/* ----------------------- Get My Users ------------------------ */
 async function getMyUsers(trainerUserId) {
   const trainings = await training.findAll({
     where: { trainerId: trainerUserId },
@@ -85,14 +93,22 @@ async function getMyUsers(trainerUserId) {
 
   for (const t of trainings) {
     for (const r of t.trainingReservations || []) {
-      const user = r.Student?.User;
+      const student = r.Student;
+      const user = student?.User;
       if (user) {
-        map.set(user.userId, user);
+        // store both user and student info
+        map.set(user.userId, { user, student });
       }
     }
   }
 
-  const users = [...map.values()].map(formatUser);
+  // now map over entries and pass both user and student
+  const users = [...map.values()].map(({ user, student }) => ({
+    userId: user.userId,
+    email: user.email || null,
+    fullName: student.fullName || null,
+    imageUrl: student.profilePhoto || null, // or whatever field you have
+  }));
 
   return {
     status: 200,
@@ -103,45 +119,71 @@ async function getMyUsers(trainerUserId) {
 }
 
 
+
+// const { Conversation, ConversationUser, User, Message } = require('../../models');
+const { Op, where } = require('sequelize');
+
 async function getConversationsByUserId(userId) {
   const conversations = await Conversation.findAll({
     include: [
       {
-        model: ConversationUser,
-        as: "members",
-        where: { userId }, // the user is a member
-        attributes: []     // exclude join row
+        model: User,
+        as: 'users', // correct alias from index.js
+        where: { userId }, // ensures the current user is part of the conversation
+        attributes: ['userId', 'email']
       },
       {
-        model: ConversationUser,
-        as: "members",
+        model: Message,
+        as: 'messages',
         include: [
           {
             model: User,
-            as: "user",
-            attributes: ["userId", "fullName", "email", "imageUrl"]
+            as: 'sender',
+            attributes: ['userId', 'email']
           }
-        ]
+        ],
+        limit: 1,
+        order: [['sentAt', 'DESC']]
       }
     ],
-    order: [["updatedAt", "DESC"]]
+    order: [['updatedAt', 'DESC']]
   });
 
-  return conversations;
+  const formatted = conversations.map(conv => ({
+    conversationId: conv.conversationId,
+    type: conv.type,
+    name: conv.name,
+    eventId: conv.eventId,
+    members: conv.users.map(u => ({
+      userId: u.userId,
+      email: u.email
+    })),
+    lastMessage: conv.messages[0]
+      ? {
+          messageId: conv.messages[0].messageId,
+          content: conv.messages[0].content,
+          status: conv.messages[0].status,
+          sentAt: conv.messages[0].sentAt,
+          senderEmail: conv.messages[0].sender.email
+        }
+      : null
+  }));
+
+  return formatted;
 }
 
 
 
 
+
 async function getMessagesByConversationId(conversationId) {
-  // Fetch messages and include sender info
   const messages = await Message.findAll({
     where: { conversationId },
     include: [
       {
         model: User,
         as: 'sender',
-        attributes: ['userId', 'fullName', 'email', 'imageUrl']
+        attributes: ['userId', 'email']
       }
     ],
     order: [['sentAt', 'ASC']]
@@ -174,7 +216,6 @@ async function getMessagesByConversationId(conversationId) {
 
 
 
-/* -------------------- Export functions -------------------- */
 module.exports = {
   getMyTrainers,
   getMyUsers,

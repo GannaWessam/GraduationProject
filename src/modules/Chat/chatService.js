@@ -165,6 +165,7 @@ async function getConversationsByUserId(userId) {
             content: conv.messages[0].content,
             status: conv.messages[0].status,
             sentAt: conv.messages[0].sentAt,
+            senderId:conv.messages[0].senderId,
             senderEmail: conv.messages[0].sender.email,
             senderName:
               conv.messages[0].sender.Student?.fullName ||

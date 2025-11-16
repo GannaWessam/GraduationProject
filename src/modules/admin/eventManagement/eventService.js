@@ -1,4 +1,4 @@
-const { event, exam, training, course, User, reservation } = require("../../../models/index.js");
+const { event, exam, training, course, User, reservation , trainer , supervisor } = require("../../../models/index.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
@@ -24,7 +24,7 @@ const getAllEvents = async (features) => {
       required: false,
       include: [
         { model: course, attributes: ['name'] },
-        { model: User, as: 'supervisor', attributes: ['email'] }
+        { model: supervisor, as: 'supervisor', attributes: ['Name'] }
       ]
     };
 
@@ -35,7 +35,7 @@ const getAllEvents = async (features) => {
       where: trainerIdFilter ? { trainerId: trainerIdFilter } : undefined,
       include: [
         { model: course, attributes: ['name'] },
-        { model: User, as: 'trainer', attributes: ['email'] }
+        { model: trainer, as: 'trainer', attributes: ['Name'] }
       ]
     };
 
@@ -88,7 +88,7 @@ const getEventById = async (eventId) => {
         where: { eventId: eventId },
         include: [
           { model: course, attributes: ['name'] },
-          { model: User, as: 'trainer', attributes: ['email'] },
+          { model: trainer, as: 'trainer', attributes: ['Name'] },
           { model: event ,as: 'event', attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
         ]
       });
@@ -104,7 +104,7 @@ const getEventById = async (eventId) => {
         where: { eventId: eventId },
         include: [
           { model: course, attributes: ['name'] },
-          { model: User, as: 'supervisor', attributes: ['email'] },
+          { model: supervisor, as: 'supervisor', attributes: ['Name'] },
           { model: event, as: 'event', attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
         ]
       });

@@ -151,11 +151,11 @@ course.hasMany(exam, { foreignKey: 'courseId' });
 exam.belongsTo(course, { foreignKey: 'courseId' });
 
 // User ↔ Exam (supervisor relationship)
-User.hasMany(exam, { foreignKey: 'supervisorId', as: 'supervisedExams' });
-exam.belongsTo(User, { foreignKey: 'supervisorId', as: 'supervisor' });
+supervisor.hasMany(exam, { foreignKey: 'supervisorId', as: 'supervisedExams' });
+exam.belongsTo(supervisor, { foreignKey: 'supervisorId', as: 'supervisor' });
 
-User.hasMany(training, { foreignKey: 'trainerId', as: 'trainings' });
-training.belongsTo(User, { foreignKey: 'trainerId', as: 'trainer' });
+trainer.hasMany(training, { foreignKey: 'trainerId', as: 'trainings' });
+training.belongsTo(trainer, { foreignKey: 'trainerId', as: 'trainer' });
 
 User.hasMany(notification, { foreignKey: 'userId' });
 notification.belongsTo(User, { foreignKey: 'userId' });

@@ -13,6 +13,7 @@ const {
 } = require("../../../models");
 // const Student = require("../../../models/Student");
 const { Op } = require('sequelize');
+const chattingService = require("../../../Services/chattingService");
 
 const registerForExam = async (userId, eventId) => {
   return sequelize.transaction(async (t) => {
@@ -23,6 +24,8 @@ const registerForExam = async (userId, eventId) => {
 
     if (!eventData) throw new Error("Event not found");
     if (eventData.capacity <= eventData.numberOfRegistered) {
+      eventData.status = "closed";
+      await eventData.save();
       throw new Error("Can not register for this event");
     }
 
@@ -156,13 +159,8 @@ const registerForTraining = async (userId, eventId) => {
     if (eventData.status == "closed")
       throw new Error("you can't reserve a closed training");
 
-    if (eventData.capacity <= eventData.numberOfRegistered) {
-      //todo => call the method that creat group
-      eventData.status = "closed";
-      await eventData.save();
-      throw new Error(
-        "Can not register for this event capacity have been reached"
-      );
+    if (eventData.status == "closed") {
+      throw new Error("you can't reserve a closed training");
     }
 
     const trainings = await training.findAll({
@@ -243,6 +241,17 @@ const registerForTraining = async (userId, eventId) => {
       transaction: t,
     });
     eventData.numberOfRegistered++;
+    if (eventData.capacity <= eventData.numberOfRegistered) {
+      const allReservations = await reservation.findAll({ where: { eventId: eventData.eventId } });
+      const userIds = allReservations.map((reservation) => reservation.userId);
+      await chattingService.createGroupConversation(userIds,eventData.eventId, eventData.eventName);
+
+      eventData.status = "closed";
+      await eventData.save();
+      throw new Error(
+        "Can not register for this event capacity have been reached"
+      );
+    }
     await eventData.save();
     return {
       message: `Training reserved successfully for ${trainingReservations.length} session(s).`,

@@ -63,7 +63,6 @@ async function getMyTrainers(userId) {
   };
 }
 
-
 async function getMyUsers(trainerUserId) {
   const trainings = await training.findAll({
     where: { trainerId: trainerUserId },
@@ -114,27 +113,16 @@ async function getMyUsers(trainerUserId) {
   };
 }
 
-
-
-// const { Conversation, ConversationUser, User, Message } = require('../../models');
-const { Op, where } = require('sequelize');
 async function getConversationsByUserId(userId) {
   const conversations = await Conversation.findAll({
     include: [
       {
         model: User,
         as: 'users',
-        where: { userId },
         attributes: ['userId', 'email'],
         include: [
-          {
-            model: Student,
-            attributes: ['fullName'],  
-          },
-          {
-            model: trainer,
-            attributes: ['Name'],      
-          }
+          { model: Student, attributes: ['fullName'] },
+          { model: trainer, attributes: ['Name'] }
         ]
       },
       {
@@ -158,40 +146,37 @@ async function getConversationsByUserId(userId) {
     order: [['updatedAt', 'DESC']]
   });
 
-  const formatted = conversations.map(conv => ({
-    conversationId: conv.conversationId,
-    type: conv.type,
-    name: conv.name,
-    eventId: conv.eventId,
+  const formatted = conversations.map(conv => {
+    const otherUser = conv.users.find(u => u.userId !== userId);
 
-    members: conv.users.map(u => ({
-      userId: u.userId,
-      email: u.email,
-      name:
-        u.Student?.fullName ||
-        u.trainer?.Name ||
-        null
-    })),
+    return {
+      conversationId: conv.conversationId,
+      type: conv.type,
+      name: conv.name,
+      eventId: conv.eventId,
+      chatWith:
+        conv.type === 'direct'
+          ? otherUser?.Student?.fullName || otherUser?.trainer?.Name || null
+          : null, 
 
-    lastMessage: conv.messages[0]
-      ? {
-          messageId: conv.messages[0].messageId,
-          content: conv.messages[0].content,
-          status: conv.messages[0].status,
-          sentAt: conv.messages[0].sentAt,
-          senderEmail: conv.messages[0].sender.email,
-          senderName:
-            conv.messages[0].sender.Student?.fullName ||
-            conv.messages[0].sender.trainer?.Name ||
-            null
-        }
-      : null
-  }));
+      lastMessage: conv.messages[0]
+        ? {
+            messageId: conv.messages[0].messageId,
+            content: conv.messages[0].content,
+            status: conv.messages[0].status,
+            sentAt: conv.messages[0].sentAt,
+            senderEmail: conv.messages[0].sender.email,
+            senderName:
+              conv.messages[0].sender.Student?.fullName ||
+              conv.messages[0].sender.trainer?.Name ||
+              null
+          }
+        : null
+    };
+  });
 
   return formatted;
 }
-
-
 
 
 async function getMessagesByConversationId(conversationId) {
@@ -230,8 +215,6 @@ async function getMessagesByConversationId(conversationId) {
     total: formattedMessages.length
   };
 }
-
-
 
 
 module.exports = {

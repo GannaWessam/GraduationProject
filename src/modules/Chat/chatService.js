@@ -118,15 +118,24 @@ async function getMyUsers(trainerUserId) {
 
 // const { Conversation, ConversationUser, User, Message } = require('../../models');
 const { Op, where } = require('sequelize');
-
 async function getConversationsByUserId(userId) {
   const conversations = await Conversation.findAll({
     include: [
       {
         model: User,
-        as: 'users', // correct alias from index.js
-        where: { userId }, // ensures the current user is part of the conversation
-        attributes: ['userId', 'email']
+        as: 'users',
+        where: { userId },
+        attributes: ['userId', 'email'],
+        include: [
+          {
+            model: Student,
+            attributes: ['fullName'],  
+          },
+          {
+            model: trainer,
+            attributes: ['Name'],      
+          }
+        ]
       },
       {
         model: Message,
@@ -135,7 +144,11 @@ async function getConversationsByUserId(userId) {
           {
             model: User,
             as: 'sender',
-            attributes: ['userId', 'email']
+            attributes: ['userId', 'email'],
+            include: [
+              { model: Student, attributes: ['fullName'] },
+              { model: trainer, attributes: ['Name'] }
+            ]
           }
         ],
         limit: 1,
@@ -150,24 +163,33 @@ async function getConversationsByUserId(userId) {
     type: conv.type,
     name: conv.name,
     eventId: conv.eventId,
+
     members: conv.users.map(u => ({
       userId: u.userId,
-      email: u.email
+      email: u.email,
+      name:
+        u.Student?.fullName ||
+        u.trainer?.Name ||
+        null
     })),
+
     lastMessage: conv.messages[0]
       ? {
           messageId: conv.messages[0].messageId,
           content: conv.messages[0].content,
           status: conv.messages[0].status,
           sentAt: conv.messages[0].sentAt,
-          senderEmail: conv.messages[0].sender.email
+          senderEmail: conv.messages[0].sender.email,
+          senderName:
+            conv.messages[0].sender.Student?.fullName ||
+            conv.messages[0].sender.trainer?.Name ||
+            null
         }
       : null
   }));
 
   return formatted;
 }
-
 
 
 

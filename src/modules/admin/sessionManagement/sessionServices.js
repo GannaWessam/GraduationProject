@@ -1,4 +1,4 @@
-const { session: Session, training: Training,trainingReservation, sequelize } = require("../../../models/index");
+const { session: Session, training: Training,trainingReservation, sequelize,event } = require("../../../models/index");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
 
@@ -6,11 +6,18 @@ const sessionService = {
 
   async   createSession(sessionData) {
     // 1) تأكد إن ال training موجود
-    const trainingObj = await Training.findByPk(sessionData.trainingId);
-    if (!trainingObj) {
-      throw new Error("Training not found");
-    }
-  
+    const trainingObj = await Training.findByPk(sessionData.trainingId, {
+    include: [{ model: event, as: "event" }] 
+  });
+  if (!trainingObj) {
+    throw new Error("Training not found");
+  }
+
+  const eventObj = trainingObj.event;
+
+     if (new Date(sessionData.date) < new Date(eventObj.startDate)) {
+    throw new Error(`Session date cannot be before event start date (${eventObj.startDate.toISOString().split('T')[0]})`);
+  }
     const eventId = trainingObj.eventId;
   
     // 2) هات كل ال trainings اللي جوه نفس ال event

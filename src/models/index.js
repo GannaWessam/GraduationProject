@@ -64,7 +64,7 @@ User.hasOne(trainer, {
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
-trainer.belongsTo(User, { foreignKey: 'userId' });
+trainer.belongsTo(User, { foreignKey: 'userId'  });
 
 User.hasOne(supervisor, {
   foreignKey: { name: 'userId', allowNull: false },

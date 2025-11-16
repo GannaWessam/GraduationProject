@@ -1,7 +1,7 @@
 const { Where } = require('sequelize/lib/utils');
 const { User, event, training, trainingReservation, reservation, Student ,Conversation, ConversationUser,Message,trainer} = require('../../models');
 async function getMyTrainers(userId) {
-  // Get all reservations for the user
+
   const records = await reservation.findAll({
     where: { userId },
     include: [
@@ -14,9 +14,10 @@ async function getMyTrainers(userId) {
             as: "trainings",
             include: [
               {
-                model: User,
+                model: trainer,
                 as: "trainer",
-                attributes: ["userId", "email"],
+                attributes: ["userId", "Name"],
+                
               },
             ],
           },
@@ -25,12 +26,8 @@ async function getMyTrainers(userId) {
     ],
   });
 
-  // Fetch all trainers from trainer table
-  const trainersTable = await trainer.findAll({
-    where: {  },
-  });
+  const trainersTable = await trainer.findAll({});
 
-  // Create a map of trainerUserId => trainer info
   const trainerMap = new Map();
   trainersTable.forEach(t => {
     trainerMap.set(t.userId, t);
@@ -45,7 +42,7 @@ async function getMyTrainers(userId) {
       if (tr.trainer) {
         const trainerInfo = trainerMap.get(tr.trainer.userId);
         map.set(tr.trainer.userId, {
-          user: tr.trainer,
+          user: tr.trainer.userInfo,  // 👈 access userInfo
           trainer: trainerInfo
         });
       }
@@ -53,13 +50,11 @@ async function getMyTrainers(userId) {
   }
 
   const formattedTrainers = [...map.values()].map(({ user, trainer }) => ({
-    userId: user.userId,
-    email: user.email || null,
-    fullName: trainer?.name || null
+    userId: trainer?.userId || null,
+    email: user?.email || null,
+    fullName: trainer?.Name || null,  // 👈 correct Name
   }));
 
-  console.log(formattedTrainers);
-  
   return {
     status: 200,
     message: "Trainers fetched successfully",
@@ -67,6 +62,7 @@ async function getMyTrainers(userId) {
     total: formattedTrainers.length,
   };
 }
+
 
 async function getMyUsers(trainerUserId) {
   const trainings = await training.findAll({

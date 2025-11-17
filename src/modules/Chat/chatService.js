@@ -1,7 +1,17 @@
-const { Where } = require('sequelize/lib/utils');
-const { User, event, training, trainingReservation, reservation, Student ,Conversation, ConversationUser,Message,trainer} = require('../../models');
+const { Where } = require("sequelize/lib/utils");
+const {
+  User,
+  event,
+  training,
+  trainingReservation,
+  reservation,
+  Student,
+  Conversation,
+  ConversationUser,
+  Message,
+  trainer,
+} = require("../../models");
 async function getMyTrainers(userId) {
-
   const records = await reservation.findAll({
     where: { userId },
     include: [
@@ -17,7 +27,6 @@ async function getMyTrainers(userId) {
                 model: trainer,
                 as: "trainer",
                 attributes: ["userId", "Name"],
-                
               },
             ],
           },
@@ -29,7 +38,7 @@ async function getMyTrainers(userId) {
   const trainersTable = await trainer.findAll({});
 
   const trainerMap = new Map();
-  trainersTable.forEach(t => {
+  trainersTable.forEach((t) => {
     trainerMap.set(t.userId, t);
   });
 
@@ -42,8 +51,8 @@ async function getMyTrainers(userId) {
       if (tr.trainer) {
         const trainerInfo = trainerMap.get(tr.trainer.userId);
         map.set(tr.trainer.userId, {
-          user: tr.trainer.userInfo,  // 👈 access userInfo
-          trainer: trainerInfo
+          user: tr.trainer.userInfo, // 👈 access userInfo
+          trainer: trainerInfo,
         });
       }
     }
@@ -52,7 +61,7 @@ async function getMyTrainers(userId) {
   const formattedTrainers = [...map.values()].map(({ user, trainer }) => ({
     userId: trainer?.userId || null,
     email: user?.email || null,
-    fullName: trainer?.Name || null,  // 👈 correct Name
+    fullName: trainer?.Name || null, // 👈 correct Name
   }));
 
   return {
@@ -116,61 +125,56 @@ async function getMyUsers(trainerUserId) {
 async function getConversationsByUserId(userId) {
   const conversations = await Conversation.findAll({
     include: [
-      // Include users ONLY to filter membership
       {
         model: User,
         as: "users",
-        where: { userId },   // 🔥 filter for conversations I'm part of
-        attributes: []       // we hide them, we'll fetch members below
-      },
-
-      // Fetch actual users for display
-      {
-        model: User,
-        as: 'users',
-        attributes: ['userId', 'email'],
+        attributes: ["userId", "email"],
+        through: { attributes: [] },
         include: [
-          { model: Student, attributes: ['fullName'] },
-          { model: trainer, attributes: ['Name'] }
-        ]
+          { model: Student, attributes: ["userId",
+            "fullName"] },
+          { model: trainer, attributes: ["userId","Name"] }, // keep lowercase if your model is `trainer`
+        ],
+        // where: { userId }, // filter by current user
+        required: true,
       },
-
-      // Fetch last message
       {
         model: Message,
-        as: 'messages',
+        as: "messages",
         include: [
           {
             model: User,
-            as: 'sender',
-            attributes: ['userId', 'email'],
+            as: "sender",
+            attributes: ["userId", "email"],
             include: [
-              { model: Student, attributes: ['fullName'] },
-              { model: trainer, attributes: ['Name'] }
-            ]
-          }
+              { model: Student, attributes: ["fullName"] },
+              { model: trainer, attributes: ["Name"] },
+            ],
+          },
         ],
         limit: 1,
-        order: [['sentAt', 'DESC']]
-      }
+        order: [["sentAt", "DESC"]],
+      },
     ],
-    order: [['updatedAt', 'DESC']]
+    order: [["updatedAt", "DESC"]],
   });
 
-  const formatted = conversations.map(conv => {
-    const otherUser = conv.users.find(u => u.userId !== userId);
+  const formatted = conversations.map((conv) => {
+    // get the OTHER user in direct chat
+    const otherUser = conv.users.find((u) => u.userId !== userId);
+
+    let chatWith = null;
+    if (otherUser) {
+      if (otherUser.Student) chatWith = otherUser.Student.fullName;
+      else if (otherUser.trainer) chatWith = otherUser.trainer.Name;
+    }
 
     return {
       conversationId: conv.conversationId,
       type: conv.type,
       eventId: conv.eventId,
-      chatWith:
-        conv.type === "direct"
-          ? otherUser?.Student?.fullName ||
-            otherUser?.trainer?.Name ||
-            null
-          : null,
-
+      name: conv.name,
+      chatWith: conv.type === "direct" ? chatWith : null,
       lastMessage: conv.messages[0]
         ? {
             messageId: conv.messages[0].messageId,
@@ -182,9 +186,9 @@ async function getConversationsByUserId(userId) {
             senderName:
               conv.messages[0].sender.Student?.fullName ||
               conv.messages[0].sender.trainer?.Name ||
-              null
+              null,
           }
-        : null
+        : null,
     };
   });
 
@@ -198,41 +202,42 @@ async function getMessagesByConversationId(conversationId) {
     include: [
       {
         model: User,
-        as: 'sender',
-        attributes: ['userId', 'email']
-      }
+        as: "sender",
+        attributes: ["userId", "email"],
+      },
     ],
-    order: [['sentAt', 'ASC']]
+    order: [["sentAt", "ASC"]],
   });
 
   // Format messages
-  const formattedMessages = messages.map(msg => ({
+  const formattedMessages = messages.map((msg) => ({
     messageId: msg.messageId,
     conversationId: msg.conversationId,
-    sender: msg.sender ? {
-      userId: msg.sender.userId,
-      fullName: msg.sender.fullName,
-      email: msg.sender.email,
-      imageUrl: msg.sender.imageUrl
-    } : null,
+    sender: msg.sender
+      ? {
+          userId: msg.sender.userId,
+          fullName: msg.sender.fullName,
+          email: msg.sender.email,
+          imageUrl: msg.sender.imageUrl,
+        }
+      : null,
     receiverIds: msg.receiverIds,
     content: msg.content,
     status: msg.status,
-    sentAt: msg.sentAt
+    sentAt: msg.sentAt,
   }));
 
   return {
     status: 200,
-    message: 'Messages fetched successfully',
+    message: "Messages fetched successfully",
     data: formattedMessages,
-    total: formattedMessages.length
+    total: formattedMessages.length,
   };
 }
-
 
 module.exports = {
   getMyTrainers,
   getMyUsers,
   getConversationsByUserId,
-  getMessagesByConversationId
+  getMessagesByConversationId,
 };

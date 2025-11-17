@@ -9,10 +9,10 @@ const {
   sequelize,
   training,
   trainingReservation,
-  Student
+  Student,
 } = require("../../../models");
 // const Student = require("../../../models/Student");
-const { Op } = require('sequelize');
+const { Op } = require("sequelize");
 const chattingService = require("../../../Services/chattingService");
 
 const registerForExam = async (userId, eventId) => {
@@ -156,11 +156,9 @@ const registerForTraining = async (userId, eventId) => {
     });
 
     if (!eventData) throw new Error("Training event not found");
-    if (eventData.status == "closed")
-      throw new Error("you can't reserve a closed training");
 
-    if (eventData.status == "closed") {
-      throw new Error("you can't reserve a closed training");
+    if (eventData.status === "closed") {
+      throw new Error("You can't reserve a closed training");
     }
 
     const trainings = await training.findAll({
@@ -168,28 +166,28 @@ const registerForTraining = async (userId, eventId) => {
       transaction: t,
     });
 
-    if (!trainings || trainings.length === 0)
+    if (!trainings.length)
       throw new Error("No training sessions found for this event");
 
     const trainingIds = trainings.map((tr) => tr.trainingId);
+
     const previousReservations = await trainingReservation.findAll({
       where: { userId, trainingId: trainingIds },
       transaction: t,
     });
 
     if (previousReservations.length > 0) {
-      const hasNonFail = previousReservations.some(
-        (r) => r.trainigStatus && r.trainigStatus.toLowerCase() !== "finshed"
+      const hasNonFinished = previousReservations.some(
+        (r) => r.trainigStatus?.toLowerCase() !== "finshed"
       );
 
-      if (hasNonFail) {
+      if (hasNonFinished) {
         throw new Error(
-          "You cannot reserve this training again until all your previous training results are marked as 'finshed'."
+          "You cannot reserve this training again until previous sessions are finished."
         );
       }
     }
 
-    // Get all user's reservations
     const userReservations = await reservation.findAll({
       include: [
         {
@@ -202,7 +200,6 @@ const registerForTraining = async (userId, eventId) => {
       transaction: t,
     });
 
-    // Check for overlaps
     for (let res of userReservations) {
       const ev = res.reservationEvent;
       if (!ev) continue;
@@ -240,19 +237,41 @@ const registerForTraining = async (userId, eventId) => {
     await trainingReservation.bulkCreate(trainingReservations, {
       transaction: t,
     });
-    eventData.numberOfRegistered++;
-    if (eventData.capacity <= eventData.numberOfRegistered) {
-      const allReservations = await reservation.findAll({ where: { eventId: eventData.eventId } });
-      const userIds = allReservations.map((reservation) => reservation.userId);
-      await chattingService.createGroupConversation(userIds,eventData.eventId, eventData.eventName);
 
+    eventData.numberOfRegistered += 1;
+
+    if (eventData.numberOfRegistered >= eventData.capacity) {
       eventData.status = "closed";
-      await eventData.save();
-      throw new Error(
-        "Can not register for this event capacity have been reached"
+
+      const allReservations = await reservation.findAll({
+        where: { eventId: eventData.eventId },
+        attributes: ["userId"],
+        transaction: t,
+      });
+
+      const userIds = allReservations.map((r) => r.userId);
+
+      const trainings = await training.findAll({
+        where: { eventId: eventData.eventId },
+        attributes: ["trainerId"],
+        transaction: t,
+      });
+
+      const trainerIds = trainings
+        .map((t) => t.trainerId)
+        .filter((id) => id !== null);
+
+      const finalGroupMembers = [...new Set([...trainerIds, ...userIds])];
+
+      await chattingService.createGroupConversation(
+        finalGroupMembers,
+        eventData.eventId,
+        eventData.eventName
       );
     }
-    await eventData.save();
+
+    await eventData.save({ transaction: t });
+
     return {
       message: `Training reserved successfully for ${trainingReservations.length} session(s).`,
       data: {
@@ -263,27 +282,24 @@ const registerForTraining = async (userId, eventId) => {
   });
 };
 
-
 const getUserActiveReservations = async (userId) => {
   const student = await Student.findOne({ where: { userId } });
-  if (!student) throw new Error('Student not found');
+  if (!student) throw new Error("Student not found");
 
-  
   const userReservations = await reservation.findAll({
     where: { userId },
     include: [
       {
         model: event,
-        as: 'reservationEvent',
-        attributes: ['eventId', 'eventName', 'startDate', 'endDate', 'type'],
+        as: "reservationEvent",
+        attributes: ["eventId", "eventName", "startDate", "endDate", "type"],
         include: [
-         
           {
             model: exam,
             include: [
               {
                 model: examReservation,
-                where: { userId, reservationStatus: 'reserved' },
+                where: { userId, reservationStatus: "reserved" },
                 required: false,
               },
             ],
@@ -292,11 +308,11 @@ const getUserActiveReservations = async (userId) => {
 
           {
             model: training,
-            as: 'trainings',
+            as: "trainings",
             include: [
               {
                 model: trainingReservation,
-                where: { userId, trainigStatus: { [Op.not]: 'finshed' } },
+                where: { userId, trainigStatus: { [Op.not]: "finshed" } },
                 required: false,
               },
             ],
@@ -322,6 +338,10 @@ const getUserActiveReservations = async (userId) => {
   // });
 
   // return activeReservations;
-  return userReservations
+  return userReservations;
 };
-module.exports = { registerForExam, registerForTraining, getUserActiveReservations  };
+module.exports = {
+  registerForExam,
+  registerForTraining,
+  getUserActiveReservations,
+};

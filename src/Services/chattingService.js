@@ -9,7 +9,7 @@ const {
 
 class ChattingService {
   async sendMessageOnConversation(message, senderId, conversationId) {
-    const WebSocketService = require("./WebSocket"); // <- lazy require here
+    const WebSocketService = require("./WebSocket");
 
     const conversation = await this.findConversationById(conversationId);
     if (!conversation) throw new Error("Conversation not found");

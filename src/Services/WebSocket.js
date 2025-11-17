@@ -1,8 +1,8 @@
 const WebSocket = require('ws');
 const chattingService = require('./chattingService');
 class WebSocketService {
-  static onlineUsers = new Set();
   constructor() {
+    this.onlineUsers = new Set();
     this.websocketServer = new WebSocket.Server({ port: 2000 });
     this.init();
   }
@@ -18,7 +18,7 @@ class WebSocketService {
           // When client sends { type: "register", userId: "123" }
           if (data.type === 'register' && data.userId) {
             ws.userId = data.userId;
-            WebSocketService.onlineUsers.add(data.userId);
+            this.onlineUsers.add(data.userId);
             await chattingService.syncMessagesAfterOffline(data.userId);
             console.log(`User ${data.userId} registered and now online`);
           }
@@ -30,7 +30,7 @@ class WebSocketService {
       
       ws.on('close', () => {
         if (ws.userId) {
-          WebSocketService.onlineUsers.delete(ws.userId);
+          this.onlineUsers.delete(ws.userId);
           console.log(`User ${ws.userId} disconnected`);
         }
       });

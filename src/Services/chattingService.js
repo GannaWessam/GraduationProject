@@ -1,6 +1,4 @@
-const WebSocketService = require("./WebSocket");
-const { Transaction } = require("sequelize");
-const { Op } = require("sequelize");
+const { Transaction, Op } = require("sequelize");
 const {
   Conversation,
   ConversationUser,
@@ -11,96 +9,86 @@ const {
 
 class ChattingService {
   async sendMessageOnConversation(message, senderId, conversationId) {
+    const WebSocketService = require("./WebSocket"); // <- lazy require here
+
     const conversation = await this.findConversationById(conversationId);
-    if (!conversation) {
-      throw new Error("Conversation not found");
-    }
+    if (!conversation) throw new Error("Conversation not found");
+
     const conversationUsers = await ConversationUser.findAll({
-      where: {
-        conversationId: conversationId,
-      },
+      where: { conversationId },
     });
-    const conversationUsersIds = conversationUsers.map(
-      (conversationUser) => conversationUser.userId
-    );
-    const receiverIds = conversationUsersIds.filter(
-      (userId) => userId !== senderId
-    );
+
+    const conversationUsersIds = conversationUsers.map(u => u.userId);
+    const receiverIds = conversationUsersIds.filter(id => id !== senderId);
+
     const newMessage = await Message.create({
       content: message,
-      senderId: senderId,
-      conversationId: conversationId,
-      receiverIds: receiverIds,
+      senderId,
+      conversationId,
+      receiverIds,
     });
+
+    // Notify all online users
     await WebSocketService.notifySpecificClients(
       {
+        type:"message",
         message,
+        id:newMessage.messageId,
         messageTime: newMessage.sentAt,
         senderId,
         receiverIds,
       },
       conversationId
-    ); //conversationId => tupe identifier
+    );
 
     for (const receiverId of receiverIds) {
+      console.log(WebSocketService.onlineUsers);
+      
+      
       if (WebSocketService.onlineUsers.has(receiverId)) {
         await this.handleOnlineUserMessageDelivery(newMessage);
         WebSocketService.notifySpecificClients(
-          { type: "delivered", receiverIds: [receiverId, newMessage.senderId] },
+          { type: "delivered", receiverIds: [receiverId, newMessage.senderId],message:newMessage.messageId },
           newMessage.conversationId
         );
       }
     }
-    return true;
+
+    return newMessage; // return message for WebSocket use if needed
   }
+
   async findConversationById(conversationId) {
     const conversation = await Conversation.findByPk(conversationId);
-    if (conversation) {
-      return conversation;
-    } else {
-      throw new Error("Conversation not found");
-    }
+    if (!conversation) throw new Error("Conversation not found");
+    return conversation;
   }
+
   async createConversation(usersIds, eventId, groupName) {
-    //nullabel
-    if (usersIds.length < 2) {
-      throw new Error("At least 2 users are required to create a conversation");
-    }
+    if (usersIds.length < 2) throw new Error("At least 2 users are required");
     if (usersIds.length > 2) {
       return await this.createGroupConversation(usersIds, eventId, groupName);
     } else if (usersIds.length === 2) {
       return await this.createDirectConversation(usersIds);
-    } else {
-      throw new Error("Invalid number of users");
-    }
+    } else throw new Error("Invalid number of users");
   }
+
   async createGroupConversation(usersIds, eventId, groupName) {
-    const result = await sequelize.transaction(async (t) => {
+    return await sequelize.transaction(async (t) => {
       const conversation = await Conversation.create(
-        {
-          type: "group",
-          name: groupName,
-          eventId: eventId,
-        },
+        { type: "group", name: groupName, eventId },
         { transaction: t }
       );
+
       for (const userId of usersIds) {
         await ConversationUser.create(
-          {
-            conversationId: conversation.conversationId,
-            userId: userId,
-          },
+          { conversationId: conversation.conversationId, userId },
           { transaction: t }
         );
       }
       return conversation;
     });
-    if (result) {
-      return result;
-    } else {
-      throw new Error("Error creating group conversation");
-    }
   }
+
   async createDirectConversation(usersIds) {
     const directConversations = await ConversationUser.findAll({
       where: { userId: usersIds },
@@ -127,12 +115,11 @@ class ChattingService {
 
     if (existingConversationId) {
       throw new Error(
-        "Can not create conversation with same users more than one time"
+        "Cannot create conversation with same users more than once"
       );
     }
 
-  
-    const result = await sequelize.transaction(async (t) => {
+    return await sequelize.transaction(async (t) => {
       const conversation = await Conversation.create(
         { type: "direct" },
         { transaction: t }
@@ -144,74 +131,65 @@ class ChattingService {
           { transaction: t }
         );
       }
-
       return conversation;
     });
-
-    if (result) {
-      return result;
-    } else {
-      throw new Error("Error creating direct conversation");
-    }
   }
 
   async getOnlineUsers() {
+    const WebSocketService = require("./WebSocket"); // lazy require
     return WebSocketService.onlineUsers;
   }
+
   async handleOnlineUserMessageDelivery(message) {
     message.status = "delivered";
     await message.save();
   }
+
   async syncMessagesAfterOffline(receiverId) {
+    const WebSocketService = require("./WebSocket"); // lazy require
+
     const messages = await Message.findAll({
       where: {
         status: "sent",
-        receiverIds: {
-          [Op.contains]: [receiverId],
-        },
+        receiverIds: { [Op.contains]: [receiverId] },
       },
     });
-    if (messages) {
-      for (const message of messages) {
-        WebSocketService.notifySpecificClients(
-          {
-            message: message.content,
-            messageTime: message.sentAt,
-            senderId: message.senderId,
-            receiverIds: receiverId,
-          },
-          message.conversationId
-        );
-        message.status = "delivered"; //If a message has 3 receivers, and only one comes online,you are marking it delivered for all 3.
-        await message.save();
-      }
+
+    for (const message of messages) {
+      WebSocketService.notifySpecificClients(
+        {
+          message: message.content,
+          messageTime: message.sentAt,
+          senderId: message.senderId,
+          receiverIds: receiverId,
+        },
+        message.conversationId
+      );
+
+      message.status = "delivered";
+      await message.save();
     }
   }
 
   async getGroupMembers(conversationId) {
     const conversation = await this.findConversationById(conversationId);
-    if (!conversation) {
-      throw new Error("Conversation not found");
-    }
     const conversationUsers = await ConversationUser.findAll({
-      where: {
-        conversationId: conversationId,
-      },
+      where: { conversationId },
     });
-    return conversationUsers.map((conversationUser) => conversationUser.userId);
+    return conversationUsers.map(u => u.userId);
   }
+
   async handleMessageSeen(messageId) {
+    const WebSocketService = require("./WebSocket"); // lazy require
+
     const message = await Message.findByPk(messageId);
-    if (!message) {
-      throw new Error("Message not found");
-    }
+    if (!message) throw new Error("Message not found");
+
     WebSocketService.notifySpecificClients(
-      {
-        type: "seen",
-        receiverIds: [message.senderId, ...message.receiverIds],
-      },
+      { type: "seen", receiverIds: [message.senderId, ...message.receiverIds] },
       message.conversationId
     );
+
     message.status = "seen";
     await message.save();
   }

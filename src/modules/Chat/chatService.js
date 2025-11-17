@@ -116,6 +116,15 @@ async function getMyUsers(trainerUserId) {
 async function getConversationsByUserId(userId) {
   const conversations = await Conversation.findAll({
     include: [
+      // Include users ONLY to filter membership
+      {
+        model: User,
+        as: "users",
+        where: { userId },   // 🔥 filter for conversations I'm part of
+        attributes: []       // we hide them, we'll fetch members below
+      },
+
+      // Fetch actual users for display
       {
         model: User,
         as: 'users',
@@ -125,6 +134,8 @@ async function getConversationsByUserId(userId) {
           { model: trainer, attributes: ['Name'] }
         ]
       },
+
+      // Fetch last message
       {
         model: Message,
         as: 'messages',
@@ -152,12 +163,13 @@ async function getConversationsByUserId(userId) {
     return {
       conversationId: conv.conversationId,
       type: conv.type,
-      name: conv.name,
       eventId: conv.eventId,
       chatWith:
-        conv.type === 'direct'
-          ? otherUser?.Student?.fullName || otherUser?.trainer?.Name || null
-          : null, 
+        conv.type === "direct"
+          ? otherUser?.Student?.fullName ||
+            otherUser?.trainer?.Name ||
+            null
+          : null,
 
       lastMessage: conv.messages[0]
         ? {
@@ -165,7 +177,7 @@ async function getConversationsByUserId(userId) {
             content: conv.messages[0].content,
             status: conv.messages[0].status,
             sentAt: conv.messages[0].sentAt,
-            senderId:conv.messages[0].senderId,
+            senderId: conv.messages[0].senderId,
             senderEmail: conv.messages[0].sender.email,
             senderName:
               conv.messages[0].sender.Student?.fullName ||

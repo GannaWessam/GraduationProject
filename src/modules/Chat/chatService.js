@@ -123,78 +123,104 @@ async function getMyUsers(trainerUserId) {
 }
 
 async function getConversationsByUserId(userId) {
+  const memberships = await ConversationUser.findAll({
+    where: { userId },
+    attributes: ["conversationId"],
+  });
+
+  const conversationIds = memberships.map((x) => x.conversationId);
+  if (conversationIds.length === 0) return [];
+
   const conversations = await Conversation.findAll({
-    include: [
-      {
-        model: User,
-        as: "users",
-        attributes: ["userId", "email"],
-        through: { attributes: [] },
-        include: [
-          { model: Student, attributes: ["userId",
-            "fullName"] },
-          { model: trainer, attributes: ["userId","Name"] }, // keep lowercase if your model is `trainer`
-        ],
-        // where: { userId }, // filter by current user
-        required: true,
-      },
-      {
-        model: Message,
-        as: "messages",
-        include: [
-          {
-            model: User,
-            as: "sender",
-            attributes: ["userId", "email"],
-            include: [
-              { model: Student, attributes: ["fullName"] },
-              { model: trainer, attributes: ["Name"] },
-            ],
-          },
-        ],
-        limit: 1,
-        order: [["sentAt", "DESC"]],
-      },
-    ],
+    where: { conversationId: conversationIds },
     order: [["updatedAt", "DESC"]],
   });
 
-  const formatted = conversations.map((conv) => {
-    // get the OTHER user in direct chat
-    const otherUser = conv.users.find((u) => u.userId !== userId);
+  const allMembers = await ConversationUser.findAll({
+    where: { conversationId: conversationIds },
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["userId", "email"],
+        include: [
+          { model: Student, attributes: ["fullName"] },
+          { model: trainer, attributes: ["Name"] },
+        ],
+      },
+    ],
+  });
+
+  const allLastMessagesRaw = await Message.findAll({
+    where: { conversationId: conversationIds },
+    include: [
+      {
+        model: User,
+        as: "sender",
+        attributes: ["userId", "email"],
+        include: [
+          { model: Student, attributes: ["fullName"] },
+          { model: trainer, attributes: ["Name"] },
+        ],
+      },
+    ],
+    order: [
+      ["conversationId", "ASC"],
+      ["sentAt", "DESC"],
+    ],
+  });
+
+  const lastMessagesMap = {};
+  for (const msg of allLastMessagesRaw) {
+    if (!lastMessagesMap[msg.conversationId]) {
+      lastMessagesMap[msg.conversationId] = msg;
+    }
+  }
+
+  const result = conversations.map((conv) => {
+    const members = allMembers
+      .filter((m) => m.conversationId === conv.conversationId)
+      .map((m) => m.user);
 
     let chatWith = null;
-    if (otherUser) {
-      if (otherUser.Student) chatWith = otherUser.Student.fullName;
-      else if (otherUser.trainer) chatWith = otherUser.trainer.Name;
+    if (conv.type === "direct") {
+      const otherUser = members.find((u) => u.userId !== userId);
+      if (otherUser) {
+        chatWith =
+          otherUser.Student?.fullName ||
+          otherUser.trainer?.Name ||
+          otherUser.email;
+      }
     }
+
+    const lastMsg = lastMessagesMap[conv.conversationId];
+    const lastMessageDto = lastMsg
+      ? {
+          messageId: lastMsg.messageId,
+          content: lastMsg.content,
+          status: lastMsg.status,
+          sentAt: lastMsg.sentAt,
+          senderId: lastMsg.senderId,
+          senderEmail: lastMsg.sender.email,
+          senderName:
+            lastMsg.sender.Student?.fullName ||
+            lastMsg.sender.trainer?.Name ||
+            null,
+        }
+      : null;
 
     return {
       conversationId: conv.conversationId,
       type: conv.type,
       eventId: conv.eventId,
       name: conv.name,
-      chatWith: conv.type === "direct" ? chatWith : null,
-      lastMessage: conv.messages[0]
-        ? {
-            messageId: conv.messages[0].messageId,
-            content: conv.messages[0].content,
-            status: conv.messages[0].status,
-            sentAt: conv.messages[0].sentAt,
-            senderId: conv.messages[0].senderId,
-            senderEmail: conv.messages[0].sender.email,
-            senderName:
-              conv.messages[0].sender.Student?.fullName ||
-              conv.messages[0].sender.trainer?.Name ||
-              null,
-          }
-        : null,
+      chatWith,
+      lastMessage: lastMessageDto,
     };
   });
 
-  return formatted;
+  return result;
 }
-
 
 async function getMessagesByConversationId(conversationId) {
   const messages = await Message.findAll({
@@ -209,7 +235,6 @@ async function getMessagesByConversationId(conversationId) {
     order: [["sentAt", "ASC"]],
   });
 
-  // Format messages
   const formattedMessages = messages.map((msg) => ({
     messageId: msg.messageId,
     conversationId: msg.conversationId,

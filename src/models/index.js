@@ -71,7 +71,7 @@ User.hasOne(supervisor, {
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
-Student.belongsTo(supervisor, { foreignKey: 'userId' });
+supervisor.belongsTo(User, { foreignKey: 'userId' });
 
 
 

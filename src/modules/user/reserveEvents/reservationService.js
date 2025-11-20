@@ -231,7 +231,7 @@ const registerForTraining = async (userId, eventId) => {
       trainingId: tr.trainingId,
       type: "training",
       reservationStatus: "reserved",
-      trainigStatus: "pending",
+      trainigStatus: "ACTIVE",
     }));
 
     await trainingReservation.bulkCreate(trainingReservations, {

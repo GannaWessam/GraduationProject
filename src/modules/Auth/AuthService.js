@@ -128,8 +128,8 @@ async function registerUser(payload, idImage) {
       const studentCourses = productCourses.map((pc) => ({
         userId: user.userId,
         courseId: pc.courseId,
-        examStatus: "PENDING",
-        trainingStatus: "PENDING",
+        examStatus: "pending",
+        trainingStatus: "pending",
       }));
 
       const createdCourses = await studentCourse.bulkCreate(studentCourses, { transaction: t });

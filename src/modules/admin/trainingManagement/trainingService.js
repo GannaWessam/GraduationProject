@@ -1,34 +1,44 @@
-const { training, course, User, event, trainingReservation, sequelize } = require("../../../models/index.js");
+const {
+  training,
+  course,
+  User,
+  event,
+  trainingReservation,
+  sequelize,
+} = require("../../../models/index.js");
 const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
-const {validateUpdateEvent} = require("../examManagment/helpers/examValidation.js");
-const { getEligibleUserIdsForEvent } = require("../examManagment/helpers/sendNotification.js");
-const ws = require('../../../Services/WebSocket')
+const {
+  validateUpdateEvent,
+} = require("../examManagment/helpers/examValidation.js");
+const {
+  getEligibleUserIdsForEvent,
+} = require("../examManagment/helpers/sendNotification.js");
+const ws = require("../../../Services/WebSocket");
 const packageService = require("../../admin/packageManagement/packageService.js");
 const { where } = require("sequelize");
 
-
 const createTraining = async (trainingData) => {
-  if(trainingData.packageId)
-    await createTrainingPackage(trainingData)
-  else if(trainingData.courseId)
-    await createOneTraining(trainingData,true)
+  if (trainingData.packageId) await createTrainingPackage(trainingData);
+  else if (trainingData.courseId) await createOneTraining(trainingData, true);
   else throw new Error("packageId or courseId is required");
-}
+};
 
 const createTrainingPackage = async (trainingData) => {
-  const pkg = await packageService.getPackageById(trainingData.packageId)
-  if(!pkg)
-    throw new Error("package_not_found")
+  const pkg = await packageService.getPackageById(trainingData.packageId);
+  if (!pkg) throw new Error("package_not_found");
   let createNewEventDespiteTheSameData = true;
   for (let i = 0; i < pkg.courses.length; i++) {
-    trainingData.courseId = pkg.courses[i].courseId;   
+    trainingData.courseId = pkg.courses[i].courseId;
     await createOneTraining(trainingData, createNewEventDespiteTheSameData);
     createNewEventDespiteTheSameData = false;
   }
-}
-const createOneTraining = async (trainingData,createNewEventDespiteTheSameData) => {
+};
+const createOneTraining = async (
+  trainingData,
+  createNewEventDespiteTheSameData
+) => {
   if (!trainingData.startDate || !trainingData.endDate) {
     throw new Error("startDate and endDate are required");
   }
@@ -36,13 +46,17 @@ const createOneTraining = async (trainingData,createNewEventDespiteTheSameData) 
   return sequelize.transaction(async (t) => {
     // Validate course exists *if provided*
     if (trainingData.courseId) {
-      const coursee = await course.findByPk(trainingData.courseId, { transaction: t });
+      const coursee = await course.findByPk(trainingData.courseId, {
+        transaction: t,
+      });
       if (!coursee) {
         throw new Error("course_not_found");
       }
     }
     if (trainingData.trainerId) {
-      const trainer = await User.findByPk(trainingData.trainerId, { transaction: t });
+      const trainer = await User.findByPk(trainingData.trainerId, {
+        transaction: t,
+      });
       if (!trainer) {
         throw new Error("trainer_not_found");
       }
@@ -58,36 +72,56 @@ const createOneTraining = async (trainingData,createNewEventDespiteTheSameData) 
       productId: trainingData.productId || null, // لازم يكون موجود في جدول product
       startDateRes: trainingData.startDateRes,
       endDateRes: trainingData.endDateRes,
-      status: 'opend',
-      type: 'training'
+      status: "opend",
+      type: "training",
     };
     let eventt;
-    if(createNewEventDespiteTheSameData){ 
+    if (createNewEventDespiteTheSameData) {
       eventt = await event.findOne({
-        where :  {
-        eventName: trainingData.eventName,
-        type: "training",
-      }, transaction: t})
-      if(eventt)
-        throw new Error("there is alraedy training with the same name")
-      eventt = await event.create(eventData, { transaction: t })
-    }else{
-      eventt = await event.findOne({where : eventData, transaction: t})
+        where: {
+          eventName: trainingData.eventName,
+          type: "training",
+        },
+        transaction: t,
+      });
+      if (eventt)
+        throw new Error("there is alraedy training with the same name");
+      eventt = await event.create(eventData, { transaction: t });
+    } else {
+      eventt = await event.findOne({
+        where: {
+          //     startDate: trainingData.startDate,
+          // endDate: trainingData.endDate,
+          capacity: trainingData.capacity,
+          numberOfRegistered: 0,
+          eventName: trainingData.eventName,
+          packageId: trainingData.packageId, // 3ady lw mb3tosh - by allow null
+          productId: trainingData.productId || null, // لازم يكون موجود في جدول product
+          // startDateRes: trainingData.startDateRes,
+          // endDateRes: trainingData.endDateRes,
+          status: "opend",
+          type: "training",
+        },
+        transaction: t,
+      });
     }
     // Create the training linked to the event
-    const trainingg = await training.create({
-      courseId: trainingData.courseId,
-      trainerId: trainingData.trainerId,
-      eventId: eventt.dataValues.eventId
-    }, { transaction: t });
-    
-  //   const userIds = await getEligibleUserIdsForEvent(eventt.dataValues.eventId);
-  // if (userIds.length === 0) return { message: "No eligible users found" };
+    const trainingg = await training.create(
+      {
+        courseId: trainingData.courseId,
+        trainerId: trainingData.trainerId,
+        eventId: eventt.dataValues.eventId,
+      },
+      { transaction: t }
+    );
 
-  // const results = await sendNotificationToUsers(userIds, payload);
-  // await sendNotificationToUser(userId,payload)
-  ws.notifyClients("new event has been opend", "newEvent");
-  
+    //   const userIds = await getEligibleUserIdsForEvent(eventt.dataValues.eventId);
+    // if (userIds.length === 0) return { message: "No eligible users found" };
+
+    // const results = await sendNotificationToUsers(userIds, payload);
+    // await sendNotificationToUser(userId,payload)
+    ws.notifyClients("new event has been opend", "newEvent");
+
     return { trainingId: trainingg.dataValues.trainingId };
   });
 };
@@ -95,10 +129,21 @@ const createOneTraining = async (trainingData,createNewEventDespiteTheSameData) 
 const getTrainingById = async (trainingId) => {
   const trainingg = await training.findByPk(trainingId, {
     include: [
-      { model: course, attributes: ['name'] },
-      { model: User, as: 'trainer', attributes: ['email'] },
-      { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
-    ]
+      { model: course, attributes: ["name"] },
+      { model: User, as: "trainer", attributes: ["email"] },
+      {
+        model: event,
+        attributes: [
+          "eventId",
+          "startDate",
+          "endDate",
+          "capacity",
+          "numberOfRegistered",
+          "status",
+          "type",
+        ],
+      },
+    ],
   });
 
   if (!trainingg) {
@@ -112,12 +157,22 @@ const getAllTrainings = async (features) => {
   const { count, rows: trainings } = await training.findAndCountAll({
     ...features.options,
     include: [
-      { model: course, attributes: ['name'] },
-      { model: User, as: 'trainer', attributes: ['userId', 'email'] },
-      { model: event,
-        as:"event",
-         attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
-    ]
+      { model: course, attributes: ["name"] },
+      { model: User, as: "trainer", attributes: ["userId", "email"] },
+      {
+        model: event,
+        as: "event",
+        attributes: [
+          "eventId",
+          "startDate",
+          "endDate",
+          "capacity",
+          "numberOfRegistered",
+          "status",
+          "type",
+        ],
+      },
+    ],
   });
 
   if (!trainings) {
@@ -132,12 +187,11 @@ const getAllTrainings = async (features) => {
   );
 };
 
-
 const updateTraining = async (trainingId, updateData) => {
   return sequelize.transaction(async (t) => {
-    const trainingg = await training.findByPk(trainingId, { 
+    const trainingg = await training.findByPk(trainingId, {
       include: [{ model: event }],
-      transaction: t 
+      transaction: t,
     });
 
     if (!trainingg) {
@@ -146,7 +200,9 @@ const updateTraining = async (trainingId, updateData) => {
 
     // lw ba3t course id at'ked eno mwgod
     if (updateData.courseId) {
-      const coursee = await course.findByPk(updateData.courseId, { transaction: t });
+      const coursee = await course.findByPk(updateData.courseId, {
+        transaction: t,
+      });
       if (!coursee) {
         throw new Error("course_not_found");
       }
@@ -154,7 +210,9 @@ const updateTraining = async (trainingId, updateData) => {
 
     // lw ba3t trainer id at'ked eno mwgod
     if (updateData.trainerId) {
-      const trainer = await User.findByPk(updateData.trainerId, { transaction: t });
+      const trainer = await User.findByPk(updateData.trainerId, {
+        transaction: t,
+      });
       if (!trainer) {
         throw new Error("trainer_not_found");
       }
@@ -171,12 +229,11 @@ const updateTraining = async (trainingId, updateData) => {
   });
 };
 
-
 const deleteTraining = async (trainingId) => {
   return sequelize.transaction(async (t) => {
-    const training = await training.findByPk(trainingId, { 
+    const training = await training.findByPk(trainingId, {
       include: [{ model: event }],
-      transaction: t 
+      transaction: t,
     });
 
     if (!training) {
@@ -194,22 +251,21 @@ const deleteTraining = async (trainingId) => {
 
 // Get specific training reservations (students connected to training)
 const getTrainingReservations = async (trainingId, features) => {
-  const training = await training.findByPk(trainingId, { 
+  const training = await training.findByPk(trainingId, {
     include: [{ model: event }],
-    transaction: t 
+    transaction: t,
   });
 
   if (!training) {
     throw new Error("training_not_found");
   }
 
-  const { count, rows: reservations } = await trainingReservation.findAndCountAll({
-    ...features.options,
-    where: { trainingId },
-    include: [
-      { model: User, attributes: ['userId', 'email'] }
-    ]
-  });
+  const { count, rows: reservations } =
+    await trainingReservation.findAndCountAll({
+      ...features.options,
+      where: { trainingId },
+      include: [{ model: User, attributes: ["userId", "email"] }],
+    });
 
   if (!reservations || reservations.length === 0) {
     throw new Error("no_reservations_found_for_training");
@@ -229,5 +285,5 @@ module.exports = {
   getAllTrainings,
   updateTraining,
   deleteTraining,
-  getTrainingReservations
+  getTrainingReservations,
 };

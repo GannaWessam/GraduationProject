@@ -17,7 +17,7 @@ exports.register = async (req, res, next) => {
   exports.getAll = async (req, res, next) => {
     try {
       const data = await getAllSupervisors();
-      res.json(data);
+      res.json(ApiResponse.success(data,"Supervisors fetched successfully"));
     } catch (err) {
       next(err);
     }
@@ -26,7 +26,7 @@ exports.register = async (req, res, next) => {
   exports.getById = async (req, res, next) => {
     try {
       const data = await getSupervisorById(req.params.id);
-      res.json(data);
+      res.json(ApiResponse.success(data,"Supervisor fetched successfully"));
     } catch (err) {
       next(err);
     }

@@ -142,7 +142,7 @@
 //     }
 
 //     else if (trainingStatus === "pending" && examStatus === "pending") {
-//       allowedForTraining.push(courseId); 
+//       allowedForTraining.push(courseId);
 //     }
 
 //     else if (trainingStatus === "done" && examStatus === "pending") {
@@ -153,10 +153,8 @@
 //       continue;
 //     }
 
-  
 //   }
 
- 
 //   const events = await event.findAll({
 //     where: {
 //       status: "opend",
@@ -194,7 +192,6 @@
 //       continue;
 //     }
 
-    
 //     if (ev.type === "training") {
 //       if (!packageCourseIds.some((id) => allowedForTraining.includes(id))) {
 //         console.log("Skipped: not allowed for training");
@@ -203,7 +200,7 @@
 //     }
 
 //     if (ev.type === "exam") {
-    
+
 //       const allReadyForExam = packageCourseIds.every((id) =>
 //         allowedForExam.includes(id)
 //       );
@@ -253,7 +250,6 @@
 // }
 
 // module.exports = { getAvailableEventsForUser };
-
 
 //--------------------------------------------------------
 // const { Op } = require("sequelize");
@@ -334,23 +330,19 @@
 //   for (const sc of studentCourses) {
 //     const { courseId, trainingStatus, examStatus } = sc;
 
-
 //     if (trainingStatus === "none" && examStatus === "none") continue;
 
-  
 //     if (trainingStatus === "done" && examStatus === "done") {
 //       doneCourses.push(courseId);
 //       continue;
 //     }
 
-    
 //     if (trainingStatus === "pending") {
-      
+
 //       allowedForTraining.push(courseId);
 //       continue;
 //     }
 
-    
 //     if (trainingStatus === "done" && examStatus === "pending") {
 //       allowedForExam.push(courseId);
 //       continue;
@@ -420,9 +412,8 @@
 //   optionalCourses,
 //   optionalAllowed
 // ) {
- 
-//   if (packageCourseIds.some((id) => doneCourses.includes(id))) return true;
 
+//   if (packageCourseIds.some((id) => doneCourses.includes(id))) return true;
 
 //   if (ev.type === "training" && !packageCourseIds.some((id) => allowedForTraining.includes(id)))
 //     return true;
@@ -430,18 +421,15 @@
 //   if (ev.type === "exam" && !packageCourseIds.every((id) => allowedForExam.includes(id)))
 //     return true;
 
- 
 //   const totalAfter = new Set([...doneCourses, ...packageCourseIds]).size;
 //   if (totalAfter > requiredTotal) return true;
 
- 
 //   const doneOptionalCount = doneCourses.filter((id) => optionalCourses.includes(id)).length;
 //   const packageOptionalCount = packageCourseIds.filter((id) =>
 //     optionalCourses.includes(id)
 //   ).length;
 //   const optionalAfter = doneOptionalCount + packageOptionalCount;
 //   if (optionalAfter > optionalAllowed) return true;
-
 
 //   return false;
 // }
@@ -456,10 +444,13 @@ const {
   packageCourse,
   productCourse: ProductCourse,
   studentCourse,
+  training,
+  trainer,
+  User,
 } = require("../../../../models");
 
 //bfkr a3ml 3leha endpoint?
-async function getAvailableEventsForUser(userId, productId,query) {
+async function getAvailableEventsForUser(userId, productId, query) {
   const product = await getProductById(productId);
   const { mandatoryCourses, optionalCourses, requiredTotal, optionalAllowed } =
     await getProductCourseRules(productId, product.requirdCourses);
@@ -467,7 +458,7 @@ async function getAvailableEventsForUser(userId, productId,query) {
   const { doneCourses, allowedForTraining, allowedForExam } =
     await getStudentCourseStatus(userId);
 
-  const events = await getAllOpenEvents(productId,query);
+  const events = await getAllOpenEvents(productId, query);
 
   return filterEligibleEvents(
     events,
@@ -480,7 +471,6 @@ async function getAvailableEventsForUser(userId, productId,query) {
     optionalAllowed
   );
 }
-
 
 async function getProductById(productId) {
   const product = await Product.findByPk(productId);
@@ -504,7 +494,6 @@ async function getProductCourseRules(productId, requiredTotal) {
 
   return { mandatoryCourses, optionalCourses, requiredTotal, optionalAllowed };
 }
-
 
 async function getStudentCourseStatus(userId) {
   const studentCourses = await studentCourse.findAll({
@@ -540,7 +529,6 @@ async function getStudentCourseStatus(userId) {
   return { doneCourses, allowedForTraining, allowedForExam };
 }
 
-
 const ApiFeature = require("../../../../Util/ApiFeatures"); // adjust path
 
 async function getAllOpenEvents(productId, query) {
@@ -564,10 +552,21 @@ async function getAllOpenEvents(productId, query) {
         required: false,
         include: [{ model: packageCourse, attributes: ["courseId"] }],
       },
+      {
+        model: training,
+        as: "trainings",
+        required: false,
+        include: [
+          {
+            model: trainer,
+            as: "trainer",
+            attributes: ["Name"],
+          },
+        ],
+      },
     ],
   });
 }
-
 
 function filterEligibleEvents(
   events,
@@ -608,7 +607,6 @@ function filterEligibleEvents(
   return filtered;
 }
 
-
 //?
 function shouldSkipEvent(
   ev,
@@ -620,22 +618,26 @@ function shouldSkipEvent(
   optionalCourses,
   optionalAllowed
 ) {
- 
   if (courseIds.some((id) => doneCourses.includes(id))) return true;
 
-
-  if (ev.type === "training" && !courseIds.some((id) => allowedForTraining.includes(id)))
+  if (
+    ev.type === "training" &&
+    !courseIds.some((id) => allowedForTraining.includes(id))
+  )
     return true;
 
-  if (ev.type === "exam" && !courseIds.every((id) => allowedForExam.includes(id)))
+  if (
+    ev.type === "exam" &&
+    !courseIds.every((id) => allowedForExam.includes(id))
+  )
     return true;
 
- 
   const totalAfter = new Set([...doneCourses, ...courseIds]).size;
   if (totalAfter > requiredTotal) return true;
 
- 
-  const doneOptionalCount = doneCourses.filter((id) => optionalCourses.includes(id)).length;
+  const doneOptionalCount = doneCourses.filter((id) =>
+    optionalCourses.includes(id)
+  ).length;
   const packageOptionalCount = courseIds.filter((id) =>
     optionalCourses.includes(id)
   ).length;
@@ -646,4 +648,3 @@ function shouldSkipEvent(
 }
 
 module.exports = { getAvailableEventsForUser };
-

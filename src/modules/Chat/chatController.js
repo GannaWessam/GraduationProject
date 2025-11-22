@@ -31,7 +31,7 @@ const sendMessageOnConversation = async (req, res, next) => {
       .status(200)
       .json(ApiResponse.success(result, "Message sent successfully"));
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -75,7 +75,7 @@ const createGroupConversation = async (req, res, next) => {
         )
       );
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -111,7 +111,7 @@ const createDirectConversation = async (req, res, next) => {
         )
       );
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -135,7 +135,7 @@ const getOnlineUsers = async (req, res, next) => {
         )
       );
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -161,7 +161,7 @@ const getGroupMembers = async (req, res, next) => {
         ApiResponse.success(members, "Group members retrieved successfully")
       );
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -185,7 +185,7 @@ const handleMessageSeen = async (req, res, next) => {
       .status(200)
       .json(ApiResponse.success(null, "Message marked as seen successfully"));
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -225,7 +225,7 @@ const getMyPeople = async (req, res, next) => {
           );
     }
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -235,7 +235,7 @@ const fetchMessages = async (req, res, next) => {
     const result = await getMessagesByConversationId(conversationId);
     res.status(200).json(ApiResponse.success(result, "Messages retrieved"));
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -260,7 +260,7 @@ const fetchConversations = async (req, res, next) => {
         )
       );
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 module.exports = {

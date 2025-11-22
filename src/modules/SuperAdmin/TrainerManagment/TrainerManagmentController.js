@@ -9,8 +9,8 @@ exports.register = async (req, res, next) => {
     try {
       const result = await addTrainer(req.body);
       return res.status(201).json(ApiResponse.created(result));
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      return next(error);
     }
   };
 
@@ -18,8 +18,8 @@ exports.register = async (req, res, next) => {
     try {
       const data = await getAllTrainers();
       res.json(data);
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      return next(error);
     }
   };
 
@@ -27,7 +27,7 @@ exports.register = async (req, res, next) => {
     try {
       const data = await getTrainerById(req.params.id);
       res.json(data);
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      return next(error);
     }
   };

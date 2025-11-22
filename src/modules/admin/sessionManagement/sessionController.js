@@ -45,13 +45,13 @@ const sessionController = {
     res.status(200).json(ApiResponse.success(result));
   },
 
-  async getUserActiveSessions(req, res) {
+  async getUserActiveSessions(req, res, next) {
     try {
       const userId =req.userData.id;
       const data = await sessionService.getUserActiveSessions(userId);
       res.json(data);
-    } catch (e) {
-      res.status(500).json({ error: e.message });
+    } catch (error) {
+      return next(error);
     }
   },
 };

@@ -1,5 +1,5 @@
 const { request } = require("express");
-const { exam, course, User, event, examReservation, sequelize, Student} = require("../../../models/index.js");
+const { exam, course, User, event, examReservation, sequelize, Student ,supervisor} = require("../../../models/index.js");
 const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
@@ -305,7 +305,7 @@ const updateExam = async (examId, updateData) => {
     const updatedExam = await exam.findByPk(examId, {
       include: [
         { model: course, attributes: ['name'] },
-        { model: User, as: 'supervisor', attributes: ['userId', 'email'] },
+        { model: supervisor, as: 'supervisor', attributes: ['userId', 'email'] },
         { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
       ],
       transaction: t

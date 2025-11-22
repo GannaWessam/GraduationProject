@@ -10,8 +10,7 @@ const registerForExam = async (req, res, next) => {
     const result = await reservationService.registerForExam(userId, eventId);
     res.status(200).json(ApiResponse.success(result));
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json(ApiResponse.error(error.message));
+    return next(error);
   }
 };
 
@@ -22,8 +21,7 @@ const registerForTraining = async (req, res, next) => {
     const result = await reservationService.registerForTraining(userId, eventId);
     res.status(200).json(ApiResponse.success(result, "User registered for training"));
   } catch (error) {
-    console.error("Error in registerForTrainingController:", error);
-    res.status(500).json(ApiResponse.error(error.message));
+    return next(error);
   }
 };
 
@@ -36,7 +34,7 @@ const getAvailableEventsForUserController = async (req, res, next) => {
     const result = await eventService.getAvailableEventsForUserService(userId,StudentData.productId,req.query);
     res.status(200).json(ApiResponse.success(result, "Success"));
   } catch (error) {
-    next(error); // Pass to global error handler
+    return next(error);
   }
 };
 
@@ -45,8 +43,8 @@ const getUserActiveReservationsController = async (req, res, next) => {
 const userId = req.query.userId;
     const reservations = await reservationService.getUserActiveReservations(userId);
     res.status(200).json(ApiResponse.success(reservations, "Active reservations fetched successfully"));
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    return next(error);
   }
 };
 

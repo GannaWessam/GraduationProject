@@ -8,8 +8,8 @@ exports.register = async (req, res, next) => {
   try {
     const result = await registerUser(req.body, req.file?.filename);
     return res.status(201).json(ApiResponse.created(result));
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -18,8 +18,8 @@ exports.login = async (req, res, next) => {
     const { email, password } = req.body;
     const result = await loginUser(email, password);
     return res.status(200).json(ApiResponse.success(result));
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -30,8 +30,8 @@ exports.updatePassword = async (req, res, next) => {
     return res
       .status(200)
       .json(ApiResponse.success(result, "Password updated successfully"));
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -53,8 +53,8 @@ exports.getUser = async (req, res, next) => {
   try {
     const result = await getuser(req.query.email);
     return res.status(201).json(ApiResponse.created(result));
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -62,8 +62,8 @@ exports.getUserFees = async (req, res, next) => {
   try {
     const result = await getuserfees(req.query.userId);
     return res.status(201).json(ApiResponse.created(result));
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -76,7 +76,7 @@ exports.verifyEmail = async(req, res , next) => {
       .status(200)
       .json(ApiResponse.success(result, "founded successfully"));
 
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    return next(error);
   }
 }

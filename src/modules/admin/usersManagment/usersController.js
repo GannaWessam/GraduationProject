@@ -63,17 +63,16 @@ const approveStudentByUserId = async (req, res) => {
   res.status(200).json(ApiResponse.success(result));
 };
 
-const getAllUserss = async (req, res) => {
+const getAllUserss = async (req, res, next) => {
   try {
     const users = await userServices.getAllUserss();
     return res.status(200).json(ApiResponse.success("Users retrieved successfully", users));
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return res.status(500).json(ApiResponse.error("Failed to get users", error.message));
+    return next(error);
   }
 };
 
-const updateStudentNationalIdController = async (req, res) => {
+const updateStudentNationalIdController = async (req, res, next) => {
   try {
     const userId = req.params.id;
     const { nationalId } = req.body;
@@ -82,13 +81,12 @@ const updateStudentNationalIdController = async (req, res) => {
 
     return res.status(200).json(ApiResponse.success(result));
   } catch (error) {
-    console.error("Error updating national ID:", error);
-    return res.status(400).json(ApiResponse.error(error.message));
+    return next(error);
   }
 };
 
 
-async function getStudentByIdController(req, res) {
+async function getStudentByIdController(req, res, next) {
   try {
     const { id } = req.params;
     const student = await userServices.getStudentById(id);
@@ -98,10 +96,7 @@ async function getStudentByIdController(req, res) {
       data: student,
     });
   } catch (error) {
-    res.status(404).json({
-      status: "error",
-      message: error.message || "Failed to fetch student",
-    });
+    return next(error);
   }
 }
 

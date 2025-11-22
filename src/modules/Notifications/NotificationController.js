@@ -2,7 +2,7 @@ const { saveSubscription, sendNotificationToUser, sendNotificationToUsers } = re
 const {getAllNotificationToUserService} = require('./NotificationService');
 const ApiResponse = require("../../Util/ApiResponse");
 
-exports.subscribeUser = async (req, res) => {
+exports.subscribeUser = async (req, res, next) => {
   try {
     const { userId, subscription } = req.body;
     if (!userId || !subscription) {
@@ -10,23 +10,22 @@ exports.subscribeUser = async (req, res) => {
     }
     await saveSubscription(userId, subscription);
     res.json({ success: true });
-  } catch (err) {
-    console.error('Subscribe Error:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
+  } catch (error) {
+    return next(error);
   }
 };
 
-exports.sendToSingleUser = async (req, res) => {
+exports.sendToSingleUser = async (req, res, next) => {
   try {
     const payload = req.body;
     const result =await sendNotificationToUser(req.params.userId, payload);
     res.json(result);
-  } catch (err) {
-    res.status(500).json(err);
+  } catch (error) {
+    return next(error);
   }
 };
 
-exports.sendToMultipleUsers = async (req, res) => {
+exports.sendToMultipleUsers = async (req, res, next) => {
   try {
     const { userIds, title , body } = req.body;
     console.log(req.body);
@@ -41,9 +40,8 @@ exports.sendToMultipleUsers = async (req, res) => {
     }
     const result=await sendNotificationToUsers(userIds, payload);
     res.json(result);
-  } catch (err) {
-    console.error('SendToMultipleUsers Error:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
+  } catch (error) {
+    return next(error);
   }
 };
 

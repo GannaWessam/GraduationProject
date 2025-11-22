@@ -6,14 +6,12 @@ async function addCollege(req, res) {
   return res.status(201).json(ApiResponse.created(result));
 }
 
-async function getAllCollegesController(req, res) {
+async function getAllCollegesController(req, res, next) {
   try {
     const result = await CollegeService.getAllCollegesService(req.query || {});
     return res.status(200).json(ApiResponse.success(result));
-  } catch (err) {
-    return res
-      .status(500)
-      .json(ApiResponse.error(err.message || "Internal Server Error"));
+  } catch (error) {
+    return next(error);
   }
 }
 

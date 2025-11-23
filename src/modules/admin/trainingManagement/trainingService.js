@@ -190,7 +190,7 @@ const getAllTrainings = async (features) => {
 const updateTraining = async (trainingId, updateData) => {
   return sequelize.transaction(async (t) => {
     const trainingg = await training.findByPk(trainingId, {
-      include: [{ model: event }],
+      include: [{ model: event ,as: 'event'}],
       transaction: t,
     });
 
@@ -226,6 +226,84 @@ const updateTraining = async (trainingId, updateData) => {
       await trainingg.event.update(eventData, { transaction: t });
     }
     return { trainingId: trainingg.trainingId };
+  });
+};
+
+
+const updateTrainingEvent = async (eventId, updateData) => {
+  return await sequelize.transaction(async (t) => {
+
+    // ============================
+    // (1) هات ال event
+    // ============================
+    const eventt = await event.findByPk(eventId, { transaction: t });
+    if (!eventt) throw new Error("event_not_found");
+
+    // ============================
+    // (2) Update event fields (لو مبعوتة)
+    // ============================
+    const eventFields = [
+      "startDate",
+      "endDate",
+      "startDateRes",
+      "endDateRes",
+      "capacity",
+      "status"
+    ];
+
+    let eventModified = false;
+
+    eventFields.forEach(field => {
+      if (updateData[field] !== undefined) {
+        eventt[field] = updateData[field];
+        eventModified = true;
+      }
+    });
+
+    if (eventModified) {
+      await eventt.save({ transaction: t });
+    }
+
+    // ============================
+    // (3) لو مفيش trainerId → رجع event وخلاص
+    // ============================
+    if (updateData.trainerId === undefined || updateData.trainerId === null) {
+      return {
+        updatedEvent: eventt,
+        updatedTrainings: []
+      };
+    }
+
+    // ============================
+    // (4) Validate trainer exists
+    // ============================
+    const trainer = await User.findByPk(updateData.trainerId, {
+      transaction: t
+    });
+    if (!trainer) throw new Error("trainer_not_found");
+
+    // ============================
+    // (5) هات كل trainings اللي تبع event دا
+    // ============================
+    const trainings = await training.findAll({
+      where: { eventId },
+      transaction: t
+    });
+
+    if (trainings.length > 0) {
+      // ============================
+      // (6) Update trainerId لكل trainings
+      // ============================
+      await training.update(
+        { trainerId: updateData.trainerId },
+        { where: { eventId }, transaction: t }
+      );
+    }
+
+    return {
+      updatedEvent: eventt,
+      updatedTrainings: await training.findAll({ where: { eventId }, transaction: t })
+    };
   });
 };
 
@@ -286,4 +364,6 @@ module.exports = {
   updateTraining,
   deleteTraining,
   getTrainingReservations,
+  updateTrainingEvent
+
 };

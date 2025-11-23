@@ -58,15 +58,7 @@ const updateEventTraining = async (req, res) => {
     const result = await trainingService.updateTrainingEvent(id, req.body);
     res.status(200).json(ApiResponse.success(result, "Training updated successfully"));
   } catch (error) {
-    if (error.message === "training_not_found") {
-      res.status(404).json(ApiResponse.error("Training not found"));
-    } else if (error.message === "course_not_found") {
-      res.status(404).json(ApiResponse.error("Course not found"));
-    } else if (error.message === "trainer_not_found") {
-      res.status(404).json(ApiResponse.error("Trainer not found"));
-    } else {
-      res.status(400).json(ApiResponse.error(error.message));
-    }
+    return next(error);
   }
 };
 

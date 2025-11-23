@@ -305,7 +305,7 @@ const updateExam = async (examId, updateData) => {
     const updatedExam = await exam.findByPk(examId, {
       include: [
         { model: course, attributes: ['name'] },
-        { model: supervisor, as: 'supervisor', attributes: ['userId', 'email'] },
+        { model: supervisor, as: 'supervisor', attributes: ['userId'] },
         { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
       ],
       transaction: t

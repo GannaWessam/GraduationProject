@@ -447,6 +447,8 @@ const {
   training,
   trainer,
   User,
+  exam,
+  supervisor,
 } = require("../../../../models");
 
 //bfkr a3ml 3leha endpoint?
@@ -560,6 +562,17 @@ async function getAllOpenEvents(productId, query) {
           {
             model: trainer,
             as: "trainer",
+            attributes: ["Name"],
+          },
+        ],
+      },
+      {
+        model: exam,
+        required: false,
+        include: [
+          {
+            model: supervisor,
+            as: "supervisor",
             attributes: ["Name"],
           },
         ],

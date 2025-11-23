@@ -13,6 +13,10 @@ require("./src/models/Student.js");
 // Initialize WebSocket service for chat
 require("./src/Services/WebSocket.js");
 
+// Initialize background services
+const closeExpiredEventsService = require("./src/background/closeExpiredEvents.js");
+closeExpiredEventsService.init();
+
 const app = express();
 const port = 3000;
 

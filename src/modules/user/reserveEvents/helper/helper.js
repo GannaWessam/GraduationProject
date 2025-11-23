@@ -544,6 +544,8 @@ async function getAllOpenEvents(productId, query) {
     ...apiFeature.options.where,
     status: "opend",
     productId,
+    startDateRes: { [Op.lte]: new Date() },  
+  endDateRes: { [Op.gte]: new Date() }    
   };
 
   return event.findAll({

@@ -43,7 +43,12 @@ module.exports = (sequelize) => {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW
-    }
+    },
+    seenBy: {
+      type: DataTypes.ARRAY(DataTypes.UUID),
+      allowNull: false,
+      defaultValue: []
+    },
   }, {
     tableName: 'messages',
     timestamps: true

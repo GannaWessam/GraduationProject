@@ -9,17 +9,19 @@ class WebSocketService {
   init() {
     this.websocketServer.on('connection', (ws) => {
       console.log('Client connected');
-      // this.websocketClient = ws; // store the latest connected client
-
       ws.on('message', async (message) => {
         try {
           const data = JSON.parse(message);
-
-          // When client sends { type: "register", userId: "123" }
           if (data.type === 'register' && data.userId) {
             ws.userId = data.userId;
             this.onlineUsers.add(data.userId);
+            console.log(this.onlineUsers);
             await chattingService.syncMessagesAfterOffline(data.userId);
+            const result=await chattingService.getUsersWithCommonConversations(data.userId)
+            this.notifySpecificClients({
+              type:"online",
+              receiverIds:result,
+            },data.userId)
             console.log(`User ${data.userId} registered and now online`);
           }
         } catch (err) {
@@ -28,9 +30,14 @@ class WebSocketService {
       });
 
       
-      ws.on('close', () => {
+      ws.on('close', async() => {
         if (ws.userId) {
           this.onlineUsers.delete(ws.userId);
+          const result=await chattingService.getUsersWithCommonConversations(ws.userId)
+          this.notifySpecificClients({
+            type:"offline",
+            receiverIds:result,
+          },ws.userId)
           console.log(`User ${ws.userId} disconnected`);
         }
       });

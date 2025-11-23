@@ -171,20 +171,22 @@ const getGroupMembers = async (req, res, next) => {
  */
 const handleMessageSeen = async (req, res, next) => {
   try {
-    const { messageId } = req.params;
+    const { conversationId,receiverId } = req.body;
 
-    if (!messageId) {
+    if (!conversationId) {
       return res
         .status(400)
-        .json(ApiResponse.error(400, "messageId is required"));
+        .json(ApiResponse.error(400, "conversationId is required"));
     }
 
-    await chattingService.handleMessageSeen(messageId);
+    const results = await chattingService.handleChatSeen(conversationId,receiverId)
 
     res
       .status(200)
-      .json(ApiResponse.success(null, "Message marked as seen successfully"));
+      .json(ApiResponse.success(results, "Message marked as seen successfully"));
   } catch (error) {
+    console.log(error);
+    
     return next(error);
   }
 };

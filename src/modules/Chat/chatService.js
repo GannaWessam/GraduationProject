@@ -51,7 +51,7 @@ async function getMyTrainers(userId) {
       if (tr.trainer) {
         const trainerInfo = trainerMap.get(tr.trainer.userId);
         map.set(tr.trainer.userId, {
-          user: tr.trainer.userInfo, // 👈 access userInfo
+          user: tr.trainer.userInfo,
           trainer: trainerInfo,
         });
       }
@@ -61,8 +61,9 @@ async function getMyTrainers(userId) {
   const formattedTrainers = [...map.values()].map(({ user, trainer }) => ({
     userId: trainer?.userId || null,
     email: user?.email || null,
-    fullName: trainer?.Name || null, // 👈 correct Name
+    fullName: trainer?.Name || null, 
   }));
+
 
   return {
     status: 200,
@@ -183,15 +184,19 @@ async function getConversationsByUserId(userId) {
       .map((m) => m.user);
 
     let chatWith = null;
+    let chatWithId=null
     if (conv.type === "direct") {
       const otherUser = members.find((u) => u.userId !== userId);
+      
       if (otherUser) {
         chatWith =
           otherUser.Student?.fullName ||
           otherUser.trainer?.Name ||
           otherUser.email;
+          chatWithId=otherUser.userId
       }
     }
+    
 
     const lastMsg = lastMessagesMap[conv.conversationId];
     const lastMessageDto = lastMsg
@@ -215,6 +220,7 @@ async function getConversationsByUserId(userId) {
       eventId: conv.eventId,
       name: conv.name,
       chatWith,
+      chatWithId,
       lastMessage: lastMessageDto,
     };
   });

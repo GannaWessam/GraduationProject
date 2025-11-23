@@ -27,8 +27,6 @@ class ChattingService {
       conversationId,
       receiverIds,
     });
-
-    // Notify all online users
     await WebSocketService.notifySpecificClients(
       {
         type:"message",
@@ -40,18 +38,23 @@ class ChattingService {
       },
       conversationId
     );
-
-    for (const receiverId of receiverIds) {
-      console.log(WebSocketService.onlineUsers);
-      
-      
-      if (WebSocketService.onlineUsers.has(receiverId)) {
-        await this.handleOnlineUserMessageDelivery(newMessage);
-        WebSocketService.notifySpecificClients(
-          { type: "delivered", receiverIds: [receiverId, newMessage.senderId],message:newMessage.messageId },
-          newMessage.conversationId
-        );
-      }
+    await WebSocketService.notifyClients({
+      type:"chat",
+    },receiverIds)
+    console.log(receiverIds);
+    
+    const allOnline = receiverIds.every(id => WebSocketService.onlineUsers.has(id));
+    if(allOnline)
+    {
+      await this.handleOnlineUserMessageDelivery(newMessage);
+      WebSocketService.notifySpecificClients(
+        {
+          type: "delivered",
+          receiverIds: [...receiverIds, newMessage.senderId],
+          message: newMessage.messageId
+        },
+        newMessage.conversationId
+      );
     }
 
     return newMessage; // return message for WebSocket use if needed
@@ -136,7 +139,7 @@ class ChattingService {
   }
 
   async getOnlineUsers() {
-    const WebSocketService = require("./WebSocket"); // lazy require
+    const WebSocketService = require("./WebSocket");
     return WebSocketService.onlineUsers;
   }
 
@@ -146,7 +149,7 @@ class ChattingService {
   }
 
   async syncMessagesAfterOffline(receiverId) {
-    const WebSocketService = require("./WebSocket"); // lazy require
+    const WebSocketService = require("./WebSocket");
 
     const messages = await Message.findAll({
       where: {
@@ -155,14 +158,25 @@ class ChattingService {
       },
     });
 
+    console.log(messages.length);
     for (const message of messages) {
       WebSocketService.notifySpecificClients(
         {
-          message: message.content,
-          messageTime: message.sentAt,
+          type:"number",
           senderId: message.senderId,
           receiverIds: receiverId,
+          length:messages.length
         },
+        message.conversationId
+      );
+      const allOnline = message.receiverIds.every(id =>
+        WebSocketService.onlineUsers.has(id)
+      );
+      if (!allOnline) {
+        continue;
+      }
+      WebSocketService.notifySpecificClients(
+        { type: "delivered", receiverIds: [message.senderId],message:message.messageId },
         message.conversationId
       );
 
@@ -179,19 +193,71 @@ class ChattingService {
     return conversationUsers.map(u => u.userId);
   }
 
-  async handleMessageSeen(messageId) {
-    const WebSocketService = require("./WebSocket"); // lazy require
-
-    const message = await Message.findByPk(messageId);
-    if (!message) throw new Error("Message not found");
-
-    WebSocketService.notifySpecificClients(
-      { type: "seen", receiverIds: [message.senderId, ...message.receiverIds] },
-      message.conversationId
-    );
-
-    message.status = "seen";
-    await message.save();
+  async handleChatSeen(conversationId, receiverId) {
+    const WebSocketService = require("./WebSocket");
+  
+    // Fetch messages not fully seen yet
+    const messages = await Message.findAll({
+      where: {
+        conversationId,
+        receiverIds: { [Op.contains]: [receiverId] },
+      },
+    });
+  
+    const updatedMessages = [];
+  
+    for (const message of messages) {
+      const seenBy = message.seenBy || [];
+  
+      // Skip if this receiver already saw it
+      if (seenBy.includes(receiverId)) continue;
+  
+      // Add this receiver
+      const newSeenBy = [...seenBy, receiverId];
+      message.seenBy = newSeenBy;
+  
+      // If all receivers have seen, mark status as 'seen'
+      if (newSeenBy.length === message.receiverIds.length) {
+        message.status = "seen";
+      }
+  
+      await message.save();
+      updatedMessages.push(message);
+  
+      // Notify sender that message status updated
+      if (message.status === "seen") {
+        WebSocketService.notifySpecificClients(
+          {
+            type: "seen",
+            receiverIds: [message.senderId],
+            messages: [message],
+          },
+          conversationId
+        );
+      }
+    }
+  
+    return updatedMessages;
+  }
+  
+  
+  async  getUsersWithCommonConversations(userId) {
+    const userConversations = await ConversationUser.findAll({
+      where: { userId },
+      attributes: ["conversationId"],
+    });
+    const conversationIds = userConversations.map(c => c.conversationId);
+    if (conversationIds.length === 0) return [];
+    const otherUsers = await ConversationUser.findAll({
+      where: {
+        conversationId: conversationIds,
+        userId: { [Op.ne]: userId }
+      },
+      attributes: ["userId"],
+      group: ["userId"],
+    });
+  
+    return otherUsers.map(u => u.userId);
   }
 }
 

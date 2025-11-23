@@ -22,7 +22,7 @@ router.get(
 );
 
 // Handle message seen
-router.put("/messages/:messageId/seen", chatController.handleMessageSeen);
+router.put("/messages/seen", chatController.handleMessageSeen);
 
 router.get("/my-people", validateToken, chatController.getMyPeople);
 

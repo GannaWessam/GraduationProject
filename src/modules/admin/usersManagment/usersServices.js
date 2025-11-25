@@ -269,7 +269,8 @@ async function updateUser(userId, payload, idImage) {
         type:"Edit"
       }
       WebSocket.notifyClients("message",userId)
-      await sendNotificationToUser(userId,message,translation)
+      sendNotificationToUser(userId, message, translation)
+      .catch(err => console.error("Push error:", err));
       
 
     return createStudentSuccessResponse(
@@ -299,8 +300,10 @@ const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||
     body: "تم قبول بياناتك، ويمكنك الآن تسجيل دورتك أو امتحانك",
     type:"Accept"
   }
-  await sendNotificationToUser(userId,payload,translation)
-  WebSocket.notifyClients("message",userId)
+   WebSocket.notifyClients("message",userId)
+      sendNotificationToUser(userId, payload, translation)
+      .catch(err => console.error("Push error:", err));
+      
 
   return { message: "Student approved successfully", student };
 };
@@ -345,7 +348,9 @@ async function updateStudentNationalId(userId, nationalId) {
       body: "تم تعديل رقم الهوية الوطنية الخاص بك، يرجى الذهاب إلى ملفك الشخصي للتحقق منه",      
       type:"Edit"
     }
-    await sendNotificationToUser(userId,payload,translation)
+    sendNotificationToUser(userId, payload, translation)
+    .catch(err => console.error("Push error:", err));
+    
     WebSocket.notifyClients("message",userId)
     return {
       updated,

@@ -5,6 +5,7 @@ const {
   event,
   trainingReservation,
   sequelize,
+  trainer,
 } = require("../../../models/index.js");
 const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
@@ -130,17 +131,15 @@ const getTrainingById = async (trainingId) => {
   const trainingg = await training.findByPk(trainingId, {
     include: [
       { model: course, attributes: ["name"] },
-      { model: User, as: "trainer", attributes: ["email"] },
+      { model: trainer, as: "trainer", attributes: ["Name"] },
       {
         model: event,
         attributes: [
-          "eventId",
           "startDate",
           "endDate",
           "capacity",
           "numberOfRegistered",
           "status",
-          "type",
         ],
       },
     ],
@@ -157,19 +156,18 @@ const getAllTrainings = async (features) => {
   const { count, rows: trainings } = await training.findAndCountAll({
     ...features.options,
     include: [
-      { model: course, attributes: ["name"] },
-      { model: User, as: "trainer", attributes: ["userId", "email"] },
       {
         model: event,
         as: "event",
         attributes: [
-          "eventId",
           "startDate",
+          "eventName",
           "endDate",
+          "startDateRes",
+          "endDateRes",
           "capacity",
           "numberOfRegistered",
           "status",
-          "type",
         ],
       },
     ],

@@ -545,7 +545,7 @@ async function getAllOpenEvents(productId, query) {
     status: "opend",
     productId,
     startDateRes: { [Op.lte]: new Date() },  
-  endDateRes: { [Op.gte]: new Date() }    
+      endDateRes: { [Op.gte]: new Date() }    
   };
 
   return event.findAll({

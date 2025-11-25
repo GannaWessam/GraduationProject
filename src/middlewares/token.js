@@ -2,10 +2,23 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const ApiResponse = require("../Util/ApiResponse");
 
-function generateToken(email, name, id, role ,NameEn ,productId,status) {
-  const tokenData = { email, name, id, role , NameEn  ,productId,status};//
-  const token = jwt.sign(tokenData, process.env.SecretKey, { expiresIn: "30d" });
-  return token;
+const DEFAULT_TOKEN_EXPIRY = process.env.JWT_EXPIRY || "1d";
+const REMEMBER_ME_TOKEN_EXPIRY =
+  process.env.JWT_REMEMBER_ME_EXPIRY || DEFAULT_TOKEN_EXPIRY;
+
+function generateToken(
+  email,
+  name,
+  id,
+  role,
+  NameEn,
+  productId,
+  status,
+  rememberMe = false 
+) {
+  const tokenData = { email, name, id, role, NameEn, productId, status };
+  const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
+  return jwt.sign(tokenData, process.env.SecretKey, { expiresIn });
 }
 
 function validateToken(req, res, next) {

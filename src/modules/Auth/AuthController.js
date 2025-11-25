@@ -16,8 +16,8 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    const result = await loginUser(email, password);
+    const { email, password, rememberMe = false } = req.body;
+    const result = await loginUser(email, password, rememberMe);
     return res.status(200).json(ApiResponse.success(result));
   } catch (error) {
     return next(error);

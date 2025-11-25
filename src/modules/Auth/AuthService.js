@@ -155,7 +155,7 @@ async function registerUser(payload, idImage) {
 }
 
 
-async function loginUser(email, password) {
+async function loginUser(email, password, rememberMe = false) {
   const user = await findUserByEmail(email);
   if (!user) throw new Error("invalid_email");
 
@@ -166,18 +166,18 @@ async function loginUser(email, password) {
   
   await comparePassword(password, user.passwordHash);
 
-  const tok = token.generateToken(
+  const jwtToken = token.generateToken(
     email,
     student?.fullName,
     user.userId,
     user.role,
     student?.NameEn,
     student?.productId,
-    student?.status
-
+    student?.status,
+    rememberMe
   );
 
-  return formatLoginResponse(user, tok);//msh 3ayz el name?
+  return formatLoginResponse(user, jwtToken);//msh 3ayz el name?
 }
 
 async function resetPassword(email, newPassword) {

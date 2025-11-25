@@ -5,6 +5,8 @@ const {
   Message,
   sequelize,
   User,
+  Student,
+  trainer,
 } = require("../models/index.js");
 
 class ChattingService {
@@ -189,14 +191,33 @@ class ChattingService {
     const conversation = await this.findConversationById(conversationId);
     const conversationUsers = await ConversationUser.findAll({
       where: { conversationId },
+      attributes: ["userId"],
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["userId"],
+          include: [
+            {
+              model: Student,
+              attributes: ["fullName", "NameEn"]
+            },
+            {
+              model: trainer,
+              attributes: ["Name"]
+            }
+          ]
+        }
+      ]
     });
-    return conversationUsers.map(u => u.userId);
+    return conversationUsers.map(u => ({
+      userId: u.userId,
+      user: u.user
+    }));
   }
 
   async handleChatSeen(conversationId, receiverId) {
     const WebSocketService = require("./WebSocket");
-  
-    // Fetch messages not fully seen yet
     const messages = await Message.findAll({
       where: {
         conversationId,
@@ -208,23 +229,14 @@ class ChattingService {
   
     for (const message of messages) {
       const seenBy = message.seenBy || [];
-  
-      // Skip if this receiver already saw it
       if (seenBy.includes(receiverId)) continue;
-  
-      // Add this receiver
       const newSeenBy = [...seenBy, receiverId];
       message.seenBy = newSeenBy;
-  
-      // If all receivers have seen, mark status as 'seen'
       if (newSeenBy.length === message.receiverIds.length) {
         message.status = "seen";
       }
-  
       await message.save();
       updatedMessages.push(message);
-  
-      // Notify sender that message status updated
       if (message.status === "seen") {
         WebSocketService.notifySpecificClients(
           {

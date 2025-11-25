@@ -49,7 +49,6 @@ async function chooseCoursesService(userId,courses ,examStatus,  trainingStatus)
 async function addCourse(courseInfo) {
   const { name } = courseInfo;
   if (!name) throw new Error("missing_required");
-
   const newCourse = await course.create({ name });
   return newCourse;
 }

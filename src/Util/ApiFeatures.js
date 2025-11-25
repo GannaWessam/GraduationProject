@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-
+const { sequelize } = require("../models");
 
 class ApiFeature {
   constructor(searchQuery) {
@@ -20,56 +20,70 @@ class ApiFeature {
 
     return this;
   }
+ 
+
+
   filter() {
-    let queryObj = { ...this.searchQuery };
+  let queryObj = { ...this.searchQuery };
 
-    const excluded = [
-      "page",
-      "limit",
-      "sort",
-      "fields",
-      "search",
-      "searchFields",
-    ];
-    excluded.forEach((el) => delete queryObj[el]);
+  const excluded = [
+    "page",
+    "limit",
+    "sort",
+    "fields",
+    "search",
+    "searchFields",
+  ];
+  excluded.forEach((el) => delete queryObj[el]);
 
-    const opMap = {
-      gt: Op.gt,
-      gte: Op.gte,
-      lt: Op.lt,
-      lte: Op.lte,
-      in: Op.in,
-      nin: Op.notIn,
-      eq: Op.eq,
-      ne: Op.ne,
-      contains: Op.iLike,
-    };
+  const opMap = {
+    gt: Op.gt,
+    gte: Op.gte,
+    lt: Op.lt,
+    lte: Op.lte,
+    in: Op.in,
+    nin: Op.notIn,
+    eq: Op.eq,
+    ne: Op.ne,
+    contains: Op.iLike,
+  };
 
-    const where = {};
-    for (let key in queryObj) {
-      const match = key.match(/(\w+)\[(\w+)\]/);
-      if (match) {
-        const field = match[1];
-        const op = match[2];
+  const where = {};
 
-        if (!where[field]) where[field] = {};
+  for (let key in queryObj) {
 
-        if (opMap[op]) {
-          if (op === "contains") {
-            where[field][opMap[op]] = `%${queryObj[key]}%`;
-          } else {
-            where[field][opMap[op]] = queryObj[key];
-          }
+    const match = key.match(/([\w.]+)\[(\w+)\]/);
+
+    if (match) {
+      const field = match[1];  
+      const op = match[2];
+      const value = queryObj[key];
+
+      const sequelizeField = field.includes(".")
+        ? `$${field}$`
+        : field;
+
+      if (!where[sequelizeField]) where[sequelizeField] = {};
+
+      if (opMap[op]) {
+        if (op === "contains") {
+          where[sequelizeField][opMap[op]] = `%${value}%`;
+        } else {
+          where[sequelizeField][opMap[op]] = value;
         }
-      } else {
-        where[key] = queryObj[key];
       }
+
+    } else {
+      
+      where[key] = queryObj[key];
     }
-
-    this.options.where = where;
-
-    return this;
   }
+
+  this.options.where = where;
+
+  return this;
+}
+
 
   sort() {
     if (this.searchQuery.sort) {
@@ -94,35 +108,34 @@ class ApiFeature {
   }
 
   search() {
-  if (this.searchQuery.search) {
-    const searchFields = this.searchQuery.searchFields
-      ? this.searchQuery.searchFields.split(",")
-      : [];
+    if (this.searchQuery.search) {
+      const searchFields = this.searchQuery.searchFields
+        ? this.searchQuery.searchFields.split(",")
+        : [];
 
-    if (searchFields.length > 0) {
-      const orConditions = searchFields.map((field) => {
-        if (field.includes(".")) {
-          return {
-            [`$${field}$`]: { [Op.iLike]: `%${this.searchQuery.search}%` },
-          };
-        } else {
-          return {
-            [field]: { [Op.iLike]: `%${this.searchQuery.search}%` },
-          };
-        }
-      });
+      if (searchFields.length > 0) {
+        const orConditions = searchFields.map((field) => {
+          if (field.includes(".")) {
+            return sequelize.where(
+              sequelize.cast(sequelize.col(field), "TEXT"),
+              { [Op.iLike]: `%${this.searchQuery.search}%` }
+            );
+          } else {
+            return {
+              [field]: { [Op.iLike]: `%${this.searchQuery.search}%` },
+            };
+          }
+        });
 
-      this.options.where = {
-        ...this.options.where,
-        [Op.or]: orConditions,
-      };
+        this.options.where = {
+          ...this.options.where,
+          [Op.or]: orConditions,
+        };
+      }
     }
+
+    return this;
   }
-
-  return this;
 }
-
-}
-
 
 module.exports = ApiFeature;

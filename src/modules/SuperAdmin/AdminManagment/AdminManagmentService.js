@@ -101,6 +101,68 @@ async function getAdminById(id) {
   return admin;
 }
 
+async function deleteAdmin(id) {
+  const admin = await Admin.findByPk(id);
+
+  if (!admin) throw new Error("admin_not_found");
+
+  const userId = admin.userId;
+
+  await sequelize.transaction(async (t) => {
+    await admin.destroy({ transaction: t });
+    await User.destroy({ where: { userId }, transaction: t });
+  });
+
+  return {
+    success: true,
+    message: "Admin and related user deleted",
+  };
+}   
+
+async function updateAdmin(id, updateData) {
+  const admin = await Admin.findByPk(id, {
+    include: [{ model: User }] 
+  });
+
+  if (!admin) throw new Error("Admin_not_found");
+
+  const { Name, email, password, confirmPassword } = updateData;
+
+
+  if (Name) admin.Name = Name;
+
+
+  if (email) {
+
+    await checkEmailExists(email);
+    admin.User.email = email;
+  }
+
+  
+  if (password) {
+    if (!confirmPassword) {
+      throw new Error("confirmPassword_required");
+    }
+
+    validatePassword(password, confirmPassword);
+
+    const hashed = await hashPassword(password);
+    admin.User.passwordHash = hashed;
+  }
+
+  // Save both SuperAdmin + User in transaction
+  await sequelize.transaction(async (t) => {
+    await admin.save({ transaction: t });
+    await admin.User.save({ transaction: t });
+  });
+
+  return {
+    success: true,
+    message: "Admin updated successfully",
+    data: admin,
+  };
+}
+
 
 
 
@@ -108,4 +170,6 @@ module.exports = {
   addAdmin,
   getAllAdmins,
   getAdminById,
+  deleteAdmin,
+  updateAdmin
 };

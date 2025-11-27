@@ -10,7 +10,6 @@ router.get("/", catchError(CourseController.getAllCoursesController));
 router.get("/:id", catchError(CourseController.getCourseById));
 router.put("/:id", catchError(CourseController.updateCourse));
 router.delete("/:id", catchError(CourseController.deleteCourse));
-
 router.post("/chooseCourses",validateToken, catchError(CourseController.chooseCoursesController));
 
 

@@ -30,6 +30,8 @@ const ConversationUser = require('./ConversationUser')(sequelize);
 const session = require('./Session')(sequelize);
 const supervisor = require('./Supervisor')(sequelize);
 const trainer = require('./Trainer')(sequelize);
+const SuperAdmin = require('./SuperAdmin')(sequelize);
+const Admin = require('./Admin')(sequelize);
 
 
 
@@ -52,26 +54,58 @@ Product.hasMany(Payment, {
 });
 
 // Associations
+
+//USERS
+//==============================================================
+
+//user - student
 User.hasOne(Student, {
   foreignKey: { name: 'userId', allowNull: false },
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
+
 Student.belongsTo(User, { foreignKey: 'userId' });
 
+//user - trainer
 User.hasOne(trainer, {
   foreignKey: { name: 'userId', allowNull: false },
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
+
 trainer.belongsTo(User, { foreignKey: 'userId'  });
 
+//user - supervisor
 User.hasOne(supervisor, {
   foreignKey: { name: 'userId', allowNull: false },
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
+
 supervisor.belongsTo(User, { foreignKey: 'userId' });
+
+//user - SuperAdmin
+User.hasOne(SuperAdmin, {
+  foreignKey: { name: 'userId', allowNull: false },
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+});
+
+SuperAdmin.belongsTo(User, { foreignKey: 'userId' });
+
+//user - Admin
+User.hasOne(Admin, {
+  foreignKey: { name: 'userId', allowNull: false },
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+});
+
+Admin.belongsTo(User, { foreignKey: 'userId' });
+
+//==============================================================
+
+
 
 
 
@@ -397,5 +431,7 @@ module.exports = {
   ConversationUser,
   session,
   trainer,
-  supervisor
+  supervisor,
+  SuperAdmin,
+  Admin
 };

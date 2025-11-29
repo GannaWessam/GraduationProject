@@ -85,20 +85,40 @@ class ApiFeature {
 }
 
 
+  // sort() {
+  //   if (this.searchQuery.sort) {
+  //     const sortBy = this.searchQuery.sort.split(",").map((field) => {
+  //       if (field.startsWith("-")) {
+  //         return [field.substring(1), "DESC"];
+  //       }
+  //       return [field, "ASC"];
+  //     });
+  //     this.options.order = sortBy;
+  //   } else {
+  //     this.options.order = [["createdAt", "DESC"]];
+  //   }
+  //   return this;
+  // }
+
   sort() {
     if (this.searchQuery.sort) {
       const sortBy = this.searchQuery.sort.split(",").map((field) => {
-        if (field.startsWith("-")) {
-          return [field.substring(1), "DESC"];
-        }
-        return [field, "ASC"];
-      });
-      this.options.order = sortBy;
+        field = field.trim();
+        if (!field) return null;
+  
+        // دعم column:direction
+        const [key, dir] = field.split(":");
+        return [key.trim(), (dir || "ASC").toUpperCase()];
+      }).filter(Boolean);
+  
+      this.options.order = sortBy.length ? sortBy : [["createdAt", "DESC"]];
     } else {
       this.options.order = [["createdAt", "DESC"]];
     }
+  
     return this;
   }
+  
 
   selectedFields() {
     if (this.searchQuery.fields) {

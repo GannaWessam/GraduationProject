@@ -53,7 +53,7 @@ async function addCourse(courseInfo) {
   return newCourse;
 }
 
- async function getAllCoursesService(features) {
+async function getAllCoursesService(features) {
   
   const { count, rows: courses } = await course.findAndCountAll({
     ...features.options, 

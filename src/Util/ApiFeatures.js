@@ -100,6 +100,7 @@ class ApiFeature {
     return this;
   }
 
+
   selectedFields() {
     if (this.searchQuery.fields) {
       this.options.attributes = this.searchQuery.fields.split(",");

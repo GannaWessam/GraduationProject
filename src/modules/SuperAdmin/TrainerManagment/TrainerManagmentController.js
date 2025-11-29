@@ -1,4 +1,4 @@
-const { addTrainer, getAllTrainers,getTrainerById } = require("./TrainerManagmentService.js");
+const { addTrainer, getAllTrainers , getTrainerById , deleteTrainer ,updateTrainer} = require("./TrainerManagmentService.js");
 const ApiResponse = require("../../../Util/ApiResponse.js");
 
 
@@ -27,6 +27,28 @@ exports.register = async (req, res, next) => {
     try {
       const data = await getTrainerById(req.params.id);
       res.json(data);
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  exports.remove = async (req, res, next) => {
+    try {
+      const result = await deleteTrainer(req.params.id);
+      return res.json(
+        ApiResponse.success(result, "Trainer deleted successfully"));
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  exports.update = async (req, res, next) => {
+    try {
+      const result = await updateTrainer(req.params.id, req.body);
+  
+      return res.json(
+        ApiResponse.success(result, "Trainer updated successfully")
+      );
     } catch (error) {
       return next(error);
     }

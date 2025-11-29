@@ -1,5 +1,6 @@
 const CourseService = require("./CourseService");
 const ApiResponse = require("../../Util/ApiResponse");
+const ApiFeature = require("../../Util/ApiFeatures");
 const { Student , Product } = require("../../models");
 const { where } = require("sequelize");
 
@@ -10,14 +11,28 @@ async function addCourse(req, res) {
   return res.status(201).json(ApiResponse.created(result));
 }
 
-async function getAllCoursesController(req, res, next) {
-  try {
-    const result = await CourseService.getAllCoursesService(req.query || {});
-    return res.status(200).json(ApiResponse.success(result));
-  } catch (error) {
-    return next(error);
-  }
-}
+// async function getAllCoursesController(req, res, next) {
+//   try {
+//     const result = await CourseService.getAllCoursesService(req.query || {});
+//     return res.status(200).json(ApiResponse.success(result));
+//   } catch (error) {
+//     return next(error);
+//   }
+// }
+
+
+const getAllCoursesController = async (req, res) => {
+  const features = new ApiFeature(req.query)
+    .filter()          
+    .search()          
+    .sort()            
+    .pagination()      
+    .selectedFields(); 
+
+  const result = await CourseService.getAllCoursesService(features);
+
+  res.status(200).json(ApiResponse.success(result));
+};
 
 async function getCourseById(req, res) {
   const result = await CourseService.getCourseById(req.params.id);

@@ -17,7 +17,7 @@ exports.register = async (req, res, next) => {
   exports.getAll = async (req, res, next) => {
     try {
       const data = await getAllTrainers();
-      res.json(data);
+      res.json(ApiResponse.success(data,"Trainers fetched sucessfully"));
     } catch (error) {
       return next(error);
     }

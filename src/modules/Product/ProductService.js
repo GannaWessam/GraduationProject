@@ -53,6 +53,7 @@ async function addProduct(productInfo) {
     courseNameAr,
     priceEgyptian,
     priceOther,
+    requirdCourses,
     allowedUserTypes = [],
   } = productInfo;
 
@@ -65,6 +66,7 @@ async function addProduct(productInfo) {
       courseName: concatLang(courseNameEn, courseNameAr), // ✅ concat before saving
       priceEgyptian,
       priceOther,
+      requirdCourses,
       allowedUserTypes: allowedUserTypes.map((type) => ({ userType: type })),
     },
     {
@@ -77,7 +79,7 @@ async function addProduct(productInfo) {
 
 async function getProductById(id) {
   const product = await Product.findByPk(id, {
-    include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
+    include: [{ model: ProductAllowedUserType, as: "allowedUserTypes",attributes:["userType"] }],
   });
 
   if (!product) throw new Error("not_found");
@@ -85,7 +87,7 @@ async function getProductById(id) {
 }
 
 async function updateProduct(id, updateInfo) {
-  const { courseNameEn, courseNameAr, priceEgyptian, priceOther, allowedUserTypes } =
+  const { courseNameEn, courseNameAr, priceEgyptian, priceOther, allowedUserTypes,requirdCourses } =
     updateInfo;
 
   const product = await Product.findByPk(id, {
@@ -98,6 +100,7 @@ async function updateProduct(id, updateInfo) {
   }
   if (priceEgyptian) product.priceEgyptian = priceEgyptian;
   if (priceOther) product.priceOther = priceOther;
+  if(requirdCourses) product.requirdCourses=requirdCourses
 
   await product.save();
 

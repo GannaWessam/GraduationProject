@@ -74,15 +74,25 @@ async function addAdmin(AdminInfo) {
   });
 }
 
-async function getAllAdmins() {
-  return Admin.findAll({
+async function getAllAdmins(features) {
+  const { count, rows: admins } = await Admin.findAndCountAll({
+    ...features.options, 
     include: [
       {
         model: User,
-        attributes: ['userId', 'email', 'role']
-      }
-    ]
+        attributes: ["userId", "email", "role"],
+      },
+    ],
   });
+
+  if (!admins) throw new Error("not_found");
+
+  return PaginatedResponse.fromApiFeature(
+    features,
+    count,
+    admins,
+    "admins fetched successfully"
+  );
 }
 
 // Get SuperAdmin by ID

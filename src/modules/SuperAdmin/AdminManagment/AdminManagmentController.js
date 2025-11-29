@@ -1,5 +1,6 @@
 const { addAdmin, getAllAdmins,getAdminById , deleteAdmin , updateAdmin} = require("./AdminManagmentService.js");
 const ApiResponse = require("../../../Util/ApiResponse.js");
+const ApiFeature = require("../../../Util/ApiFeatures.js");
 
 
 
@@ -16,8 +17,16 @@ exports.register = async (req, res, next) => {
 
   exports.getAll = async (req, res, next) => {
     try {
-      const data = await getAllAdmins();
-      res.json(ApiResponse.success(data,"Admins fetched successfully"));
+    const features = new ApiFeature(req.query)
+    .filter()          
+    .search()          
+    .sort()            
+    .pagination()      
+    .selectedFields(); 
+
+  const result = await getAllAdmins(features);
+  res.status(200).json(ApiResponse.success(result));
+
     } catch (error) {
       return next(error);
     }

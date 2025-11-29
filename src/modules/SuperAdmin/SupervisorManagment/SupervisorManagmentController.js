@@ -1,5 +1,6 @@
 const { addSupervisor, getAllSupervisors , getSupervisorById ,deleteSupervisor,updateSupervisor} = require("./SupervisorManagmentService.js");
 const ApiResponse = require("../../../Util/ApiResponse.js");
+const ApiFeature = require("../../../Util/ApiFeatures.js");
 
 
 
@@ -16,8 +17,16 @@ exports.register = async (req, res, next) => {
 
   exports.getAll = async (req, res, next) => {
     try {
-      const data = await getAllSupervisors();
-      res.json(ApiResponse.success(data,"Supervisors fetched successfully"));
+    const features = new ApiFeature(req.query)
+    .filter()          
+    .search()          
+    .sort()            
+    .pagination()      
+    .selectedFields(); 
+
+  const result = await getAllSupervisors(features);
+  res.status(200).json(ApiResponse.success(result));
+
     } catch (error) {
       return next(error);
     }

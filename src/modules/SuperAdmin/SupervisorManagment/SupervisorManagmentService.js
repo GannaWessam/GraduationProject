@@ -69,15 +69,25 @@ async function addSupervisor(SupervisorInfo) {
   });
 }
 
-async function getAllSupervisors() {
-  return supervisor.findAll({
+async function getAllSupervisors(features) {
+  const { count, rows: supervisors } = await supervisor.findAndCountAll({
+    ...features.options, 
     include: [
       {
         model: User,
-        attributes: ['userId', 'email', 'role']
-      }
-    ]
+        attributes: ["userId", "email", "role"],
+      },
+    ],
   });
+
+  if (!supervisors) throw new Error("not_found");
+
+  return PaginatedResponse.fromApiFeature(
+    features,
+    count,
+    supervisors,
+    "Supervisors fetched successfully"
+  );
 }
 
 // Get trainer by ID

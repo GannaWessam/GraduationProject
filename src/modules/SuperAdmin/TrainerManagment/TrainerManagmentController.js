@@ -1,5 +1,7 @@
 const { addTrainer, getAllTrainers , getTrainerById , deleteTrainer ,updateTrainer} = require("./TrainerManagmentService.js");
 const ApiResponse = require("../../../Util/ApiResponse.js");
+const ApiFeature = require("../../../Util/ApiFeatures.js");
+const PaginatedResponse = require("../../../Util/PaginatedResponse");
 
 
 
@@ -16,8 +18,16 @@ exports.register = async (req, res, next) => {
 
   exports.getAll = async (req, res, next) => {
     try {
-      const data = await getAllTrainers();
-      res.json(ApiResponse.success(data,"Trainers fetched sucessfully"));
+    const features = new ApiFeature(req.query)
+    .filter()          
+    .search()          
+    .sort()            
+    .pagination()      
+    .selectedFields(); 
+
+  const result = await getAllTrainers(features);
+
+  res.status(200).json(ApiResponse.success(result));
     } catch (error) {
       return next(error);
     }

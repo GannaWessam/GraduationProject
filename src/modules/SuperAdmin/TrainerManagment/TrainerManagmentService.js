@@ -69,15 +69,25 @@ async function addTrainer(TrainerInfo) {
   });
 }
 
-async function getAllTrainers() {
-  return trainer.findAll({
+async function getAllTrainers(features) {
+  const { count, rows: trainers } = await trainer.findAndCountAll({
+    ...features.options, 
     include: [
       {
         model: User,
-        attributes: ['userId', 'email', 'role']
-      }
-    ]
+        attributes: ["userId", "email", "role"],
+      },
+    ],
   });
+
+  if (!trainers) throw new Error("not_found");
+
+  return PaginatedResponse.fromApiFeature(
+    features,
+    count,
+    trainers,
+    "Trainers fetched successfully"
+  );
 }
 
 // Get trainer by ID

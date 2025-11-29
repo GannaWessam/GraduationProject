@@ -95,7 +95,67 @@ async function getTrainerById(id) {
 
   return tr;
 }
+async function deleteTrainer(id) {
+  const trainerData = await trainer.findByPk(id);
 
+  if (!trainerData) throw new Error("trainer_not_found");
+
+  const userId = trainerData.userId;
+
+  await sequelize.transaction(async (t) => {
+    await trainerData.destroy({ transaction: t });
+    await User.destroy({ where: { userId }, transaction: t });
+  });
+
+  return {
+    success: true,
+    message: "trainer and related user deleted",
+  };
+}   
+
+async function updateTrainer(id, updateData) {
+  const trainerData = await trainer.findByPk(id, {
+    include: [{ model: User }] 
+  });
+
+  if (!trainerData) throw new Error("trainer_not_found");
+
+  const { Name, email, password, confirmPassword } = updateData;
+
+
+  if (Name) trainerData.Name = Name;
+
+
+  if (email) {
+
+    await checkEmailExists(email);
+    trainerData.User.email = email;
+  }
+
+  
+  if (password) {
+    if (!confirmPassword) {
+      throw new Error("confirmPassword_required");
+    }
+
+    validatePassword(password, confirmPassword);
+
+    const hashed = await hashPassword(password);
+    trainerData.User.passwordHash = hashed;
+  }
+
+  // Save both SuperAdmin + User in transaction
+  await sequelize.transaction(async (t) => {
+    await trainerData.save({ transaction: t });
+    await trainerData.User.save({ transaction: t });
+  });
+
+  return {
+    success: true,
+    message: "trainer updated successfully",
+    data: trainerData,
+  };
+}
 
 
 
@@ -103,4 +163,6 @@ module.exports = {
   addTrainer,
   getAllTrainers,
   getTrainerById,
+  updateTrainer,
+  deleteTrainer
 };

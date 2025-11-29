@@ -53,20 +53,27 @@ async function addCourse(courseInfo) {
   return newCourse;
 }
 
-async function getAllCoursesService(query = {}) {
-  const courses = await course.findAll({
-    where: query.name
-      ? { name: { [Op.iLike]: `%${query.name}%` } }
-      : undefined,
-    order: [["createdAt", "DESC"]],
+ async function getAllCoursesService(features) {
+  
+  const { count, rows: courses } = await course.findAndCountAll({
+    ...features.options, 
   });
-  return courses;
+
+  if (!courses) throw new Error("not_found");
+
+  return PaginatedResponse.fromApiFeature(
+    features,
+    count,
+    courses,
+    "Courses fetched successfully"
+  );
 }
 
+
 async function getCourseById(id) {
-  const course = await course.findByPk(id);
-  if (!course) throw new Error("not_found");
-  return course;
+  const courseData = await course.findByPk(id);
+  if (!courseData) throw new Error("not_found");
+  return courseData;
 }
 
 async function updateCourse(id, updateInfo) {

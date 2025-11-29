@@ -94,7 +94,70 @@ async function getSupervisorById(id) {
   if (!sup) throw new Error('Supervisor_not_found');
 
   return sup;
-}
+}   
+
+
+async function updateSupervisor(id, updateData) {
+  const supervisorData = await supervisor.findByPk(id, {
+    include: [{ model: User }] 
+  });
+
+  if (!supervisorData) throw new Error("supervisor_not_found");
+
+  const { Name, email, password, confirmPassword } = updateData;
+
+
+  if (Name) supervisorData.Name = Name;
+
+
+  if (email) {
+
+    await checkEmailExists(email);
+    supervisorData.User.email = email;
+  }
+
+  
+  if (password) {
+    if (!confirmPassword) {
+      throw new Error("confirmPassword_required");
+    }
+
+    validatePassword(password, confirmPassword);
+
+    const hashed = await hashPassword(password);
+    supervisorData.User.passwordHash = hashed;
+  }
+
+  // Save both SuperAdmin + User in transaction
+  await sequelize.transaction(async (t) => {
+    await supervisorData.save({ transaction: t });
+    await supervisorData.User.save({ transaction: t });
+  });
+
+  return {
+    success: true,
+    message: "supervisor updated successfully",
+    data: supervisorData,
+  };
+} 
+
+async function deleteSupervisor(id) {
+  const supervisorData = await supervisor.findByPk(id);
+
+  if (!supervisorData) throw new Error("trainer_not_found");
+
+  const userId = supervisorData.userId;
+
+  await sequelize.transaction(async (t) => {
+    await supervisorData.destroy({ transaction: t });
+    await User.destroy({ where: { userId }, transaction: t });
+  });
+
+  return {
+    success: true,
+    message: "supervisor and related user deleted",
+  };
+}   
 
 
 
@@ -103,4 +166,6 @@ module.exports = {
   addSupervisor,
   getAllSupervisors,
   getSupervisorById,
+  deleteSupervisor,
+  updateSupervisor
 };

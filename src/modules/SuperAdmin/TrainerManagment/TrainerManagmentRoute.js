@@ -7,6 +7,8 @@ const catchError = require("../../../middlewares/catchError");
 router.get("/",catchError(TrainerController.getAll));
 router.get("/:id",catchError(TrainerController.getById));
 router.post("/add-Trainer",catchError(TrainerController.register));
+router.put("/:id", catchError(TrainerController.update));
+router.delete("/:id", catchError(TrainerController.remove));
 
 
 

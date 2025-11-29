@@ -110,8 +110,7 @@ async function updateSupervisor(id, updateData) {
   if (Name) supervisorData.Name = Name;
 
 
-  if (email) {
-
+  if (email && !supervisorData.User.email === email) {
     await checkEmailExists(email);
     supervisorData.User.email = email;
   }

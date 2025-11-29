@@ -126,8 +126,7 @@ async function updateTrainer(id, updateData) {
   if (Name) trainerData.Name = Name;
 
 
-  if (email) {
-
+  if (email && trainerData.User.email !== email) {
     await checkEmailExists(email);
     trainerData.User.email = email;
   }

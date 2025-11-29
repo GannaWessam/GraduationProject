@@ -132,7 +132,7 @@ async function updateAdmin(id, updateData) {
   if (Name) admin.Name = Name;
 
 
-  if (email) {
+  if (email && admin.User.email !== email) {
 
     await checkEmailExists(email);
     admin.User.email = email;

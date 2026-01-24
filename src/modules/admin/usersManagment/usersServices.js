@@ -474,10 +474,23 @@ const getStudentById = async (userId) => {
 
 const getUsersByTrainingId = async (trainingId, features) => {
   try {
+    const {
+      where: featureWhere,
+      limit,
+      offset,
+      order,
+      attributes,
+    } = features.options || {};
     const { count, rows } = await trainingReservation.findAndCountAll({
-      where: { trainingId },
-      ...features.options,
+      where: {
+        trainingId,
+        ...(featureWhere || {}),
+      },
       distinct: true,
+      limit,
+      offset,
+      order,
+      attributes,
       attributes: ["trainingReservationId", "reservationStatus"],
       include: [
         {
@@ -517,11 +530,23 @@ const getUsersByTrainingId = async (trainingId, features) => {
 
 const getUsersByExamId = async (examId, features) => {
   try {
-    console.log(examId);
+    const {
+      where: featureWhere,
+      limit,
+      offset,
+      order,
+      attributes,
+    } = features.options || {};
     const { count, rows } = await examReservation.findAndCountAll({
-      where: { examId },
-      ...features.options,
+      where: {
+        examId,
+        ...(featureWhere || {}),
+      },
       distinct: true,
+      limit,
+      offset,
+      order,
+      attributes,
       attributes: ["examReservationId","reservationStatus"],
       include: [
         {

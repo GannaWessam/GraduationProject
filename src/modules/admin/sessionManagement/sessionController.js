@@ -81,6 +81,40 @@ const sessionController = {
       } catch (error) {
         next(error);
       }},
+
+  async getSessionMaterialController(req, res , next) {
+    try {
+        const features = new ApiFeature(req.query)
+          .filter()
+          .search()
+          .sort()
+          .pagination()
+          .selectedFields();
+
+        const { sessionId } = req.params;
+    
+        const sessions = await sessionService.getSessionMaterialService(sessionId ,features);
+        res.status(200).json(ApiResponse.success(sessions));
+      } catch (error) {
+        next(error);
+      }
+  },
+
+  async getAllSessionMaterialsController(req, res , next) {
+    try {
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
+
+    const sessions = await sessionService.getAllSessionsMaterials(features);
+    res.status(200).json(ApiResponse.success(sessions));
+  } catch (error) {
+    next(error);
+  }
+  }, 
   
 };
 

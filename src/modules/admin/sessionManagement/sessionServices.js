@@ -256,6 +256,65 @@ const sessionService = {
     await archive.finalize(); // مهم جدًا لإنهاء الـ zip
   },
 
+  async getSessionMaterialService(sessionId, features) {
+    try {
+      const { where: featureWhere, limit, offset, order } = features.options || {};
+  
+      const { count, rows } = await SessionMaterial.findAndCountAll({
+        where: {
+          sessionId,
+          ...(featureWhere || {}),
+        },
+        attributes: ["materialId", "sessionId", "name", "file", "fileType"],
+        distinct: true,
+        limit,
+        offset,
+        order,
+      });
+  
+      // نفس شكل object بتاع upload
+      const mappedRows = rows.map((m) => ({
+        materialId: m.materialId,
+        sessionId: m.sessionId,
+        name: m.name,
+        file: m.file,
+        fileType: m.fileType,
+      }));
+  
+      // 👈 نستخدم PaginatedResponse من ApiFeature
+      return PaginatedResponse.fromApiFeature(
+        features,
+        count,
+        mappedRows,
+        "Session materials fetched successfully"
+      );
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to fetch session materials");
+    }
+  },
+
+  async getAllSessionsMaterials(features) {
+    const { count, rows } = await SessionMaterial.findAndCountAll({
+      ...features.options,
+      distinct: true,
+      include: [
+        {
+          model: Session,
+          attributes: ["name", "startTime", "endTime"],
+        },
+      ],
+    });
+
+    return PaginatedResponse.fromApiFeature(
+      features,
+      count,
+      rows,
+      "Sessions fetched successfully"
+    );
+  },
+
+
 
 };
 

@@ -100,6 +100,31 @@ async function getStudentByIdController(req, res, next) {
   }
 }
 
+async function getUsersByTrainingIdController(req, res, next) {
+  try {
+    const students = await userServices.getUsersByTrainingId(req.body.trainingId);
+    res.status(200).json({
+      status: "success",
+      message: "Student fetched successfully",
+      data: students,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+async function getUsersByExamIdController(req, res, next) {
+  try {
+    const students = await userServices.getUsersByExamId(req.body.examId);
+    res.status(200).json({
+      status: "success",
+      message: "Student fetched successfully",
+      data: students,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 
 module.exports = {
     getAllUsers,
@@ -111,5 +136,7 @@ module.exports = {
     approveStudentByUserId,
     getAllUserss,
     updateStudentNationalIdController,
-    getStudentByIdController
+    getStudentByIdController,
+    getUsersByTrainingIdController,
+    getUsersByExamIdController
 }

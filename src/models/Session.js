@@ -39,6 +39,10 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING(500),
         allowNull: false,
       },
+      material: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+      }
     },
     {
       tableName: 'sessions',        

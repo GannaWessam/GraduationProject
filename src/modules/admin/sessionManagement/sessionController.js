@@ -54,6 +54,34 @@ const sessionController = {
       return next(error);
     }
   },
+
+  async uploadSessionMaterial(req, res, next) {
+    try {
+      const { sessionId } = req.params;
+      const files = req.files["materials"]; 
+  
+      const result = await sessionService.uploadSessionMaterialService(
+        sessionId,
+        files
+      );
+  
+      res.status(200).json({
+        status: "success",
+        message: "Session materials uploaded successfully",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }},
+
+  async downloadSessionMaterials(req, res, next) {
+      try {
+        const { sessionId } = req.params;
+        await sessionService.downloadSessionMaterialsService(sessionId, res);
+      } catch (error) {
+        next(error);
+      }},
+  
 };
 
 module.exports = sessionController;

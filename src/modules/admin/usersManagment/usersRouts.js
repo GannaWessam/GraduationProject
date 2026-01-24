@@ -30,7 +30,15 @@ router.get(
   "/byStatus/:status",
   
   catchError(usersController.getAllUsersByStatus)
+);  
+
+router.get(
+  "/Training/Students",catchError(usersController.getUsersByTrainingIdController)
 );
+router.get(
+  "/Exam/Students",catchError(usersController.getUsersByExamIdController)
+);
+
 router.get(
   "/student/:id",
   validateToken,

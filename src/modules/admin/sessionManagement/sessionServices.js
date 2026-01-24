@@ -1,8 +1,16 @@
-const { session: Session, training: Training,trainingReservation, sequelize,event } = require("../../../models/index");
+const { session: Session, training: Training,trainingReservation, sequelize,event,SessionMaterial } = require("../../../models/index");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
+const path = require("path");
+const fs = require("fs");
+const archiver = require("archiver");
 
 const sessionService = {
+
+
+
+
+
 
   async   createSession(sessionData) {
     // 1) تأكد إن ال training موجود
@@ -15,8 +23,11 @@ const sessionService = {
 
   const eventObj = trainingObj.event;
 
-     if (new Date(sessionData.date) < new Date(eventObj.startDate)) {
+    if (new Date(sessionData.date) < new Date(eventObj.startDate)) {
     throw new Error(`Session date cannot be before event start date (${eventObj.startDate.toISOString().split('T')[0]})`);
+  }
+    if (new Date(sessionData.date) > new Date(eventObj.endDate)) {
+    throw new Error(`Session date cannot be aftar event start date (${eventObj.startDate.toISOString().split('T')[0]})`);
   }
     const eventId = trainingObj.eventId;
   
@@ -33,7 +44,7 @@ const sessionService = {
       where: {
         date: sessionData.date,
         trainingId: {
-          [Op.in]: trainingIdsInEvent   // هنا التعديل المحترم
+          [Op.in]: trainingIdsInEvent   
         },
         // overlap condition
         [Op.and]: [
@@ -177,6 +188,74 @@ const sessionService = {
       ]
     });
   },
+
+  async uploadSessionMaterialService (sessionId, files) {
+    if (!files || files.length === 0) {
+      throw new Error("No files uploaded");
+    }
+  
+    const materials = files.map((file) => {
+      const ext = file.originalname.split(".").pop().toLowerCase();
+      if (!["pdf", "zip"].includes(ext)) {
+        throw new Error("Invalid file type: " + file.originalname);
+      }
+  
+      return {
+        sessionId,
+        file: `sessions/${file.filename}`,
+        fileType: ext,
+        name: file.originalname,
+      };
+    });
+  
+    const createdMaterials = await SessionMaterial.bulkCreate(materials);
+    return createdMaterials;
+  },
+
+  async downloadSessionMaterialsService(sessionId, res) {
+    // جلب كل المواد المرتبطة بالـ session
+    const materials = await SessionMaterial.findAll({
+      where: { sessionId },
+    });
+
+    if (!materials || materials.length === 0) {
+      throw new Error("No materials found for this session");
+    }
+
+    // إعداد اسم الـ ZIP النهائي
+    const zipFileName = `session-${sessionId}-materials.zip`;
+
+    // تهيئة archive
+    const archive = archiver("zip", { zlib: { level: 9 } });
+
+    // إعداد headers للـ response
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${zipFileName}`
+    );
+
+    // ربط الـ archive بالـ response
+    archive.pipe(res);
+
+    // إضافة كل الملفات للـ zip
+    materials.forEach((material) => {
+      const filePath = path.join(process.cwd(), "uploads", "sessions", path.basename(material.file));
+
+
+      if (fs.existsSync(filePath)) {
+        // استخدم الاسم المخصص لو موجود، وإلا استخدم اسم الملف الأصلي
+        const fileNameInZip = material.name
+          ? material.name + "." + material.fileType
+          : path.basename(material.file);
+
+        archive.file(filePath, { name: fileNameInZip });
+      }
+    });
+
+    await archive.finalize(); // مهم جدًا لإنهاء الـ zip
+  },
+
 
 };
 

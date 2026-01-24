@@ -365,7 +365,7 @@ async function updateStudentNationalId(userId, nationalId) {
 
  // adjust path to your models folder
 
- const getStudentById = async (userId) => {
+const getStudentById = async (userId) => {
   const student = await Student.findOne({
     where: { userId },
     include: [
@@ -471,6 +471,69 @@ async function updateStudentNationalId(userId, nationalId) {
 };
 
 
+const getUsersByTrainingId = async (trainingId) => {
+  try {
+    const reservations = await trainingReservation.findAll({
+      where: { trainingId },
+      attributes: ["trainingReservationId", "reservationStatus"],
+      include: [
+        {
+          model: Student,
+          attributes: ["fullName"],
+          include: [
+            {
+              model: User,
+              attributes: ["email"]
+            }
+          ]
+        }
+      ]
+    });
+
+    return reservations.map(r => ({
+      trainingReservationId: r.trainingReservationId,
+      fullName: r.Student.fullName,
+      email: r.Student.User.email,
+      reservationStatus: r.reservationStatus
+    }));
+
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch students for this training");
+  }
+};
+
+const getUsersByExamId = async (examId) => {
+  try {
+    const reservations = await examReservation.findAll({
+      where: { examId },
+      attributes: ["examReservationId", "reservationStatus"],
+      include: [
+        {
+          model: Student,
+          attributes: ["fullName"],
+          include: [
+            {
+              model: User,
+              attributes: ["email"]
+            }
+          ]
+        }
+      ]
+    });
+
+    return reservations.map(r => ({
+      examReservationId: r.examReservationId,
+      fullName: r.Student.fullName,
+      email: r.Student.User.email,
+      reservationStatus: r.reservationStatus
+    }));
+
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch students for this exam");
+  }
+};
 
 
 module.exports = {
@@ -483,5 +546,7 @@ module.exports = {
   approveStudentByUserId,
   getAllUserss,
   updateStudentNationalId,
-  getStudentById
+  getStudentById,
+  getUsersByTrainingId,
+  getUsersByExamId
 };

@@ -33,6 +33,7 @@ const trainer = require('./Trainer')(sequelize);
 const SuperAdmin = require('./SuperAdmin')(sequelize);
 const Admin = require('./Admin')(sequelize);
 const SessionMaterial = require("./SessionMaterial")(sequelize);
+const attendance = require("./attendance")(sequelize);
 
 
 
@@ -402,6 +403,27 @@ session.hasMany(SessionMaterial, { foreignKey: "sessionId", as: "materials" });
 SessionMaterial.belongsTo(session, { foreignKey: "sessionId" });
 //==============================================
 
+//====session => attendance===============
+session.hasMany(attendance, {
+  foreignKey: 'sessionId',
+  onDelete: 'CASCADE',
+});
+
+attendance.belongsTo(session, {
+  foreignKey: 'sessionId',
+});
+//==============================================
+
+//====student => attendance===============
+Student.hasMany(attendance, {
+  foreignKey: 'userId',
+  onDelete: 'CASCADE',
+});
+
+attendance.belongsTo(Student, {
+  foreignKey: 'userId',
+});
+//==============================================
 
 
 
@@ -439,5 +461,6 @@ module.exports = {
   trainer,
   supervisor,
   SuperAdmin,
-  Admin
+  Admin,
+  attendance
 };

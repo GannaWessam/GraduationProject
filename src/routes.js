@@ -15,6 +15,7 @@ const TrainerManagmentRoute = require('./modules/SuperAdmin/TrainerManagment/Tra
 const SupervisorManagmentRoute = require('./modules/SuperAdmin/SupervisorManagment/SupervisorManagmentRoute');
 const SuperAdminManagmentRoute = require('./modules/SuperAdmin/SuperAdminManagment/SuperAdminManagmentRoute');
 const AdminManagmentRoute = require('./modules/SuperAdmin/AdminManagment/AdminManagmentRoute');
+const AttendanceManagmentRoute = require('./modules/attendance/attendanceRoute');
 
 const { validateToken } = require("./middlewares/token");
 const reportRoutes = require("./modules/Report/ReportRoute");
@@ -38,4 +39,5 @@ router.use("/api/SuperAdmin/Supervisor", SupervisorManagmentRoute);
 router.use("/api/SuperAdmin/SuperAdmin", SuperAdminManagmentRoute);
 router.use("/api/SuperAdmin/Admin", AdminManagmentRoute);
 router.use("/api/SuperAdmin", TrainerManagmentRoute);
+router.use("/api/Attendance", AttendanceManagmentRoute);
 module.exports = router;

@@ -14,9 +14,10 @@ function generateToken(
   NameEn,
   productId,
   status,
-  rememberMe = false 
+  rememberMe = false ,
+  permissions = []
 ) {
-  const tokenData = { email, name, id, role, NameEn, productId, status };
+  const tokenData = { email, name, id, role, NameEn, productId, status ,permissions};
   const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
   return jwt.sign(tokenData, process.env.SecretKey, { expiresIn });
 }

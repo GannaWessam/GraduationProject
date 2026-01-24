@@ -126,6 +126,25 @@ async function getUsersByExamIdController(req, res, next) {
 }
 
 
+const assignPermissionsToUserController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { permissions } = req.body;
+
+    const result = await userServices.assignPermissionsToUser(
+      id,
+      permissions
+    );
+
+    return res.status(200).json(
+      ApiResponse.success("Permissions assigned successfully", result)
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
 module.exports = {
     getAllUsers,
     getAllUsersByStatus,
@@ -138,5 +157,6 @@ module.exports = {
     updateStudentNationalIdController,
     getStudentByIdController,
     getUsersByTrainingIdController,
-    getUsersByExamIdController
+    getUsersByExamIdController,
+    assignPermissionsToUserController
 }

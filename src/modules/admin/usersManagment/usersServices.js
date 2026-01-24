@@ -5,6 +5,7 @@ const {
   User,
   Payment,
   Product,
+  Permission,
   studentCourse,
   course,
   examReservation,
@@ -535,6 +536,40 @@ const getUsersByExamId = async (examId) => {
   }
 };
 
+const assignPermissionsToUser = async (userId, permissionNames = []) => {
+  if (!Array.isArray(permissionNames) || permissionNames.length === 0) {
+    throw new Error("permissions_array_required");
+  }
+
+  return sequelize.transaction(async (t) => {
+    const user = await User.findByPk(userId, { transaction: t });
+    if (!user) throw new Error("user_not_found");
+
+    // Normalize permission names
+    const normalizedNames = permissionNames.map(p =>
+      p.trim().toUpperCase()
+    );
+
+    // Fetch permissions
+    const permissions = await Permission.findAll({
+      where: { name: normalizedNames },
+      transaction: t,
+    });
+
+    if (permissions.length !== normalizedNames.length) {
+      throw new Error("one_or_more_permissions_not_found");
+    }
+
+    // Assign (this auto-handles duplicates)
+    await user.setPermissions(permissions, { transaction: t });
+
+    return {
+      userId,
+      assignedPermissions: permissions.map(p => p.name),
+    };
+  });
+};
+
 
 module.exports = {
   getAllUsers,
@@ -548,5 +583,6 @@ module.exports = {
   updateStudentNationalId,
   getStudentById,
   getUsersByTrainingId,
-  getUsersByExamId
+  getUsersByExamId,
+  assignPermissionsToUser
 };

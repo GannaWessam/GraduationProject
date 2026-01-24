@@ -1,20 +1,17 @@
 const sequelize = require("../../connections/db.js");
 const token = require("../../middlewares/token.js");
 
-const {
-  hashPassword,
-  comparePassword,
-} = require("./helpers/passwordHelper");
+const { hashPassword, comparePassword } = require("./helpers/passwordHelper");
 
 const {
   findUserByEmail,
   findStudentByNationalId,
   checkEmailExists,
-  checkNationalIdExists, 
+  checkNationalIdExists,
   findProductById,
   generateQr,
   getUser,
-  getUserFees
+  getUserFees,
 } = require("./helpers/userHelper");
 
 const {
@@ -22,14 +19,19 @@ const {
   validateName,
   validatePassword,
   validateNationalId,
-  
 } = require("./validations/registerValidation");
 
 const {
   formatRegisterResponse,
   formatLoginResponse,
 } = require("./helpers/responseHelper");
-const { User, Student ,Payment ,productCourse, studentCourse} = require('../../models/index.js');
+const {
+  User,
+  Student,
+  Payment,
+  productCourse,
+  studentCourse,
+} = require("../../models/index.js");
 const { where } = require("sequelize");
 
 async function registerUser(payload, idImage) {
@@ -132,7 +134,9 @@ async function registerUser(payload, idImage) {
         trainingStatus: "pending",
       }));
 
-      const createdCourses = await studentCourse.bulkCreate(studentCourses, { transaction: t });
+      const createdCourses = await studentCourse.bulkCreate(studentCourses, {
+        transaction: t,
+      });
       assignedCourses = createdCourses.map((c) => c.courseId);
     }
 
@@ -154,18 +158,19 @@ async function registerUser(payload, idImage) {
   });
 }
 
-
 async function loginUser(email, password, rememberMe = false) {
   const user = await findUserByEmail(email);
   if (!user) throw new Error("invalid_email");
 
-  const student = await Student.findOne({where : {userId : user.userId}});
+  const student = await Student.findOne({ where: { userId: user.userId } });
   // user.Student = student;
 
   // console.log(student);
-  
-  await comparePassword(password, user.passwordHash);
 
+  await comparePassword(password, user.passwordHash);
+  const permissions = await user.getPermissions({
+    attributes: ["name"],
+  });
   const jwtToken = token.generateToken(
     email,
     student?.fullName,
@@ -174,10 +179,11 @@ async function loginUser(email, password, rememberMe = false) {
     student?.NameEn,
     student?.productId,
     student?.status,
-    rememberMe
+    rememberMe,
+    permissions.map((p) => p.name)
   );
 
-  return formatLoginResponse(user, jwtToken);//msh 3ayz el name?
+  return formatLoginResponse(user, jwtToken); //msh 3ayz el name?
 }
 
 async function resetPassword(email, newPassword) {
@@ -193,25 +199,29 @@ async function resetPassword(email, newPassword) {
 }
 
 ///mkanha msh hna
-async function getuser (email) {
+async function getuser(email) {
   const user = await getUser(email);
   return { user };
 }
 
-async function getuserfees (userId) {
+async function getuserfees(userId) {
   const fees = await getUserFees(userId);
   return { fees };
 }
 
 async function verifyEmail(email) {
-    
-  const user = await User.findOne({ where: { email }});
+  const user = await User.findOne({ where: { email } });
 
-  if (!user) throw new Error('invalid_email');
+  if (!user) throw new Error("invalid_email");
 
-  return {email: user.email}
+  return { email: user.email };
+}
 
-  };
-
-
-module.exports = { registerUser, loginUser, resetPassword , verifyEmail ,getuser ,getuserfees };
+module.exports = {
+  registerUser,
+  loginUser,
+  resetPassword,
+  verifyEmail,
+  getuser,
+  getuserfees,
+};

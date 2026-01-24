@@ -81,4 +81,11 @@ router.put(
 
 
 router.get("/get", usersController.getAllUserss);
+
+router.post(
+  "/:id/permissions",
+  // validateToken,
+  catchError(usersController.assignPermissionsToUserController)
+);
+
 module.exports = router;    

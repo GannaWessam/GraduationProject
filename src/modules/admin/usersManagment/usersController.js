@@ -102,26 +102,45 @@ async function getStudentByIdController(req, res, next) {
 
 async function getUsersByTrainingIdController(req, res, next) {
   try {
-    const students = await userServices.getUsersByTrainingId(req.body.trainingId);
-    res.status(200).json({
-      status: "success",
-      message: "Student fetched successfully",
-      data: students,
-    });
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
+
+    const { trainingId } = req.params;
+
+    const data = await userServices.getUsersByTrainingId(
+      trainingId,
+      features
+    );
+
+    res.status(200).json(ApiResponse.success(data));
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
+
 async function getUsersByExamIdController(req, res, next) {
   try {
-    const students = await userServices.getUsersByExamId(req.body.examId);
-    res.status(200).json({
-      status: "success",
-      message: "Student fetched successfully",
-      data: students,
-    });
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
+
+    const { examId } = req.params;
+
+    const data = await userServices.getUsersByExamId(
+      examId,
+      features
+    );
+
+    res.status(200).json(ApiResponse.success(data));
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
 

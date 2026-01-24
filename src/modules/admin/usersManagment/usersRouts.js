@@ -33,10 +33,10 @@ router.get(
 );  
 
 router.get(
-  "/Training/Students",catchError(usersController.getUsersByTrainingIdController)
+  "/Training/:trainingId/Students",catchError(usersController.getUsersByTrainingIdController)
 );
 router.get(
-  "/Exam/Students",catchError(usersController.getUsersByExamIdController)
+  "/Exam/:examId/Students",catchError(usersController.getUsersByExamIdController)
 );
 
 router.get(

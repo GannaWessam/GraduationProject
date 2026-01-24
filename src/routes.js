@@ -18,6 +18,8 @@ const AdminManagmentRoute = require('./modules/SuperAdmin/AdminManagment/AdminMa
 const permissionRoute = require('./modules/Permission/PermissionRoute');
 const profileRoute = require('./modules/Profile/ProfileRoutes');
 const ContainerRoute = require('./modules/PermissionContainer/ContainerRoute');
+const AttendanceManagmentRoute = require('./modules/attendance/attendanceRoute');
+
 
 const { validateToken } = require("./middlewares/token");
 const reportRoutes = require("./modules/Report/ReportRoute");
@@ -44,4 +46,5 @@ router.use("/api/SuperAdmin", TrainerManagmentRoute);
 router.use("/api/Permission", permissionRoute);
 router.use("/api/Profile", profileRoute);
 router.use("/api/Container", ContainerRoute);
+
 module.exports = router;

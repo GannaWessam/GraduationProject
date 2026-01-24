@@ -33,6 +33,9 @@ const trainer = require("./Trainer")(sequelize);
 const SuperAdmin = require("./SuperAdmin")(sequelize);
 const Admin = require("./Admin")(sequelize);
 const SessionMaterial = require("./SessionMaterial")(sequelize);
+const attendance = require("./attendance")(sequelize);
+
+
 const Permission = require("./Permissions")(sequelize);
 const UserPermission = require("./UserPermission")(sequelize);
 const Profile = require("./Profile")(sequelize);

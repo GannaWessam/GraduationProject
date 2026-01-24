@@ -472,10 +472,12 @@ const getStudentById = async (userId) => {
 };
 
 
-const getUsersByTrainingId = async (trainingId) => {
+const getUsersByTrainingId = async (trainingId, features) => {
   try {
-    const reservations = await trainingReservation.findAll({
+    const { count, rows } = await trainingReservation.findAndCountAll({
       where: { trainingId },
+      ...features.options,
+      distinct: true,
       attributes: ["trainingReservationId", "reservationStatus"],
       include: [
         {
@@ -484,30 +486,38 @@ const getUsersByTrainingId = async (trainingId) => {
           include: [
             {
               model: User,
-              attributes: ["email"]
-            }
-          ]
-        }
-      ]
+              attributes: ["email"],
+            },
+          ],
+        },
+      ],
     });
 
-    return reservations.map(r => ({
+    const mappedRows = rows.map((r) => ({
       trainingReservationId: r.trainingReservationId,
       fullName: r.Student.fullName,
       email: r.Student.User.email,
-      reservationStatus: r.reservationStatus
+      reservationStatus: r.reservationStatus,
     }));
 
+    return PaginatedResponse.fromApiFeature(
+      features,
+      count,
+      mappedRows,
+      "Students fetched successfully"
+    );
   } catch (error) {
     console.error(error);
     throw new Error("Failed to fetch students for this training");
   }
 };
 
-const getUsersByExamId = async (examId) => {
+const getUsersByExamId = async (examId, features) => {
   try {
-    const reservations = await examReservation.findAll({
+    const { count, rows } = await examReservation.findAndCountAll({
       where: { examId },
+      ...features.options,
+      distinct: true,
       attributes: ["examReservationId", "reservationStatus"],
       include: [
         {
@@ -516,20 +526,26 @@ const getUsersByExamId = async (examId) => {
           include: [
             {
               model: User,
-              attributes: ["email"]
-            }
-          ]
-        }
-      ]
+              attributes: ["email"],
+            },
+          ],
+        },
+      ],
     });
 
-    return reservations.map(r => ({
+    const mappedRows = rows.map((r) => ({
       examReservationId: r.examReservationId,
       fullName: r.Student.fullName,
       email: r.Student.User.email,
-      reservationStatus: r.reservationStatus
+      reservationStatus: r.reservationStatus,
     }));
 
+    return PaginatedResponse.fromApiFeature(
+      features,
+      count,
+      mappedRows,
+      "Students fetched successfully"
+    );
   } catch (error) {
     console.error(error);
     throw new Error("Failed to fetch students for this exam");

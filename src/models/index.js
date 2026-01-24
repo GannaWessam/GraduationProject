@@ -431,6 +431,19 @@ session.hasMany(SessionMaterial, { foreignKey: "sessionId", as: "materials" });
 SessionMaterial.belongsTo(session, { foreignKey: "sessionId" });
 //==============================================
 
+
+//====session => attendance===============
+session.hasMany(attendance, { foreignKey: "sessionId"});
+attendance.belongsTo(session, { foreignKey: "sessionId" });
+//==============================================
+
+
+//====session => attendance===============
+Student.hasMany(attendance, { foreignKey: "userId"});
+attendance.belongsTo(Student, { foreignKey: "userId" });
+//==============================================
+
+
 module.exports = {
   sequelize,
   User,
@@ -471,4 +484,5 @@ module.exports = {
   supervisor,
   SuperAdmin,
   Admin,
+  attendance
 };

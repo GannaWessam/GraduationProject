@@ -43,6 +43,7 @@ router.use("/api/SuperAdmin/Supervisor", SupervisorManagmentRoute);
 router.use("/api/SuperAdmin/SuperAdmin", SuperAdminManagmentRoute);
 router.use("/api/SuperAdmin/Admin", AdminManagmentRoute);
 router.use("/api/SuperAdmin", TrainerManagmentRoute);
+router.use("/api/Attendance", AttendanceManagmentRoute);
 router.use("/api/Permission", permissionRoute);
 router.use("/api/Profile", profileRoute);
 router.use("/api/Container", ContainerRoute);

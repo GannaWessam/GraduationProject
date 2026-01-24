@@ -14,6 +14,10 @@ module.exports = (sequelize) => {
         allowNull: false,
         unique: true,
       },
+      viewName: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+      },
       containerId: {
         type: DataTypes.UUID,
         allowNull: true, // optional

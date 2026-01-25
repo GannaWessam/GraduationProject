@@ -1,8 +1,10 @@
 const { session: Session, training: Training,trainingReservation, sequelize,event,SessionMaterial } = require("../../../models/index");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
+const { generateSessionToken } = require("../../../Util/SessionToken");
 const { Op } = require("sequelize");
 const path = require("path");
 const fs = require("fs");
+const QRCode = require("qrcode");
 const archiver = require("archiver");
 
 const sessionService = {
@@ -255,6 +257,21 @@ const sessionService = {
 
     await archive.finalize(); // مهم جدًا لإنهاء الـ zip
   },
+
+   async QRservice(sessionId) {
+
+    const session = await Session.findByPk(sessionId);
+
+    const token = generateSessionToken(session.id, session.name, session.trainingId);
+
+    const url = `http://localhost:3000/attendance/scan?token=${token}`;
+
+    const qr = await QRCode.toDataURL(url);
+
+    return {qr, url};
+
+  },
+
 
 
 };

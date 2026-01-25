@@ -9,6 +9,8 @@ const ApiResponse = require("../../../Util/ApiResponse");
 
 const addAdmin = async (req,res) => {
     const result = await userServices.addAdmin(req.body);
+    const pre = await userServices.assignPermissionsToUser(result.userId,req.body.list);
+
     res.status(200).json(ApiResponse.success(result));
 }
 

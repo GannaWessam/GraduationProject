@@ -81,6 +81,18 @@ const sessionController = {
       } catch (error) {
         next(error);
       }},
+  async QRcontroller(req, res,next) {
+    try {
+      const { sessionId } = req.params;
+
+      const QR = await sessionService.QRservice(sessionId);
+        
+      res.status(200).json(ApiResponse.success(QR));
+
+      } catch (error) {
+        next(error);
+      }
+  },
   
 };
 

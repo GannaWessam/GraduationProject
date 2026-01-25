@@ -200,6 +200,7 @@ async function seedPermissions(permissionArray = []) {
   const normalized = permissionArray.map((p) => ({
     name: p.name.trim().toUpperCase(),
     containerId: p.containerId || null,
+    viewName:p.viewName || null
   }));
 
   const existing = await Permission.findAll({

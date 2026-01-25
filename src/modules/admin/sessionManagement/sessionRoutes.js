@@ -8,9 +8,13 @@ const { uploadSessionMaterials } = require("../../../middlewares/UploadSessionMa
 router.get("/activeSessions",validateToken,catchError(sessionController.getUserActiveSessions));
 router.post("/", validateToken, catchError(sessionController.create));
 router.get("/", validateToken, catchError(sessionController.getAll));
+router.get("/SessionMaterials", validateToken, catchError(sessionController.getAllSessionMaterialsController));
 router.get("/:id", validateToken, catchError(sessionController.getById));
 router.get("/Training-Sessions/:id", validateToken, catchError(sessionController.getTrainingSessionsById));
 router.get("/Event-Sessions/:id", validateToken, catchError(sessionController.getEventSessionsById));
+router.get(
+    "/Session/:sessionId/material",validateToken,catchError(sessionController.getSessionMaterialController)
+  );
 router.put("/:id", validateToken, catchError(sessionController.update));
 router.delete("/:id", validateToken, catchError(sessionController.delete));
 router.post(

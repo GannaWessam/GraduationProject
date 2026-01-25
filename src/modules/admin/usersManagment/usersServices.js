@@ -474,15 +474,28 @@ const getStudentById = async (userId) => {
 
 const getUsersByTrainingId = async (trainingId, features) => {
   try {
+    const {
+      where: featureWhere,
+      limit,
+      offset,
+      order,
+      attributes,
+    } = features.options || {};
     const { count, rows } = await trainingReservation.findAndCountAll({
-      where: { trainingId },
-      ...features.options,
+      where: {
+        trainingId,
+        ...(featureWhere || {}),
+      },
       distinct: true,
+      limit,
+      offset,
+      order,
+      attributes,
       attributes: ["trainingReservationId", "reservationStatus"],
       include: [
         {
           model: Student,
-          attributes: ["fullName"],
+          attributes: ["fullName","Mobile","NameEn","college"],
           include: [
             {
               model: User,
@@ -497,6 +510,9 @@ const getUsersByTrainingId = async (trainingId, features) => {
       trainingReservationId: r.trainingReservationId,
       fullName: r.Student.fullName,
       email: r.Student.User.email,
+      NameEn:r.Student.NameEn,
+      Mobile:r.Student.Mobile,
+      college:r.Student.college,
       reservationStatus: r.reservationStatus,
     }));
 
@@ -514,15 +530,28 @@ const getUsersByTrainingId = async (trainingId, features) => {
 
 const getUsersByExamId = async (examId, features) => {
   try {
+    const {
+      where: featureWhere,
+      limit,
+      offset,
+      order,
+      attributes,
+    } = features.options || {};
     const { count, rows } = await examReservation.findAndCountAll({
-      where: { examId },
-      ...features.options,
+      where: {
+        examId,
+        ...(featureWhere || {}),
+      },
       distinct: true,
-      attributes: ["examReservationId", "reservationStatus"],
+      limit,
+      offset,
+      order,
+      attributes,
+      attributes: ["examReservationId","reservationStatus"],
       include: [
         {
           model: Student,
-          attributes: ["fullName"],
+          attributes: ["fullName","NameEn","Mobile","college"],
           include: [
             {
               model: User,
@@ -536,6 +565,9 @@ const getUsersByExamId = async (examId, features) => {
     const mappedRows = rows.map((r) => ({
       examReservationId: r.examReservationId,
       fullName: r.Student.fullName,
+      NameEn:r.Student.NameEn,
+      Mobile:r.Student.Mobile,
+      college:r.Student.college,
       email: r.Student.User.email,
       reservationStatus: r.reservationStatus,
     }));

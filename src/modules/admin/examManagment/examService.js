@@ -248,7 +248,7 @@ const getAllExams = async (features) => {
     ...features.options,
     include: [
       { model: course, attributes: ['name'] },
-      { model: User, as: 'supervisor', attributes: ['userId', 'email'] },
+      { model: supervisor, as: 'supervisor', attributes: ['userId', 'Name'] },
       { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
     ]
   });

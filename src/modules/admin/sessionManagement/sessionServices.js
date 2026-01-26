@@ -3,6 +3,7 @@ const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { generateSessionToken } = require("../../../Util/SessionToken");
 const { Op } = require("sequelize");
 const path = require("path");
+require('dotenv').config();
 const fs = require("fs");
 const QRCode = require("qrcode");
 const archiver = require("archiver");
@@ -260,9 +261,9 @@ const sessionService = {
 
     const session = await Session.findByPk(sessionId);
 
-    const token = generateSessionToken(session.id, session.name, session.trainingId);
+    const token = generateSessionToken(session.sessionId, session.name, session.trainingId);
 
-    const url = `http://192.168.1.11:5173/Attendance?token=${token}`;
+    const url = `${process.env.HOST}/Attendance?token=${token}`;
 
     const qr = await QRCode.toDataURL(url);
 

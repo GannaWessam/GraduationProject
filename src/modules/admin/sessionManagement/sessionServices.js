@@ -327,7 +327,30 @@ const sessionService = {
     );
   },
 
+  async downloadSessionMaterial(materialId) {
+    const material = await SessionMaterial.findOne({
+      where: { materialId },
+    });
 
+    if (!material) {
+      const error = new Error("Material not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const filePath = path.join(process.cwd(),  "uploads", "sessions", path.basename(material.file));
+   
+    if (!fs.existsSync(filePath)) {
+      const error = new Error("File not found on server");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    return {
+      filePath,
+      fileName: material.name || path.basename(filePath),
+    };
+  },
 
 };
 

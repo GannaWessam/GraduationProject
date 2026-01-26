@@ -128,7 +128,18 @@ const sessionController = {
     next(error);
   }
   }, 
-  
+  async downloadSessionMaterialController(req, res, next) {
+    try {
+      const { materialId } = req.params;
+
+      const { filePath, fileName } =
+        await sessionService.downloadSessionMaterial(materialId);
+
+      res.download(filePath, fileName);
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 module.exports = sessionController;

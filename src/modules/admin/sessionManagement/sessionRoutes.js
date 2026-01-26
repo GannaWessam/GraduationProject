@@ -28,5 +28,6 @@ router.get(
     catchError(sessionController.downloadSessionMaterials)
 );
 router.get("/sessionQR/:sessionId", validateToken, catchError(sessionController.QRcontroller));
+router.get("/session-materials/download/:materialId",catchError(sessionController.downloadSessionMaterialController));
 
 module.exports = router;

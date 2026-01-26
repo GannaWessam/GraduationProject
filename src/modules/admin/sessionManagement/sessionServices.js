@@ -246,11 +246,9 @@ const sessionService = {
 
 
       if (fs.existsSync(filePath)) {
-        // استخدم الاسم المخصص لو موجود، وإلا استخدم اسم الملف الأصلي
         const fileNameInZip = material.name
           ? material.name + "." + material.fileType
           : path.basename(material.file);
-
         archive.file(filePath, { name: fileNameInZip });
       }
     });
@@ -264,7 +262,7 @@ const sessionService = {
 
     const token = generateSessionToken(session.id, session.name, session.trainingId);
 
-    const url = `http://localhost:3000/attendance/scan?token=${token}`;
+    const url = `http://192.168.1.11:5173/Attendance?token=${token}`;
 
     const qr = await QRCode.toDataURL(url);
 

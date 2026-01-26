@@ -22,7 +22,7 @@ const port = 3000;
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // if you use cookies or Authorization headers
   })
@@ -41,6 +41,6 @@ app.get("/dashboard", validateToken, (req, res) => {
 
 app.use(errorHandler);
 
-app.listen(port, () => {
+app.listen(port,"0.0.0.0", () => {
   console.log(`Server running on http://localhost:${port}`);
 });

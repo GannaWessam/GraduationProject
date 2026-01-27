@@ -4,7 +4,7 @@ const uploadSessionMaterials = uploadMultipleFiles(
   [{ name: "materials", maxCount: 10 }], // up to 10 files
   {
     allowedTypes: ["application"],
-    allowedExtensions: [".pdf", ".zip"],
+    allowedExtensions: [".pdf", ".zip",".ppt",".docx",".pptx"],
     destination: "uploads/sessions",
     maxSize: 50 * 1024 * 1024, 
   }

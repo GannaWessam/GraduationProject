@@ -203,11 +203,12 @@ const sessionService = {
       if (!["pdf", "zip","docx","ppt","pptx"].includes(ext)) {
         throw new Error("Invalid file type: " + file.originalname);
       }
+      const originalName = Buffer.from(file.originalname, "latin1").toString("utf8");
       return {
         sessionId,
         file: `sessions/${file.filename}`,
         fileType: ext,
-        name: file.originalname,
+        name: originalName,
       };
     });
   

@@ -74,6 +74,11 @@ const sessionController = {
       next(error);
     }},
 
+    async deleteMaterial(req, res) {
+      const result = await sessionService.deleteSessionMaterial(req.params.mertialId);
+      res.status(200).json(ApiResponse.success(result));
+    },
+
   async downloadSessionMaterials(req, res, next) {
       try {
         const { sessionId } = req.params;

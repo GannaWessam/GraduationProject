@@ -22,7 +22,7 @@ const port = 3000;
 
 app.use(
   cors({
-    origin: "*",
+    origin: ["http://localhost:5173","http://192.168.1.11:5173","http://193.227.34.48"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // if you use cookies or Authorization headers
   })

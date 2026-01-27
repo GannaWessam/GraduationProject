@@ -196,13 +196,13 @@ const sessionService = {
     if (!files || files.length === 0) {
       throw new Error("No files uploaded");
     }
+
   
     const materials = files.map((file) => {
       const ext = file.originalname.split(".").pop().toLowerCase();
-      if (!["pdf", "zip"].includes(ext)) {
+      if (!["pdf", "zip","docx","ppt","pptx"].includes(ext)) {
         throw new Error("Invalid file type: " + file.originalname);
       }
-  
       return {
         sessionId,
         file: `sessions/${file.filename}`,
@@ -213,6 +213,14 @@ const sessionService = {
   
     const createdMaterials = await SessionMaterial.bulkCreate(materials);
     return createdMaterials;
+  },
+  async deleteSessionMaterial(id) {
+    return sequelize.transaction(async (t) => {
+      const material = await SessionMaterial.findByPk(id, { transaction: t });
+      if (!material) throw new Error("session_not_found");
+      await material.destroy({ transaction: t });
+      return { message: "Material deleted successfully" };
+    });
   },
 
   async downloadSessionMaterialsService(sessionId, res) {

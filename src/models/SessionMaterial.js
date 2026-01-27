@@ -22,7 +22,7 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       fileType: {
-        type: DataTypes.ENUM("pdf", "zip"),
+        type: DataTypes.ENUM("pdf", "zip","docx","ppt","pptx"),
         allowNull: false,
       },
     },

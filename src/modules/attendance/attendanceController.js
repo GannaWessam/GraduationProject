@@ -32,8 +32,14 @@ const attendanceController = {
   },
 
   async getBySession(req, res) {
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
     const data = await attendanceService.getAttendanceBySession(
-      req.params.sessionId
+      req.params.sessionId,features
     );
     res.json(ApiResponse.success(data));
   },

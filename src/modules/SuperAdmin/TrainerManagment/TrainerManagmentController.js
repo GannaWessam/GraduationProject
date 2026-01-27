@@ -2,14 +2,14 @@ const { addTrainer, getAllTrainers , getTrainerById , deleteTrainer ,updateTrain
 const ApiResponse = require("../../../Util/ApiResponse.js");
 const ApiFeature = require("../../../Util/ApiFeatures.js");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
-
-
+const permissionService = require("../../admin/usersManagment/usersServices.js")
 
 
 
 exports.register = async (req, res, next) => {
     try {
       const result = await addTrainer(req.body);
+      const per = await permissionService.assignPermissionsToUser(result.data.user.userId,req.body.permissionList);
       return res.status(201).json(ApiResponse.created(result));
     } catch (error) {
       return next(error);

@@ -1,6 +1,7 @@
 const { addSupervisor, getAllSupervisors , getSupervisorById ,deleteSupervisor,updateSupervisor} = require("./SupervisorManagmentService.js");
 const ApiResponse = require("../../../Util/ApiResponse.js");
 const ApiFeature = require("../../../Util/ApiFeatures.js");
+const permissionService = require("../../admin/usersManagment/usersServices.js")
 
 
 
@@ -9,6 +10,7 @@ const ApiFeature = require("../../../Util/ApiFeatures.js");
 exports.register = async (req, res, next) => {
     try {
       const result = await addSupervisor(req.body);
+      const per = await permissionService.assignPermissionsToUser(result.data.user.userId,req.body.permissionList);
       return res.status(201).json(ApiResponse.created(result));
     } catch (error) {
       return next(error);

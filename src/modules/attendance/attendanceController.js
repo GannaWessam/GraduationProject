@@ -46,7 +46,7 @@ const attendanceController = {
 
   async getByUser(req, res) {
     const data = await attendanceService.getAttendanceByUser(
-      req.params.userId
+      req.userData.id
     );
     res.json(ApiResponse.success(data));
   },

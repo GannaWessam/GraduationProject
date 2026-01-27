@@ -35,7 +35,7 @@ router.get(
 
 
 router.get(
-  "/User-Attendance/:userId",
+  "/Attendance/user",
   validateToken,
   catchError(attendanceController.getByUser)
 );

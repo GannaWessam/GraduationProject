@@ -50,12 +50,12 @@ const attendanceService = {
 
   // 📌 Get attendance by id
   async getAttendanceById(id) {
-    const attendance = await attendance.findByPk(id, {
+    const Attendance = await attendance.findByPk(id, {
       include: [Student, session],
     });
 
-    if (!attendance) throw new Error("attendance_not_found");
-    return attendance;
+    if (!Attendance) throw new Error("attendance_not_found");
+    return Attendance;
   },
 
   // 📌 Get attendance by session

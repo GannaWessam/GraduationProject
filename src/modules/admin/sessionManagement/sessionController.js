@@ -40,9 +40,18 @@ const sessionController = {
     res.status(200).json(ApiResponse.success(session));
   },
 
-  async delete(req, res) {
-    const result = await sessionService.deleteSession(req.params.id);
-    res.status(200).json(ApiResponse.success(result));
+  async delete(req, res ,next) {
+    try {
+      const { materialId } = req.params;
+      const result = await sessionService.deleteSessionMaterial(materialId);
+  
+      res.status(200).json({
+        status: "success",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
   },
 
   async getUserActiveSessions(req, res, next) {

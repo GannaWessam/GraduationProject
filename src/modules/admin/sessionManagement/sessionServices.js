@@ -215,13 +215,41 @@ const sessionService = {
     const createdMaterials = await SessionMaterial.bulkCreate(materials);
     return createdMaterials;
   },
-  async deleteSessionMaterial(id) {
-    return sequelize.transaction(async (t) => {
-      const material = await SessionMaterial.findByPk(id, { transaction: t });
-      if (!material) throw new Error("session_not_found");
+  async deleteSessionMaterial(materialId) {
+    const t = await sequelize.transaction();
+
+    try {
+      const material = await SessionMaterial.findOne({ 
+        where: { materialId }, 
+        transaction: t 
+      });
+  
+      if (!material) {
+        const error = new Error("Material not found");
+        error.statusCode = 404;
+        throw error;
+      }
+  
+      // مسار الملف
+      const filePath = path.join(process.cwd(), "uploads", "sessions", path.basename(material.file));
+  
+      // حذف السطر من الداتابيز أولاً
       await material.destroy({ transaction: t });
+  
+      // لو الملف موجود على السيرفر، نحذفه
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath); // ممكن تتحول لـ async لو حابب
+      }
+  
+      // commit للـ transaction
+      await t.commit();
+  
       return { message: "Material deleted successfully" };
-    });
+    } catch (error) {
+      // rollback لو أي حاجة فشلت
+      await t.rollback();
+      throw error;
+    }
   },
 
   async downloadSessionMaterialsService(sessionId, res) {

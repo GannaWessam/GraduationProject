@@ -47,9 +47,14 @@ async function chooseCoursesService(userId,courses ,examStatus,  trainingStatus)
 
 
 async function addCourse(courseInfo) {
-  const { name } = courseInfo;
-  if (!name) throw new Error("missing_required");
-  const newCourse = await course.create({ name });
+  const { name , title , priceEgyptian , priceOther , currency} = courseInfo;
+  if (!name || !priceEgyptian || !priceOther || !currency || !title) throw new Error("missing_required");
+  const newCourse = await course.create({ 
+    name ,
+    title,
+    priceEgyptian,
+    priceOther,
+    currency});
   return newCourse;
 }
 
@@ -77,13 +82,31 @@ async function getCourseById(id) {
 }
 
 async function updateCourse(id, updateInfo) {
-  const coursee = await course.findByPk(id);
-  if (!coursee) throw new Error("not_found");
-
-  if (updateInfo.name) coursee.name = updateInfo.name;
-
-  await coursee.save();
-  return coursee;
+    if (!id) throw new Error("missing_course_id");
+  
+    const allowedFields = [
+      "name",
+      "title",
+      "priceEgyptian",
+      "priceOther",
+      "currency",
+    ];
+  
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (updateInfo[key] !== undefined) {
+        updateData[key] = updateInfo[key];
+      }
+    }
+  
+    if (Object.keys(updateData).length === 0)
+      throw new Error("no_data_to_update");
+  
+    const courseToUpdate = await course.findByPk(id);
+    if (!courseToUpdate) throw new Error("course_not_found");
+  
+    await courseToUpdate.update(updateData);
+    return courseToUpdate;
 }
 
 async function deleteCourse(id) {

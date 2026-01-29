@@ -14,12 +14,13 @@ const formatRegisterResponse = (user, student, price) => ({
 //   },
 });
 
-const formatLoginResponse = (user, tok) => ({
+const formatLoginResponse = (user, tok , permission) => ({
   id: user.userId,
   email: user.email,
   role: user.role,
   // profile: user.Student,
   token: tok,
+  permissions : permission,
 });
 
 module.exports = { formatRegisterResponse, formatLoginResponse };

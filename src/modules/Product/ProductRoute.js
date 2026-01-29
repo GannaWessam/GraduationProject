@@ -5,7 +5,7 @@ const catchError = require("../../middlewares/catchError");
 const { validateToken } = require("../../middlewares/token");
 const checkPermission= require("../../middlewares/checkPermission");
 
-router.post("/",validateToken,checkPermission("CREATE_PRODUCT"), catchError(ProductController.addProduct));
+router.post("/",validateToken,checkPermission("CREATE_PRODUCT"),catchError(ProductController.addProduct));
 router.get("/", catchError(ProductController.getAllProductsController));
 router.get("/:id", catchError(ProductController.getProductById));
 router.put("/:id", catchError(ProductController.updateProduct));

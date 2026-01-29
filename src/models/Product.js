@@ -24,6 +24,12 @@ module.exports = (sequelize) => {
       allowNull: false, 
       defaultValue: 0 
     },
+    
+    currency: { 
+      type: DataTypes.STRING(200), 
+      allowNull: false 
+    },
+
     examStatus: { 
       type: DataTypes.BOOLEAN, 
       allowNull: true, 

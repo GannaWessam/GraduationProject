@@ -53,11 +53,12 @@ async function addProduct(productInfo) {
     courseNameAr,
     priceEgyptian,
     priceOther,
+    currency,
     requirdCourses,
     allowedUserTypes = [],
   } = productInfo;
 
-  if (!courseNameEn || !courseNameAr || !priceEgyptian || !priceOther) {
+  if (!courseNameEn || !courseNameAr || !priceEgyptian || !priceOther || !currency) {
     throw new Error("missing_required");
   }
 
@@ -66,6 +67,7 @@ async function addProduct(productInfo) {
       courseName: concatLang(courseNameEn, courseNameAr), // ✅ concat before saving
       priceEgyptian,
       priceOther,
+      currency,
       requirdCourses,
       allowedUserTypes: allowedUserTypes.map((type) => ({ userType: type })),
     },
@@ -87,7 +89,7 @@ async function getProductById(id) {
 }
 
 async function updateProduct(id, updateInfo) {
-  const { courseNameEn, courseNameAr, priceEgyptian, priceOther, allowedUserTypes,requirdCourses } =
+  const { courseNameEn, courseNameAr, priceEgyptian, priceOther, allowedUserTypes,requirdCourses ,currency } =
     updateInfo;
 
   const product = await Product.findByPk(id, {
@@ -100,7 +102,8 @@ async function updateProduct(id, updateInfo) {
   }
   if (priceEgyptian) product.priceEgyptian = priceEgyptian;
   if (priceOther) product.priceOther = priceOther;
-  if(requirdCourses) product.requirdCourses=requirdCourses
+  if(requirdCourses) product.requirdCourses=requirdCourses;
+  if(currency) product.currency=currency;
 
   await product.save();
 

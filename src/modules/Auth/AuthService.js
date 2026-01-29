@@ -183,7 +183,7 @@ async function loginUser(email, password, rememberMe = false) {
     permissions.map((p) => p.name)
   );
 
-  return formatLoginResponse(user, jwtToken); //msh 3ayz el name?
+  return formatLoginResponse(user, jwtToken ,permissions); //msh 3ayz el name?
 }
 
 async function resetPassword(email, newPassword) {

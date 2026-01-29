@@ -8,10 +8,33 @@ module.exports = (sequelize) => {
         primaryKey: true, 
         defaultValue: UUIDV4 
     },
+
     name:{
     type: DataTypes.STRING(200),  
     allowNull: false
-    }
+    },
+
+    title:{
+      type: DataTypes.STRING(200),  
+      allowNull: false,
+      },
+
+    priceEgyptian: { 
+      type: DataTypes.DECIMAL(12, 2), 
+      allowNull: false, 
+      defaultValue: 0 
+    },
+
+    priceOther: { 
+      type: DataTypes.DECIMAL(12, 2), 
+      allowNull: false, 
+      defaultValue: 0 
+    },
+    
+    currency: { 
+      type: DataTypes.STRING(200), 
+      allowNull: false, 
+    },
 
     
   }, {

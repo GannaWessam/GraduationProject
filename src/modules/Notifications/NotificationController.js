@@ -1,5 +1,5 @@
 const { saveSubscription, sendNotificationToUser, sendNotificationToUsers } = require('../../Services/pushService');
-const {getAllNotificationToUserService} = require('./NotificationService');
+const {getAllNotificationToUserService, markAllAsRead, getDilveredCount} = require('./NotificationService');
 const ApiResponse = require("../../Util/ApiResponse");
 
 exports.subscribeUser = async (req, res, next) => {
@@ -50,3 +50,13 @@ exports.getAllNotificationToUserController = async (req, res) => {
   const result = await getAllNotificationToUserService(req.params.id);
   return res.status(200).json(ApiResponse.success(result));
 };
+
+exports.MakeAllNotificationReadController=async(req,res) => {
+  const result = await markAllAsRead(req.params.id)
+  return res.status(200).json(ApiResponse.success(result));
+}
+
+exports.GetDileveredNotificationCount=async(req,res) => {
+  const result = await getDilveredCount(req.params.id)
+  return res.status(200).json(ApiResponse.success(result));
+}

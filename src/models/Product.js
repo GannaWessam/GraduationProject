@@ -27,7 +27,7 @@ module.exports = (sequelize) => {
     
     currency: { 
       type: DataTypes.STRING(200), 
-      allowNull: false 
+      allowNull: true 
     },
 
     examStatus: { 

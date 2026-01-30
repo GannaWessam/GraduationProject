@@ -20,9 +20,12 @@ module.exports = (sequelize) => {
     type:{
       type:DataTypes.STRING(200),
       allowNull:true
+    },
+    Status:{
+      type:DataTypes.STRING(200),
+      allowNull:false,
+      defaultValue:"dilevered"
     }
-
-    
   }, {
     tableName: 'notification',
   });

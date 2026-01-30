@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
 
     title:{
       type: DataTypes.STRING(200),  
-      allowNull: false,
+      allowNull: true,
       },
 
     priceEgyptian: { 
@@ -33,7 +33,7 @@ module.exports = (sequelize) => {
     
     currency: { 
       type: DataTypes.STRING(200), 
-      allowNull: false, 
+      allowNull: true, 
     },
 
     

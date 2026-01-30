@@ -1,4 +1,4 @@
-const {User , trainer ,sequelize } = require("../../../models");
+const {User , trainer ,sequelize ,Permission} = require("../../../models");
 const ApiFeature = require("../../../Util/ApiResponse");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
@@ -76,6 +76,16 @@ async function getAllTrainers(features) {
       {
         model: User,
         attributes: ["userId", "email", "role"],
+        include: [
+          {
+            model: Permission,
+            as: "permissions",
+            attributes: ["permissionId", "name"], 
+            through: {
+              attributes: [], 
+            },
+          },
+        ],
       },
     ],
   });
@@ -96,9 +106,19 @@ async function getTrainerById(id) {
     include: [
       {
         model: User,
-        attributes: ['userId', 'email', 'role']
-      }
-    ]
+        attributes: ["userId", "email", "role"],
+        include: [
+          {
+            model: Permission,
+            as: "permissions",
+            attributes: ["permissionId", "name"], 
+            through: {
+              attributes: [], 
+            },
+          },
+        ],
+      },
+    ],
   });
 
   if (!tr) throw new Error('trainer_not_found');

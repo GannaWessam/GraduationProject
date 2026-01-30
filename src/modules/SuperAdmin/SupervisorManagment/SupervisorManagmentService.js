@@ -1,4 +1,4 @@
-const {User , supervisor ,sequelize } = require("../../../models");
+const {User , supervisor ,sequelize ,Permission } = require("../../../models");
 const ApiFeature = require("../../../Util/ApiResponse");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
@@ -76,6 +76,16 @@ async function getAllSupervisors(features) {
       {
         model: User,
         attributes: ["userId", "email", "role"],
+        include: [
+          {
+            model: Permission,
+            as: "permissions",
+            attributes: ["permissionId", "name"], 
+            through: {
+              attributes: [], 
+            },
+          },
+        ],
       },
     ],
   });
@@ -96,9 +106,19 @@ async function getSupervisorById(id) {
     include: [
       {
         model: User,
-        attributes: ['userId', 'email', 'role']
-      }
-    ]
+        attributes: ["userId", "email", "role"],
+        include: [
+          {
+            model: Permission,
+            as: "permissions",
+            attributes: ["permissionId", "name"], 
+            through: {
+              attributes: [], 
+            },
+          },
+        ],
+      },
+    ],
   });
 
   if (!sup) throw new Error('Supervisor_not_found');

@@ -1,4 +1,4 @@
-const {User , Admin ,sequelize } = require("../../../models");
+const {User , Admin ,sequelize ,Permission } = require("../../../models");
 const ApiFeature = require("../../../Util/ApiResponse");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
@@ -76,16 +76,26 @@ async function addAdmin(AdminInfo) {
 
 async function getAllAdmins(features) {
   const { count, rows: admins } = await Admin.findAndCountAll({
-    ...features.options, 
+    ...features.options,
     include: [
       {
         model: User,
         attributes: ["userId", "email", "role"],
+        include: [
+          {
+            model: Permission,
+            as: "permissions",
+            attributes: ["permissionId", "name"], 
+            through: {
+              attributes: [], 
+            },
+          },
+        ],
       },
     ],
   });
 
-  if (!admins) throw new Error("not_found");
+  if (!admins || admins.length === 0) throw new Error("not_found");
 
   return PaginatedResponse.fromApiFeature(
     features,
@@ -101,9 +111,19 @@ async function getAdminById(id) {
     include: [
       {
         model: User,
-        attributes: ['userId', 'email', 'role']
-      }
-    ]
+        attributes: ["userId", "email", "role"],
+        include: [
+          {
+            model: Permission,
+            as: "permissions",
+            attributes: ["permissionId", "name"], 
+            through: {
+              attributes: [], 
+            },
+          },
+        ],
+      },
+    ],
   });
 
   if (!admin) throw new Error('Admin_not_found');

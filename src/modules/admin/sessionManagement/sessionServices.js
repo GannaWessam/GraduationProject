@@ -164,11 +164,11 @@ const sessionService = {
   },
 
   async getUserActiveSessions(userId) {
-    return trainingReservation.findAll({
+    return await trainingReservation.findAll({
       where: {
         userId,
-        reservationStatus: { [Op.ne]: "CANCEL" },  
-        trainigStatus: "ACTIVE",                   
+        reservationStatus: { [Op.ne]: "CANCEL" },
+        trainigStatus: "ACTIVE",
       },
       include: [
         {
@@ -183,12 +183,19 @@ const sessionService = {
                 "startTime",
                 "endTime",
                 "date",
-                "virtualLink"
-              ]
-            }
-          ]
-        }
-      ]
+                "virtualLink",
+              ],
+              include: [
+                {
+                  model: SessionMaterial,
+                  as: "materials",
+                  attributes: ["name"],
+                },
+              ],
+            },
+          ],
+        },
+      ],
     });
   },
 

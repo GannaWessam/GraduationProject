@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
 
     title:{
       type: DataTypes.STRING(200),  
-      allowNull: false,
+      allowNull: true,
       },
 
     priceEgyptian: { 

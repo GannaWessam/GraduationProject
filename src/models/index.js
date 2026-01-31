@@ -34,7 +34,7 @@ const SuperAdmin = require("./SuperAdmin")(sequelize);
 const Admin = require("./Admin")(sequelize);
 const SessionMaterial = require("./SessionMaterial")(sequelize);
 const attendance = require("./attendance")(sequelize);
-
+const currency = require("./Currency")(sequelize);
 
 const Permission = require("./Permissions")(sequelize);
 const UserPermission = require("./UserPermission")(sequelize);
@@ -444,6 +444,13 @@ attendance.belongsTo(Student, { foreignKey: "userId" });
 //==============================================
 
 
+course.belongsTo(currency, { foreignKey: 'currencyId' });
+currency.hasMany(course, { foreignKey: 'currencyId' });
+
+
+Product.belongsTo(currency, { foreignKey: 'currencyId' });
+currency.hasMany(Product, { foreignKey: 'currencyId' });
+
 module.exports = {
   sequelize,
   User,
@@ -484,5 +491,6 @@ module.exports = {
   supervisor,
   SuperAdmin,
   Admin,
-  attendance
+  attendance,
+  currency
 };

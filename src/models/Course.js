@@ -31,9 +31,9 @@ module.exports = (sequelize) => {
       defaultValue: 0 
     },
     
-    currency: { 
-      type: DataTypes.STRING(200), 
-      allowNull: false, 
+    currencyId: { 
+      type: DataTypes.UUID,       
+      allowNull: true
     },
 
     

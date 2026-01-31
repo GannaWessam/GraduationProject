@@ -6,31 +6,31 @@ const seedCurrencies = async () => {
     {
       currencyId: uuidv4(),
       code: "EGP",
-      name: "Egyptian Pound",
+      name: "Egyptian Pound | الجنية المصرى",
       symbol: "E£",
     },
     {
       currencyId: uuidv4(),
       code: "USD",
-      name: "US Dollar",
+      name: "US Dollar | الدولار الأمريكى",
       symbol: "$",
     },
     {
       currencyId: uuidv4(),
       code: "EUR",
-      name: "Euro",
+      name: "Euro | اليورو",
       symbol: "€",
     },
     {
       currencyId: uuidv4(),
       code: "SAR",
-      name: "Saudi Riyal",
+      name: "Saudi Riyal | الريال السعودى",
       symbol: "﷼",
     },
     {
       currencyId: uuidv4(),
       code: "AED",
-      name: "UAE Dirham",
+      name: "UAE Dirham | الدرهم الامراتى",
       symbol: "د.إ",
     },
   ];

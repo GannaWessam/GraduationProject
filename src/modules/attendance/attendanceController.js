@@ -45,8 +45,14 @@ const attendanceController = {
   },
 
   async getByUser(req, res) {
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
     const data = await attendanceService.getAttendanceByUser(
-      req.userData.id
+      req.userData.id,features
     );
     res.json(ApiResponse.success(data));
   },

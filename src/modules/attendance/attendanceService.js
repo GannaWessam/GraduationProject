@@ -98,11 +98,42 @@ const attendanceService = {
   
 
   // 📌 Get attendance by user
-  async getAttendanceByUser(userId) {
-    return attendance.findAll({
-      where: { userId },
-      include: [session],
-    });
+  async getAttendanceByUser(userId,features) {
+    try {
+        const {
+          where: featureWhere,
+          limit,
+          offset,
+          order,
+          attributes,
+        } = features.options || {};
+        const {count,rows} =await attendance.findAndCountAll({
+          where: {
+            userId,
+            ...(featureWhere || {}),
+          },
+          distinct: true,
+          limit,
+          offset,
+          order,
+          attributes,
+          include: [
+            {
+              model: session,
+              attributes:["name"]
+            },
+          ],
+        });
+        return PaginatedResponse.fromApiFeature(
+          features,
+          count,
+          rows,
+          "Attendance fetched successfully"
+        );
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to fetch Attendance for this session");
+    }
   },
 
   // ❌ Delete attendance

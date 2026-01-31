@@ -1,4 +1,4 @@
-const { Product, ProductAllowedUserType } = require("../../models");
+const { Product, ProductAllowedUserType, currency } = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const { Op } = require("sequelize");
 const { concatLang } = require("../../Helpers/langHelper");
@@ -34,6 +34,11 @@ async function getAllProductsService(reqQuery = {}) {
       where: allowedUserTypeWhere,
       required: !!allowedUserTypeWhere,
     },
+    {
+      model: currency,
+      attributes: ["code"],
+      required: false, 
+    },
   ];
 
   const products = await Product.findAll(apiFeature.options);
@@ -53,12 +58,12 @@ async function addProduct(productInfo) {
     courseNameAr,
     priceEgyptian,
     priceOther,
-    currency,
+    currencyId,
     requirdCourses,
     allowedUserTypes = [],
   } = productInfo;
 
-  if (!courseNameEn || !courseNameAr || !priceEgyptian || !priceOther || !currency) {
+  if (!courseNameEn || !courseNameAr || !priceEgyptian || !priceOther || !currencyId) {
     throw new Error("missing_required");
   }
 
@@ -67,7 +72,7 @@ async function addProduct(productInfo) {
       courseName: concatLang(courseNameEn, courseNameAr), // ✅ concat before saving
       priceEgyptian,
       priceOther,
-      currency,
+      currencyId,
       requirdCourses,
       allowedUserTypes: allowedUserTypes.map((type) => ({ userType: type })),
     },

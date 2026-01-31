@@ -30,7 +30,7 @@ const sessionService = {
     throw new Error(`Session date cannot be before event start date (${eventObj.startDate.toISOString().split('T')[0]})`);
   }
     if (new Date(sessionData.date) > new Date(eventObj.endDate)) {
-    throw new Error(`Session date cannot be aftar event start date (${eventObj.startDate.toISOString().split('T')[0]})`);
+    throw new Error(`Session date cannot be aftar event end date (${eventObj.startDate.toISOString().split('T')[0]})`);
   }
     const eventId = trainingObj.eventId;
   

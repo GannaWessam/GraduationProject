@@ -1,4 +1,4 @@
-const { productCourse , course , Product ,studentCourse} = require("../../models");
+const { productCourse , course , Product ,studentCourse ,currency} = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
@@ -47,14 +47,18 @@ async function chooseCoursesService(userId,courses ,examStatus,  trainingStatus)
 
 
 async function addCourse(courseInfo) {
-  const { name , title , priceEgyptian , priceOther , currency} = courseInfo;
-  if (!name || !priceEgyptian || !priceOther || !currency || !title) throw new Error("missing_required");
+  const { name , title , priceEgyptian , priceOther , currencyId} = courseInfo;
+  if (!name || !priceEgyptian || !priceOther || !currencyId || !title) throw new Error("missing_required");
+  const Currency = await currency.findByPk(currencyId);
+  if (!Currency) {
+    throw new Error("currency_not_found");
+  }
   const newCourse = await course.create({ 
     name ,
     title,
     priceEgyptian,
     priceOther,
-    currency});
+    currencyId});
   return newCourse;
 }
 
@@ -89,7 +93,7 @@ async function updateCourse(id, updateInfo) {
       "title",
       "priceEgyptian",
       "priceOther",
-      "currency",
+      "currencyId",
     ];
   
     const updateData = {};

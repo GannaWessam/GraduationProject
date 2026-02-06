@@ -58,21 +58,31 @@ async function seedNationalities() {
       "Vietnamese | فيتنامي", "Yemeni | يمني", "Zambian | زامبي", "Zimbabwean | زيمبابوي"
     ];
 
-    const records = names.map((n) => ({
-      NationalityId: uuidv4(),
-      Name: n,
-      createdAt: now,
-      updatedAt: now,
-    }));
+    // Check existing nationalities to avoid duplicates
+    const existingNationalities = await Nationality.findAll({
+      attributes: ['Name']
+    });
+    const existingNames = new Set(existingNationalities.map(n => n.Name));
 
-    await Nationality.bulkCreate(records);
-    console.log("✅ Nationalities seeded successfully!");
+    const records = names
+      .filter(name => !existingNames.has(name))
+      .map((n) => ({
+        NationalityId: uuidv4(),
+        Name: n,
+        createdAt: now,
+        updatedAt: now,
+      }));
+
+    if (records.length > 0) {
+      await Nationality.bulkCreate(records, { ignoreDuplicates: true });
+      console.log(`✅ Seeded ${records.length} new nationalities (${existingNames.size} already existed)`);
+    } else {
+      console.log(`✅ All nationalities already exist (${existingNames.size} total)`);
+    }
   } catch (err) {
     console.error("❌ Error seeding nationalities:", err);
-  } finally {
-    await sequelize.close();
-    console.log("🔒 Database connection closed.");
+    throw err;
   }
 }
 
-seedNationalities();
+module.exports = seedNationalities;

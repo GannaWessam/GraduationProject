@@ -1,11 +1,11 @@
 // seedCoursesAndProducts.js
 const { v4: uuidv4 } = require("uuid");
-const { sequelize, course, Product } = require("../src/models/index"); // ✅ غيّري المسار حسب مشروعك
+const { sequelize, course, Product } = require("../src/models/index");
 
-(async () => {
+async function seedCoursesAndProducts() {
   try {
     await sequelize.authenticate();
-    console.log("✅ Database connected successfully.");
+    console.log("🚀 Starting seeding courses and products...");
 
     // --- عينة كورسات ---
     const coursesData = [
@@ -54,15 +54,35 @@ const { sequelize, course, Product } = require("../src/models/index"); // ✅ غ
       },
     ];
 
-    // --- عملية الإدخال ---
-    await sequelize.sync(); // لو الجداول مش متولدة
-    await course.bulkCreate(coursesData, { ignoreDuplicates: true });
-    await Product.bulkCreate(productsData, { ignoreDuplicates: true });
+    // Check existing courses
+    const existingCourses = await course.findAll({ attributes: ['name'] });
+    const existingCourseNames = new Set(existingCourses.map(c => c.name));
+    
+    const newCourses = coursesData.filter(c => !existingCourseNames.has(c.name));
+    if (newCourses.length > 0) {
+      await course.bulkCreate(newCourses, { ignoreDuplicates: true });
+      console.log(`✅ Seeded ${newCourses.length} new courses (${existingCourseNames.size} already existed)`);
+    } else {
+      console.log(`✅ All courses already exist (${existingCourseNames.size} total)`);
+    }
 
-    console.log("✅ Seeded courses and products successfully.");
-    process.exit(0);
+    // Check existing products
+    const existingProducts = await Product.findAll({ attributes: ['courseName'] });
+    const existingProductNames = new Set(existingProducts.map(p => p.courseName));
+    
+    const newProducts = productsData.filter(p => !existingProductNames.has(p.courseName));
+    if (newProducts.length > 0) {
+      await Product.bulkCreate(newProducts, { ignoreDuplicates: true });
+      console.log(`✅ Seeded ${newProducts.length} new products (${existingProductNames.size} already existed)`);
+    } else {
+      console.log(`✅ All products already exist (${existingProductNames.size} total)`);
+    }
+
+    return { success: true };
   } catch (error) {
     console.error("❌ Error during seeding:", error);
-    process.exit(1);
+    throw error;
   }
-})();
+}
+
+module.exports = seedCoursesAndProducts;

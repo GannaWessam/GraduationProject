@@ -111,41 +111,56 @@ async function seedStudents() {
       },
     ];
 
-    const studentsToInsert = studentsPayload.map((s) => {
-      const user = emailToUser.get(s.email);
-      return {
-        userId: user.userId,
-        fullName: s.fullName,
-        NameEn: s.NameEn,
-        Mobile: s.Mobile,
-        StudyLan: s.StudyLan,
-        nationality: s.nationality,
-        nationalId: s.nationalId,
-        university: s.university,
-        college: s.college,
-        department: s.department,
-        type: s.type,
-        status: s.status,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+    // Check existing students by nationalId to avoid unique constraint violations
+    const existingStudents = await Student.findAll({
+      where: { nationalId: studentsPayload.map(s => s.nationalId) },
+      attributes: ['nationalId', 'userId']
     });
+    const existingNationalIds = new Set(existingStudents.map(s => s.nationalId));
+    const existingUserIds = new Set(existingStudents.map(s => s.userId.toString()));
 
-    await Student.bulkCreate(studentsToInsert, { ignoreDuplicates: true });
+    const studentsToInsert = studentsPayload
+      .filter(s => !existingNationalIds.has(s.nationalId))
+      .map((s) => {
+        const user = emailToUser.get(s.email);
+        // Also check if user already has a student record
+        if (existingUserIds.has(user.userId.toString())) {
+          return null;
+        }
+        return {
+          userId: user.userId,
+          fullName: s.fullName,
+          NameEn: s.NameEn,
+          Mobile: s.Mobile,
+          StudyLan: s.StudyLan,
+          nationality: s.nationality,
+          nationalId: s.nationalId,
+          university: s.university,
+          college: s.college,
+          department: s.department,
+          type: s.type,
+          status: s.status,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      })
+      .filter(s => s !== null);
+
+    if (studentsToInsert.length > 0) {
+      await Student.bulkCreate(studentsToInsert, { ignoreDuplicates: true });
+      console.log(`✅ Seeded ${studentsToInsert.length} new students (${existingNationalIds.size} already existed)`);
+    } else {
+      console.log(`✅ All students already exist (${existingNationalIds.size} total)`);
+    }
 
     console.log('✅ Seeded users and students successfully');
     console.log('➡️  You can log in with:');
     console.log('   email: student1@example.com  password: Password123!');
+    return { success: true };
   } catch (error) {
     console.error('❌ Error seeding students:', error);
-    process.exitCode = 1;
-  } finally {
-    await sequelize.close();
+    throw error;
   }
-}
-
-if (require.main === module) {
-  seedStudents();
 }
 
 module.exports = seedStudents;

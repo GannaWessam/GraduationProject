@@ -81,8 +81,23 @@ async function seedAll() {
       updatedAt: new Date()
     }));
 
-    const createdUniversities = await university.bulkCreate(universityData, { ignoreDuplicates: true });
-    console.log("✅ Universities seeded successfully");
+    // Check existing universities to avoid duplicates
+    const existingUniversities = await university.findAll({
+      attributes: ['Name']
+    });
+    const existingUniNames = new Set(existingUniversities.map(u => u.Name));
+    
+    const newUniversityData = universityData.filter(u => !existingUniNames.has(u.Name));
+    
+    if (newUniversityData.length > 0) {
+      await university.bulkCreate(newUniversityData, { ignoreDuplicates: true });
+      console.log(`✅ Seeded ${newUniversityData.length} new universities (${existingUniNames.size} already existed)`);
+    } else {
+      console.log(`✅ All universities already exist (${existingUniNames.size} total)`);
+    }
+    
+    // Fetch all universities (newly created + existing) for relationships
+    const allUniversities = await university.findAll();
 
     // === الكليات بالإنجليزي | عربي ===
     const colleges = [
@@ -119,30 +134,58 @@ async function seedAll() {
       updatedAt: new Date()
     }));
 
-    const createdColleges = await college.bulkCreate(collegeData, { ignoreDuplicates: true });
-    console.log("✅ Colleges seeded successfully");
+    // Check existing colleges to avoid duplicates
+    const existingColleges = await college.findAll({
+      attributes: ['Name']
+    });
+    const existingCollegeNames = new Set(existingColleges.map(c => c.Name));
+    
+    const newCollegeData = collegeData.filter(c => !existingCollegeNames.has(c.Name));
+    
+    if (newCollegeData.length > 0) {
+      await college.bulkCreate(newCollegeData, { ignoreDuplicates: true });
+      console.log(`✅ Seeded ${newCollegeData.length} new colleges (${existingCollegeNames.size} already existed)`);
+    } else {
+      console.log(`✅ All colleges already exist (${existingCollegeNames.size} total)`);
+    }
+    
+    // Fetch all colleges (newly created + existing) for relationships
+    const allColleges = await college.findAll();
 
     // === ربط كل كلية بالجامعة ===
-    const helwanUniversity = createdUniversities.find(u => u.Name.includes("Helwan University"));
+    const helwanUniversity = allUniversities.find(u => u.Name.includes("Helwan University"));
     if (helwanUniversity) {
-      const helwanCollegeRelations = createdColleges.map(col => ({
-        Id: uuidv4(),
-        universityId: helwanUniversity.UniversityId,
-        collegeId: col.collegeId,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }));
-      await university_college.bulkCreate(helwanCollegeRelations, { ignoreDuplicates: true });
-      console.log("✅ Colleges linked to Helwan University successfully");
+      // Check existing relationships to avoid duplicates
+      const existingRelations = await university_college.findAll({
+        where: { universityId: helwanUniversity.UniversityId },
+        attributes: ['collegeId']
+      });
+      const existingCollegeIds = new Set(existingRelations.map(r => r.collegeId.toString()));
+      
+      const newRelations = allColleges
+        .filter(col => !existingCollegeIds.has(col.collegeId.toString()))
+        .map(col => ({
+          Id: uuidv4(),
+          universityId: helwanUniversity.UniversityId,
+          collegeId: col.collegeId,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }));
+      
+      if (newRelations.length > 0) {
+        await university_college.bulkCreate(newRelations, { ignoreDuplicates: true });
+        console.log(`✅ Linked ${newRelations.length} new college relationships to Helwan University (${existingCollegeIds.size} already existed)`);
+      } else {
+        console.log(`✅ All college relationships to Helwan University already exist (${existingCollegeIds.size} total)`);
+      }
     }
 
-    console.log("🎉 Seeding completed successfully!");
+    console.log("✅ Universities and colleges seeding completed successfully!");
+    return { success: true };
   } catch (error) {
     console.error("❌ Seeding failed:", error);
-  } finally {
-    await sequelize.close();
+    throw error;
   }
 }
 
-// تشغيل الفايل مباشرة
-seedAll();
+module.exports = seedAll;

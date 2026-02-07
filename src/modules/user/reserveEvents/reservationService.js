@@ -13,7 +13,8 @@ const {
 } = require("../../../models");
 // const Student = require("../../../models/Student");
 const { Op } = require("sequelize");
-const chattingService = require("../../../Services/chattingService");
+const { handleCreateGroupChatForEvent } = require("./helper/helper");
+
 
 const registerForExam = async (userId, eventId) => {
   return sequelize.transaction(async (t) => {
@@ -138,6 +139,13 @@ const registerForExam = async (userId, eventId) => {
     await examReservation.bulkCreate(examReservations, { transaction: t });
     eventData.numberOfRegistered++;
     await eventData.save();
+
+    if (eventData.capacity <= eventData.numberOfRegistered) {
+      eventData.status = "closed";
+      await eventData.save();
+      await handleCreateGroupChatForEvent(eventData.eventId, eventData.eventName, eventData.type, t);
+    }
+
     return {
       message: `Reserved event successfully with ${examReservations.length} exam(s).`,
       data: {
@@ -242,32 +250,7 @@ const registerForTraining = async (userId, eventId) => {
 
     if (eventData.numberOfRegistered >= eventData.capacity) {
       eventData.status = "closed";
-
-      const allReservations = await reservation.findAll({
-        where: { eventId: eventData.eventId },
-        attributes: ["userId"],
-        transaction: t,
-      });
-
-      const userIds = allReservations.map((r) => r.userId);
-
-      const trainings = await training.findAll({
-        where: { eventId: eventData.eventId },
-        attributes: ["trainerId"],
-        transaction: t,
-      });
-
-      const trainerIds = trainings
-        .map((t) => t.trainerId)
-        .filter((id) => id !== null);
-
-      const finalGroupMembers = [...new Set([...trainerIds, ...userIds])];
-
-      await chattingService.createGroupConversation(
-        finalGroupMembers,
-        eventData.eventId,
-        eventData.eventName
-      );
+      await handleCreateGroupChatForEvent(eventData.eventId, eventData.eventName, "training", t);
     }
 
     await eventData.save({ transaction: t });

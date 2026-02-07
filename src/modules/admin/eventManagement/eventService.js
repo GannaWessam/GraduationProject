@@ -2,7 +2,7 @@ const { event, exam, training, course, User, reservation , trainer , supervisor 
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
-const chattingService = require("../../../Services/chattingService");
+const { handleCreateGroupChatForEvent } = require("../../user/reserveEvents/helper/helper");
 
 
 const getAllEvents = async (features) => {
@@ -128,12 +128,12 @@ const closeEventById = async (eventId) => {
     }
     eventInstance.status = "closed";
     const updatedEvent = await eventInstance.save(); //=> offline update
-    if(updatedEvent){
-      if(eventInstance.type === "training"){
-        const allReservations = await reservation.findAll({ where: { eventId: eventInstance.eventId } });
-        const userIds = allReservations.map((reservation) => reservation.userId);
-        await chattingService.createGroupConversation(userIds,eventInstance.eventId, eventInstance.eventName);
-      }
+    if (updatedEvent) {
+      await handleCreateGroupChatForEvent(
+        eventInstance.eventId,
+        eventInstance.eventName,
+        eventInstance.type
+      );
       return "event closed successfully";
     }
       

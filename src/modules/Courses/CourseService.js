@@ -47,14 +47,14 @@ async function chooseCoursesService(userId,courses ,examStatus,  trainingStatus)
 
 
 async function addCourse(courseInfo) {
-  const { name , title , priceEgyptian , priceOther , currency} = courseInfo;
-  if (!name || !priceEgyptian || !priceOther || !currency || !title) throw new Error("missing_required");
+  const { name , title , priceEgyptian , priceOther , currencyId} = courseInfo;
+  if (!name || !priceEgyptian || !priceOther || !currencyId || !title) throw new Error("missing_required");
   const newCourse = await course.create({ 
     name ,
     title,
     priceEgyptian,
     priceOther,
-    currency});
+    currencyId});
   return newCourse;
 }
 

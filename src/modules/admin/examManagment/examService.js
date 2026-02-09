@@ -182,7 +182,8 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
       startDateRes: examData.startDateRes,
       endDateRes: examData.endDateRes,
       status: examData.status || "opend",
-      type: "exam"
+      type: "exam",
+      language: examData.language || "AR" // Default to Arabic if not provided
     };
 
     let eventt;

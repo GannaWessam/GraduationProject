@@ -75,6 +75,7 @@ const createOneTraining = async (
       endDateRes: trainingData.endDateRes,
       status: "opend",
       type: "training",
+      language: trainingData.language || "AR" // Default to Arabic if not provided
     };
     let eventt;
     if (createNewEventDespiteTheSameData) {

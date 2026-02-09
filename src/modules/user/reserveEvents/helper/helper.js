@@ -450,6 +450,7 @@ const {
   exam,
   supervisor,
   reservation,
+  Student,
 
 } = require("../../../../models");
 
@@ -462,7 +463,17 @@ async function getAvailableEventsForUser(userId, productId, query) {
   const { doneCourses, allowedForTraining, allowedForExam } =
     await getStudentCourseStatus(userId);
 
-  const events = await getAllOpenEvents(productId, query);
+  // Get student's StudyLan to filter events by language
+  const student = await Student.findOne({ 
+    where: { userId },
+    attributes: ["StudyLan"]
+  });
+  
+  if (!student) {
+    throw new Error("Student not found");
+  }
+
+  const events = await getAllOpenEvents(productId, query, student.StudyLan);
 
   return filterEligibleEvents(
     events,
@@ -535,7 +546,7 @@ async function getStudentCourseStatus(userId) {
 
 const ApiFeature = require("../../../../Util/ApiFeatures"); // adjust path
 
-async function getAllOpenEvents(productId, query) {
+async function getAllOpenEvents(productId, query, language = null) {
   const apiFeature = new ApiFeature(query)
     .filter()
     .pagination()
@@ -547,8 +558,13 @@ async function getAllOpenEvents(productId, query) {
     status: "opend",
     productId,
     startDateRes: { [Op.lte]: new Date() },  
-      endDateRes: { [Op.gte]: new Date() }    
+    endDateRes: { [Op.gte]: new Date() }
   };
+
+  // Filter by language if provided (matches student's StudyLan)
+  if (language) {
+    apiFeature.options.where.language = language;
+  }
 
   return event.findAll({
     ...apiFeature.options,

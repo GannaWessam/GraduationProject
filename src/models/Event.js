@@ -55,7 +55,13 @@ module.exports = (sequelize) => {
     status: { type: DataTypes.STRING(200), allowNull: false },
 
     //either exam or training
-    type: {type: DataTypes.STRING(200), allowNull: false }
+    type: {type: DataTypes.STRING(200), allowNull: false },
+
+    // Language of the event (e.g., "AR", "EN") - matches Student.StudyLan
+    language: { 
+      type: DataTypes.STRING(200), 
+      allowNull: false 
+    }
 
     
   }, {

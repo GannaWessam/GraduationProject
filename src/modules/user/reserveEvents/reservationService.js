@@ -13,7 +13,7 @@ const {
 } = require("../../../models");
 // const Student = require("../../../models/Student");
 const { Op } = require("sequelize");
-const { handleCreateGroupChatForEvent } = require("./helper/helper");
+const { handleCreateGroupChatForEvent } = require("./helpers/helper");
 
 
 const registerForExam = async (userId, eventId) => {

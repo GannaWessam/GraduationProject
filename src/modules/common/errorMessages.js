@@ -74,6 +74,13 @@ const errorMessages = {
 "Training event not found": { code: 404, msg: "Training event not found | فعالية التدريب غير موجودة" },
 "No training sessions found for this event": { code: 404, msg: "No training sessions found for this event | لا توجد جلسات تدريبية لهذه الفعالية" },
 "Student not found": { code: 404, msg: "Student not found | الطالب غير موجود" },
+  // Generate Student Data Excel (download sheet)
+  "eventId_required": { code: 400, msg: "eventId is required in the URL (e.g. /downloadSheet/:eventId) | معرف الفعالية مطلوب" },
+  "invalid_event_id_format": { code: 400, msg: "eventId must be a valid UUID | معرف الفعالية يجب أن يكون UUID صالح" },
+  "no_reservations_for_event": { code: 404, msg: "No reservations found for this event | لا توجد حجوزات لهذه الفعالية" },
+  "event_not_found_excel": { code: 404, msg: "Event not found | الفعالية غير موجودة" },
+  "excel_generation_failed": { code: 500, msg: "Failed to generate Excel file | فشل في إنشاء ملف Excel" },
+  "error_in_getting_student_data": { code: 500, msg: "Error in getting student data | خطأ في الحصول على بيانات الطلاب" },
 };
 
 module.exports = { errorMessages };

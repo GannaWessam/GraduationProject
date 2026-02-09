@@ -2,7 +2,7 @@ const { event, exam, training, course, User, reservation , trainer , supervisor 
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
-const { handleCreateGroupChatForEvent } = require("../../user/reserveEvents/helper/helper");
+const { handleCreateGroupChatForEvent } = require("../../user/reserveEvents/helpers/helper");
 
 
 const getAllEvents = async (features) => {

@@ -60,7 +60,8 @@ module.exports = (sequelize) => {
     // Language of the event (e.g., "AR", "EN") - matches Student.StudyLan
     language: { 
       type: DataTypes.STRING(200), 
-      allowNull: false 
+      allowNull: false,
+      defaultValue: 'AR'  // so existing rows get a value when column is added (sync/alter)
     }
 
     

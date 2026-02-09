@@ -449,6 +449,8 @@ const {
   User,
   exam,
   supervisor,
+  reservation,
+
 } = require("../../../../models");
 
 //bfkr a3ml 3leha endpoint?
@@ -662,4 +664,53 @@ function shouldSkipEvent(
   return false;
 }
 
-module.exports = { getAvailableEventsForUser };
+const chattingService = require("../../../../Services/chattingService");
+
+// Handles group chat for both training and exam events.
+// Training: group = trainers (from training) + users (from reservation).
+// Exam: group = supervisors (from exam) + users (from reservation).
+// Optional 4th arg: transaction so calls run in the same transaction.
+async function handleCreateGroupChatForEvent(eventId, eventName, eventType, transaction = null) {
+  const tx = transaction ?? undefined;
+
+  const allReservations = await reservation.findAll({
+    where: { eventId },
+    attributes: ["userId"],
+    transaction: tx,
+  });
+
+  const userIds = allReservations.map((r) => r.userId);
+
+  let staffIds = [];
+
+  if (eventType === "training") {
+    const trainings = await training.findAll({
+      where: { eventId },
+      attributes: ["trainerId"],
+      transaction: tx,
+    });
+    staffIds = trainings
+      .map((tr) => tr.trainerId)
+      .filter((id) => id != null);
+  } else if (eventType === "exam") {
+    const exams = await exam.findAll({
+      where: { eventId },
+      attributes: ["supervisorId"],
+      transaction: tx,
+    });
+    staffIds = exams
+      .map((ex) => ex.supervisorId)
+      .filter((id) => id != null);
+  }
+
+  const finalGroupMembers = [...new Set([...staffIds, ...userIds])];
+
+  await chattingService.createGroupConversation(
+    finalGroupMembers,
+    eventId,
+    eventName
+  );
+}
+
+
+module.exports = { getAvailableEventsForUser, handleCreateGroupChatForEvent };

@@ -67,6 +67,13 @@ async function addProduct(productInfo) {
     throw new Error("missing_required");
   }
 
+  const Currency = await currency.findByPk(currencyId);
+  if (!Currency) {
+    throw new Error("currency_not_found");
+  }
+
+  
+
   const newProduct = await Product.create(
     {
       courseName: concatLang(courseNameEn, courseNameAr), // ✅ concat before saving
@@ -94,7 +101,7 @@ async function getProductById(id) {
 }
 
 async function updateProduct(id, updateInfo) {
-  const { courseNameEn, courseNameAr, priceEgyptian, priceOther, allowedUserTypes,requirdCourses ,currency } =
+  const { courseNameEn, courseNameAr, priceEgyptian, priceOther, allowedUserTypes,requirdCourses ,currencyId } =
     updateInfo;
 
   const product = await Product.findByPk(id, {
@@ -108,7 +115,13 @@ async function updateProduct(id, updateInfo) {
   if (priceEgyptian) product.priceEgyptian = priceEgyptian;
   if (priceOther) product.priceOther = priceOther;
   if(requirdCourses) product.requirdCourses=requirdCourses;
-  if(currency) product.currency=currency;
+  if(currencyId){
+    const Currency = await currency.findByPk(currencyId);
+    if (!Currency) {
+    throw new Error("currency_not_found");
+  }
+    product.currencyId=currencyId;
+  } 
 
   await product.save();
 

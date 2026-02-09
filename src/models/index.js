@@ -217,7 +217,7 @@ course.belongsToMany(User, {
 event.hasMany(training, { foreignKey: "eventId", as: "trainings" });
 training.belongsTo(event, { foreignKey: "eventId", as: "event" });
 
-event.hasOne(exam, { foreignKey: "eventId" });
+event.hasMany(exam, { foreignKey: "eventId" });
 exam.belongsTo(event, { foreignKey: "eventId" });
 
 // User ↔ ExamReservation
@@ -303,7 +303,7 @@ reservation.belongsTo(event, {
   as: "reservationEvent",
 });
 //  Reservation -> ExamReservation
-reservation.hasOne(examReservation, {
+reservation.hasMany(examReservation, {
   foreignKey: "reservationId",
   onDelete: "SET NULL",
 });

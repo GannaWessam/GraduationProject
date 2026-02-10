@@ -13,7 +13,6 @@ router.get("/:id", validateToken, catchError(trainingController.getTrainingById)
 // Get training reservations (students connected to training)
 router.get("/:id/reservations", validateToken, catchError(trainingController.getTrainingReservations));
 router.put("/:id", validateToken, catchError(trainingController.updateTraining));
-router.put("/event/:id", validateToken, catchError(trainingController.updateEventTraining));
 router.delete("/:id", validateToken, catchError(trainingController.deleteTraining));
 
 module.exports = router;

@@ -75,6 +75,7 @@ const createOneTraining = async (
       endDateRes: trainingData.endDateRes,
       status: "opend",
       type: "training",
+      language: trainingData.language || "AR" // Default to Arabic if not provided
     };
     let eventt;
     if (createNewEventDespiteTheSameData) {
@@ -187,123 +188,31 @@ const getAllTrainings = async (features) => {
 
 const updateTraining = async (trainingId, updateData) => {
   return sequelize.transaction(async (t) => {
-    const trainingg = await training.findByPk(trainingId, {
-      include: [{ model: event ,as: 'event'}],
-      transaction: t,
-    });
 
-    if (!trainingg) {
-      throw new Error("training_not_found");
-    }
+    const trainingg = await training.findByPk(trainingId, { transaction: t });
+    if (!trainingg) throw new Error("training_not_found");
 
-    // lw ba3t course id at'ked eno mwgod
+    // Validate Course
     if (updateData.courseId) {
-      const coursee = await course.findByPk(updateData.courseId, {
-        transaction: t,
-      });
-      if (!coursee) {
-        throw new Error("course_not_found");
-      }
+      const coursee = await course.findByPk(updateData.courseId, { transaction: t });
+      if (!coursee) throw new Error("course_not_found");
     }
 
-    // lw ba3t trainer id at'ked eno mwgod
+    // Validate Trainer
     if (updateData.trainerId) {
-      const trainer = await User.findByPk(updateData.trainerId, {
-        transaction: t,
-      });
-      if (!trainer) {
-        throw new Error("trainer_not_found");
-      }
+      const trainerExist = await trainer.findByPk(updateData.trainerId, { transaction: t });
+      if (!trainerExist) throw new Error("trainer_not_found");
     }
 
-    await trainingg.update(updateData, { transaction: t });
+    await trainingg.update({
+      courseId: updateData.courseId ?? trainingg.courseId,
+      trainerId: updateData.trainerId ?? trainingg.trainerId
+    }, { transaction: t });
 
-    // Update associated event if event data is provided
-    const eventData = validateUpdateEvent(updateData);
-    if (eventData) {
-      await trainingg.event.update(eventData, { transaction: t });
-    }
-    return { trainingId: trainingg.trainingId };
+    return trainingg;
   });
 };
 
-
-const updateTrainingEvent = async (eventId, updateData) => {
-  return await sequelize.transaction(async (t) => {
-
-    // ============================
-    // (1) هات ال event
-    // ============================
-    const eventt = await event.findByPk(eventId, { transaction: t });
-    if (!eventt) throw new Error("event_not_found");
-
-    // ============================
-    // (2) Update event fields (لو مبعوتة)
-    // ============================
-    const eventFields = [
-      "startDate",
-      "endDate",
-      "startDateRes",
-      "endDateRes",
-      "capacity",
-      "status"
-    ];
-
-    let eventModified = false;
-
-    eventFields.forEach(field => {
-      if (updateData[field] !== undefined) {
-        eventt[field] = updateData[field];
-        eventModified = true;
-      }
-    });
-
-    if (eventModified) {
-      await eventt.save({ transaction: t });
-    }
-
-    // ============================
-    // (3) لو مفيش trainerId → رجع event وخلاص
-    // ============================
-    if (updateData.trainerId === undefined || updateData.trainerId === null) {
-      return {
-        updatedEvent: eventt,
-        updatedTrainings: []
-      };
-    }
-
-    // ============================
-    // (4) Validate trainer exists
-    // ============================
-    const trainer = await User.findByPk(updateData.trainerId, {
-      transaction: t
-    });
-    if (!trainer) throw new Error("trainer_not_found");
-
-    // ============================
-    // (5) هات كل trainings اللي تبع event دا
-    // ============================
-    const trainings = await training.findAll({
-      where: { eventId },
-      transaction: t
-    });
-
-    if (trainings.length > 0) {
-      // ============================
-      // (6) Update trainerId لكل trainings
-      // ============================
-      await training.update(
-        { trainerId: updateData.trainerId },
-        { where: { eventId }, transaction: t }
-      );
-    }
-
-    return {
-      updatedEvent: eventt,
-      updatedTrainings: await training.findAll({ where: { eventId }, transaction: t })
-    };
-  });
-};
 
 const deleteTraining = async (trainingId) => {
   return sequelize.transaction(async (t) => {
@@ -362,6 +271,4 @@ module.exports = {
   updateTraining,
   deleteTraining,
   getTrainingReservations,
-  updateTrainingEvent
-
 };

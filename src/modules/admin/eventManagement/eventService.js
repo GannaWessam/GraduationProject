@@ -1,8 +1,8 @@
-const { event, exam, training, course, User, reservation , trainer , supervisor } = require("../../../models/index.js");
+const { event, exam, training, course, User, reservation , trainer , supervisor ,sequelize} = require("../../../models/index.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
-const { handleCreateGroupChatForEvent } = require("../../user/reserveEvents/helper/helper");
+const { handleCreateGroupChatForEvent } = require("../../user/reserveEvents/helpers/helper");
 
 
 const getAllEvents = async (features) => {
@@ -20,7 +20,7 @@ const getAllEvents = async (features) => {
 
     const examInclude = {
       model: exam,
-      as: 'exam',
+      as: 'exams',
       required: false,
       include: [
         { model: course, attributes: ['name'] },
@@ -141,8 +141,39 @@ const closeEventById = async (eventId) => {
     throw new Error("Failed to close event");
 };
 
+
+const updateEvent = async (eventId, updateData) => {
+  return sequelize.transaction(async (t) => {
+
+    const eventt = await event.findByPk(eventId, { transaction: t });
+    if (!eventt) throw new Error("event_not_found");
+
+    const allowedFields = [
+      "eventName",
+      "startDate",
+      "endDate",
+      "startDateRes",
+      "endDateRes",
+      "capacity",
+      "status",
+      "language"
+    ];
+
+    for (const key of allowedFields) {
+      if (updateData[key] !== undefined) {
+        eventt[key] = updateData[key];
+      }
+    }
+
+    await eventt.save({ transaction: t });
+
+    return eventt;
+  });
+};
+
 module.exports = {
   getAllEvents,
   getEventById,
   closeEventById,
+  updateEvent
 };

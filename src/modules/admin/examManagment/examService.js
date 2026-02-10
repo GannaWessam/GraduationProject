@@ -1,11 +1,23 @@
 const { request } = require("express");
-const { exam, course, User, event, examReservation, sequelize, Student ,supervisor} = require("../../../models/index.js");
+const {
+  exam,
+  course,
+  User,
+  event,
+  examReservation,
+  sequelize,
+  Student,
+  supervisor,
+} = require("../../../models/index.js");
 const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
-const { validateExamData, validateUpdateEvent } = require("./helpers/examValidation");
+const {
+  validateExamData,
+  validateUpdateEvent,
+} = require("./helpers/examValidation");
 const { getEligibleUserIdsForEvent } = require("./helpers/sendNotification.js");
-const ws = require('../../../Services/WebSocket');
+const ws = require("../../../Services/WebSocket");
 const packageService = require("../../admin/packageManagement/packageService.js");
 
 // Create a new exam (which is also an event)
@@ -24,7 +36,7 @@ const packageService = require("../../admin/packageManagement/packageService.js"
 //     throw new Error("package_not_found")
 //   let createNewEventDespiteTheSameData = true;
 //   for (let i = 0; i < pkg.courses.length; i++) {
-//     examData.courseId = pkg.courses[i].courseId;     
+//     examData.courseId = pkg.courses[i].courseId;
 //     await createOneExam(examData, createNewEventDespiteTheSameData);
 //     createNewEventDespiteTheSameData = false;
 //   }
@@ -35,7 +47,7 @@ const packageService = require("../../admin/packageManagement/packageService.js"
 //   if (validationErrors.length > 0) {
 //     throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
 //   }
-  
+
 //   const {eventt, examm}= await sequelize.transaction(async (t) => {
 //     // Validate course exists *if provided*
 //     if (examData.courseId) {
@@ -49,7 +61,7 @@ const packageService = require("../../admin/packageManagement/packageService.js"
 
 //     const eventData = {
 //       startDate: examData.startDate,
-//       endDate: examData.endDate || examData.startDate, 
+//       endDate: examData.endDate || examData.startDate,
 //       capacity: examData.capacity,
 //       numberOfRegistered: 0,
 //       eventName: examData.eventName,
@@ -62,7 +74,7 @@ const packageService = require("../../admin/packageManagement/packageService.js"
 //     };
 
 //     let eventt;
-//     if(createNewEventDespiteTheSameData){ 
+//     if(createNewEventDespiteTheSameData){
 //       eventt = await event.findOne({
 //         where :  {
 //         eventName: examData.eventName,
@@ -80,8 +92,6 @@ const packageService = require("../../admin/packageManagement/packageService.js"
 //     console.log("\n\n\n\n\n");
 //     console.log(eventt);
 //     console.log("\n\n\n\n\n");
-
-    
 
 //     // Create the exam linked to the event
 //      const examm = await exam.create(
@@ -107,17 +117,11 @@ const packageService = require("../../admin/packageManagement/packageService.js"
 
 // };
 
-
-
 const createExam = async (examData) => {
-  if (examData.packageId)
-    await createExamPackage(examData);
-  else if (examData.courseId)
-    await createOneExam(examData, true);
-  else
-    throw new Error("packageId or courseId is required");
+  if (examData.packageId) await createExamPackage(examData);
+  else if (examData.courseId) await createOneExam(examData, true);
+  else throw new Error("packageId or courseId is required");
 };
-
 
 const createExamPackage = async (examData) => {
   // ✅ Validate package exists
@@ -125,15 +129,21 @@ const createExamPackage = async (examData) => {
   if (!pkg) throw new Error("package_not_found");
 
   // ✅ Validate provided courses array
-  if (!examData.courses || !Array.isArray(examData.courses) || examData.courses.length === 0)
+  if (
+    !examData.courses ||
+    !Array.isArray(examData.courses) ||
+    examData.courses.length === 0
+  )
     throw new Error("courses array is required when creating package exams");
 
   // ✅ Compare course lists
-  const packageCourseIds = pkg.courses.map(c => c.courseId);
-  const requestCourseIds = examData.courses.map(c => c.courseId);
+  const packageCourseIds = pkg.courses.map((c) => c.courseId);
+  const requestCourseIds = examData.courses.map((c) => c.courseId);
 
-  const missing = packageCourseIds.filter(id => !requestCourseIds.includes(id));
-  const extra = requestCourseIds.filter(id => !packageCourseIds.includes(id));
+  const missing = packageCourseIds.filter(
+    (id) => !requestCourseIds.includes(id),
+  );
+  const extra = requestCourseIds.filter((id) => !packageCourseIds.includes(id));
 
   if (missing.length > 0)
     throw new Error(`missing courses from package: ${missing.join(", ")}`);
@@ -149,13 +159,12 @@ const createExamPackage = async (examData) => {
       courseId: currentCourse.courseId,
       date: currentCourse.date,
       place: currentCourse.place,
-      supervisorId: currentCourse.supervisorId
+      supervisorId: currentCourse.supervisorId,
     };
     await createOneExam(oneExamData, createNewEventDespiteTheSameData);
     createNewEventDespiteTheSameData = false; // next exams share same event
   }
 };
-
 
 const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
   const validationErrors = validateExamData(examData);
@@ -165,9 +174,10 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
   const { eventt, examm } = await sequelize.transaction(async (t) => {
     // ✅ Validate course
     if (examData.courseId) {
-      const coursee = await course.findByPk(examData.courseId, { transaction: t });
-      if (!coursee)
-        throw new Error("course_not_found");
+      const coursee = await course.findByPk(examData.courseId, {
+        transaction: t,
+      });
+      if (!coursee) throw new Error("course_not_found");
     }
 
     // ✅ Build event data
@@ -183,7 +193,7 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
       endDateRes: examData.endDateRes,
       status: examData.status || "opend",
       type: "exam",
-      language: examData.language || "AR" // Default to Arabic if not provided
+      language: examData.language || "AR", // Default to Arabic if not provided
     };
 
     let eventt;
@@ -191,10 +201,9 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
       // ✅ Create new event once
       eventt = await event.findOne({
         where: { eventName: examData.eventName, type: "exam" },
-        transaction: t
+        transaction: t,
       });
-      if (eventt)
-        throw new Error("there is already exam with the same name");
+      if (eventt) throw new Error("there is already exam with the same name");
 
       eventt = await event.create(eventData, { transaction: t });
     } else {
@@ -202,23 +211,25 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
       eventt = await event.findOne({
         where: {
           eventName: examData.eventName,
-          type: "exam"
+          type: "exam",
         },
-        transaction: t
+        transaction: t,
       });
     }
 
-    if (!eventt)
-      throw new Error("event_not_found_or_creation_failed");
+    if (!eventt) throw new Error("event_not_found_or_creation_failed");
 
     // ✅ Create the exam for this specific course
-    const examm = await exam.create({
-      courseId: examData.courseId,
-      supervisorId: examData.supervisorId,
-      date: examData.date,
-      place: examData.place,
-      eventId: eventt.dataValues.eventId
-    }, { transaction: t });
+    const examm = await exam.create(
+      {
+        courseId: examData.courseId,
+        supervisorId: examData.supervisorId,
+        date: examData.date,
+        place: examData.place,
+        eventId: eventt.dataValues.eventId,
+      },
+      { transaction: t },
+    );
 
     return { eventt, examm };
   });
@@ -231,10 +242,20 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
 const getExamById = async (examId) => {
   const examm = await exam.findByPk(examId, {
     include: [
-      { model: course, attributes: ['name'] },
-      { model: User, as: 'supervisor', attributes: ['email'] },
-      { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
-    ]
+      { model: course, attributes: ["name"] },
+      { model: User, as: "supervisor", attributes: ["email"] },
+      {
+        model: event,
+        attributes: [
+          "eventId",
+          "startDate",
+          "endDate",
+          "capacity",
+          "numberOfRegistered",
+          "status",
+        ],
+      },
+    ],
   });
 
   if (!examm) {
@@ -245,13 +266,23 @@ const getExamById = async (examId) => {
 };
 
 const getAllExams = async (features) => {
-  const {count, rows:exams} = await exam.findAndCountAll({
+  const { count, rows: exams } = await exam.findAndCountAll({
     ...features.options,
     include: [
-      { model: course, attributes: ['name'] },
-      { model: supervisor, as: 'supervisor', attributes: ['userId', 'Name'] },
-      { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
-    ]
+      { model: course, attributes: ["name"] },
+      { model: supervisor, as: "supervisor", attributes: ["userId", "Name"] },
+      {
+        model: event,
+        attributes: [
+          "eventId",
+          "startDate",
+          "endDate",
+          "capacity",
+          "numberOfRegistered",
+          "status",
+        ],
+      },
+    ],
   });
 
   if (!exams) {
@@ -262,57 +293,44 @@ const getAllExams = async (features) => {
     features,
     count,
     exams,
-    "Exams fetched successfully"
+    "Exams fetched successfully",
   );
 };
 
 // Update exam by ID
 const updateExam = async (examId, updateData) => {
-  
   return sequelize.transaction(async (t) => {
     const examm = await exam.findByPk(examId, { transaction: t });
-    if (!examm) {
-      throw new Error("exam_not_found");
-    }
+    if (!examm) throw new Error("exam_not_found");
 
-    // Validate course if being updated
+    // Validate course
     if (updateData.courseId) {
-      const coursee = await course.findByPk(updateData.courseId, { transaction: t });
-      if (!coursee) {
-        throw new Error("course_not_found");
-      }
+      const coursee = await course.findByPk(updateData.courseId, {
+        transaction: t,
+      });
+      if (!coursee) throw new Error("course_not_found");
     }
 
-     if (updateData.supervisorId) {
-      const supervisor = await User.findByPk(updateData.supervisorId, { transaction: t });
-      if (!supervisor) {
-        throw new Error("trainer_not_found");
-      }
+    // Validate supervisor
+    if (updateData.supervisorId) {
+      const supervisorExist = await supervisor.findByPk(
+        updateData.supervisorId,
+        { transaction: t },
+      );
+      if (!supervisorExist) throw new Error("supervisor_not_found");
     }
 
-    
+    await examm.update(
+      {
+        courseId: updateData.courseId ?? examm.courseId,
+        supervisorId: updateData.supervisorId ?? examm.supervisorId,
+        date: updateData.date ?? examm.date,
+        place: updateData.place ?? examm.place,
+      },
+      { transaction: t },
+    );
 
-    // Update the exam
-    await examm.update(updateData, { transaction: t }); //لو فيه columns مش حابة تتغير → ماتضيفيهاش في updateData.
-
-    const eventData = validateUpdateEvent(updateData);
-    if (eventData) {
-      const eventt = await event.findByPk(examm.eventId, { transaction: t });
-      if (eventt) {
-        await eventt.update(eventData, { transaction: t });
-      }
-    }
-    // Return updated exam with associations
-    const updatedExam = await exam.findByPk(examId, {
-      include: [
-        { model: course, attributes: ['name'] },
-        { model: supervisor, as: 'supervisor', attributes: ['userId'] },
-        { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
-      ],
-      transaction: t
-    });
-
-    return updatedExam;
+    return examm;
   });
 };
 
@@ -326,7 +344,7 @@ const deleteExam = async (examId) => {
 
     // Delete the exam first
     await exam.destroy({ where: { examId }, transaction: t });
-    
+
     // Delete the linked event
     if (exam.eventId) {
       await event.destroy({ where: { eventId: exam.eventId }, transaction: t });
@@ -340,18 +358,28 @@ const deleteExam = async (examId) => {
 const getUpcomingExams = async (features) => {
   const where = { ...(features.options?.where || {}) };
   where.date = {
-    [sequelize.Op.gte]: new Date()
+    [sequelize.Op.gte]: new Date(),
   };
 
   const { count, rows: exams } = await exam.findAndCountAll({
     ...features.options,
     where,
     include: [
-      { model: course, attributes: ['name'] },
-      { model: User, as: 'supervisor', attributes: ['userId', 'email'] },
-      { model: event, attributes: ['eventId', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status'] }
+      { model: course, attributes: ["name"] },
+      { model: User, as: "supervisor", attributes: ["userId", "email"] },
+      {
+        model: event,
+        attributes: [
+          "eventId",
+          "startDate",
+          "endDate",
+          "capacity",
+          "numberOfRegistered",
+          "status",
+        ],
+      },
     ],
-    order: [['date', 'ASC']]
+    order: [["date", "ASC"]],
   });
 
   if (!exams || exams.length === 0) {
@@ -362,7 +390,7 @@ const getUpcomingExams = async (features) => {
     features,
     count,
     exams,
-    "Upcoming exams fetched successfully"
+    "Upcoming exams fetched successfully",
   );
 };
 
@@ -373,9 +401,9 @@ const getExamReservations = async (examId, features) => {
     ...features.options,
     where: { examId },
     include: [
-      { model: Student, attributes: ['userId', 'email'] },///todo : n7ot elly 3ayzeno
-      { model: exam, attributes: ['examId', 'date', 'place'] }
-    ]
+      { model: Student, attributes: ["userId", "email"] }, ///todo : n7ot elly 3ayzeno
+      { model: exam, attributes: ["examId", "date", "place"] },
+    ],
   });
 
   if (!reservations || reservations.length === 0) {
@@ -386,7 +414,7 @@ const getExamReservations = async (examId, features) => {
     features,
     count,
     reservations,
-    "Exam reservations fetched successfully"
+    "Exam reservations fetched successfully",
   );
 };
 
@@ -397,5 +425,5 @@ module.exports = {
   updateExam,
   deleteExam,
   getUpcomingExams,
-  getExamReservations
+  getExamReservations,
 };

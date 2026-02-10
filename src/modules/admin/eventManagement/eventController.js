@@ -28,10 +28,19 @@ const closeEventById = async (req, res) => {
   res.status(200).json(ApiResponse.success(result));
 };
 
+const updateEvent = async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+  
+  const result = await eventService.updateEvent(id, updateData);
+  res.status(200).json(ApiResponse.success(result, "Exam and linked event updated successfully"));
+};
+
 
 
 module.exports = {
   getAllEvents,
   getEventById,
   closeEventById,
+  updateEvent
 };

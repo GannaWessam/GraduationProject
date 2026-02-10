@@ -10,5 +10,7 @@ router.get("/:id", validateToken, catchError(eventController.getEventById));
 router.put("/close/:eventId",validateToken,
     catchError(eventController.closeEventById)
   );
+  router.put("/:id", validateToken, catchError(eventController.updateEvent));
+
 
 module.exports = router;

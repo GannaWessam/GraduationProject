@@ -10,7 +10,7 @@ const {
 } = require("../models/index.js");
 
 class ChattingService {
-  async sendMessageOnConversation(message, senderId, conversationId) {
+  async sendMessageOnConversation(message, senderId, conversationId,type="text",duration=null) {
     const WebSocketService = require("./WebSocket");
 
     const conversation = await this.findConversationById(conversationId);
@@ -25,6 +25,8 @@ class ChattingService {
 
     const newMessage = await Message.create({
       content: message,
+      type,
+      duration,
       senderId,
       conversationId,
       receiverIds,
@@ -32,7 +34,9 @@ class ChattingService {
     await WebSocketService.notifySpecificClients(
       {
         type:"message",
+        messageType:type,
         message,
+        duration,
         id:newMessage.messageId,
         messageTime: newMessage.sentAt,
         senderId,

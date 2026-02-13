@@ -260,6 +260,7 @@ async function getMessagesByConversationId(conversationId) {
     sentAt: msg.sentAt,
     type: msg.type || "text",
     duration: msg.duration || null,
+    senderName:msg.senderName
   }));
 
   return {

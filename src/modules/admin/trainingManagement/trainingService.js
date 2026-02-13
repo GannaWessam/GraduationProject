@@ -29,9 +29,25 @@ const createTraining = async (trainingData) => {
 const createTrainingPackage = async (trainingData) => {
   const pkg = await packageService.getPackageById(trainingData.packageId);
   if (!pkg) throw new Error("package_not_found");
+
+   // ✅ Compare course lists
+  const packageCourseIds = pkg.courses.map((c) => c.courseId);
+  const requestCourseIds = trainingData.courses.map((c) => c.courseId);
+
+  const missing = packageCourseIds.filter(
+    (id) => !requestCourseIds.includes(id),
+  );
+  const extra = requestCourseIds.filter((id) => !packageCourseIds.includes(id));
+
+  if (missing.length > 0)
+    throw new Error(`missing courses from package: ${missing.join(", ")}`);
+  if (extra.length > 0)
+    throw new Error(`extra courses not in package: ${extra.join(", ")}`);
+
   let createNewEventDespiteTheSameData = true;
   for (let i = 0; i < pkg.courses.length; i++) {
-    trainingData.courseId = pkg.courses[i].courseId;
+    trainingData.courseId = trainingData.courses[i].courseId;
+    trainingData.trainerId = trainingData.courses[i].trainerId;
     await createOneTraining(trainingData, createNewEventDespiteTheSameData);
     createNewEventDespiteTheSameData = false;
   }

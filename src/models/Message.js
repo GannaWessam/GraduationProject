@@ -58,6 +58,10 @@ module.exports = (sequelize) => {
       allowNull: false,
       defaultValue: []
     },
+    senderName: { 
+      type: DataTypes.STRING(200), 
+      allowNull: false 
+    },
   }, {
     tableName: 'messages',
     timestamps: true

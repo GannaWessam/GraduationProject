@@ -8,9 +8,9 @@ const { getMyTrainers, getMyUsers ,getMessagesByConversationId,getConversationsB
  */
 const sendMessageOnConversation = async (req, res, next) => {
   try {
-    const { message, senderId, conversationId } = req.body;
+    const { message, senderId, conversationId,senderName } = req.body;
 
-    if (!message || !senderId || !conversationId) {
+    if (!message || !senderId || !conversationId || !senderName) {
       return res
         .status(400)
         .json(
@@ -25,6 +25,9 @@ const sendMessageOnConversation = async (req, res, next) => {
       message,
       senderId,
       conversationId,
+      type="text",
+      duration=null,
+      senderName
     );
 
     res
@@ -36,7 +39,7 @@ const sendMessageOnConversation = async (req, res, next) => {
 };
 const sendVoiceOnConversation = async (req, res, next) => {
   try {
-    const { senderId, conversationId, duration } = req.body;
+    const { senderId, conversationId, duration,senderName } = req.body;
     const file = req.file;
 
     if (!file || !senderId || !conversationId) {
@@ -59,7 +62,8 @@ const sendVoiceOnConversation = async (req, res, next) => {
       senderId,
       conversationId,
       type,
-      duration
+      duration,
+      senderName
     );
 
     res.status(200).json(ApiResponse.success(result, "Message sent successfully"));

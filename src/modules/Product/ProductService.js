@@ -93,11 +93,13 @@ async function addProduct(productInfo) {
 
 async function getProductById(id) {
   const product = await Product.findByPk(id, {
-    include: [{ model: ProductAllowedUserType, as: "allowedUserTypes",attributes:["userType"] }],
+    include: [{ model: ProductAllowedUserType, as: "allowedUserTypes",attributes:["userType"] },
+    {model:currency}
+  ],
   });
 
   if (!product) throw new Error("not_found");
-  return formatProduct(product); // ✅ ensure split
+  return formatProduct(product); 
 }
 
 async function updateProduct(id, updateInfo) {
@@ -138,10 +140,12 @@ async function updateProduct(id, updateInfo) {
   }
 
   const updated = await Product.findByPk(id, {
-    include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
+    include: [
+      { model: ProductAllowedUserType, as: "allowedUserTypes" },
+    ],
   });
 
-  return formatProduct(updated); d
+  return formatProduct(updated); 
 }
 
 async function deleteProduct(id) {

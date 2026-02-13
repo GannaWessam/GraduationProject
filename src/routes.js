@@ -19,6 +19,7 @@ const permissionRoute = require('./modules/Permission/PermissionRoute');
 const profileRoute = require('./modules/Profile/ProfileRoutes');
 const ContainerRoute = require('./modules/PermissionContainer/ContainerRoute');
 const AttendanceManagmentRoute = require('./modules/attendance/attendanceRoute');
+const gradesRoutes = require("./modules/user/handleGrades/gradesRoutes");
 
 
 const { validateToken } = require("./middlewares/token");
@@ -47,5 +48,6 @@ router.use("/api/Attendance", AttendanceManagmentRoute);
 router.use("/api/Permission", permissionRoute);
 router.use("/api/Profile", profileRoute);
 router.use("/api/Container", ContainerRoute);
+router.use("/api/grades", gradesRoutes);
 
 module.exports = router;

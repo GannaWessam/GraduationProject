@@ -610,6 +610,7 @@ const assignPermissionsToUser = async (userId, permissionNames = []) => {
 
     // Assign (this auto-handles duplicates)
     await user.setPermissions(permissions, { transaction: t });
+    await User.increment("tokenVersion", { where: { id: userId } });
 
     return {
       userId,

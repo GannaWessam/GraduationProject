@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const ApiResponse = require("../Util/ApiResponse");
+const { User } = require("../models");
 
 const DEFAULT_TOKEN_EXPIRY = process.env.JWT_EXPIRY || "1d";
 const REMEMBER_ME_TOKEN_EXPIRY =
@@ -15,14 +16,15 @@ function generateToken(
   productId,
   status,
   rememberMe = false ,
+  tokenVersion,
   permissions = []
 ) {
-  const tokenData = { email, name, id, role, NameEn, productId, status ,permissions};
+  const tokenData = { email, name, id, role, NameEn, productId, status,tokenVersion ,permissions};
   const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
   return jwt.sign(tokenData, process.env.SecretKey, { expiresIn });
 }
 
-function validateToken(req, res, next) {
+async function  validateToken (req, res, next) {
   const header = req.headers["authorization"];
   if (!header)
     return res
@@ -41,16 +43,24 @@ function validateToken(req, res, next) {
         new ApiResponse(false, "No token provided", null, ["missing_token"])
       );
 
-  jwt.verify(token, process.env.SecretKey, (err, tokenData) => {
-    if (err) {
-      return res
-        .status(403)
-        .json(new ApiResponse(false, "Invalid token", null, ["invalid_token"]));
-    }
-
-    req.userData = tokenData;
-    next();
-  });
+      try {
+        const tokenData = jwt.verify(token, process.env.SecretKey);
+        const user = await User.findByPk(tokenData.id);
+        
+        if (tokenData.tokenVersion !== user.tokenVersion) {
+          return res.status(409).json(
+            new ApiResponse(false, "Session expired", null, [
+              "token_version_mismatch",
+            ])
+          );
+        }
+        req.userData = tokenData;
+        next();
+      } catch (err) {
+        return res.status(403).json(
+          new ApiResponse(false, "Invalid token", null, ["invalid_token"])
+        );
+      }
 }
 
 module.exports = { generateToken, validateToken };

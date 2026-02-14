@@ -7,7 +7,7 @@ const ApiResponse = require("../../../Util/ApiResponse.js");
 
 exports.register = async (req, res, next) => {
     try {
-      const result = await addSuperAdmin(req.body);
+      const result = await addSuperAdmin(req.body,req);
       return res.status(201).json(ApiResponse.created(result));
     } catch (error) {
       return next(error);

@@ -1,45 +1,23 @@
-const {User , SuperAdmin ,sequelize } = require("../../../models");
-const ApiFeature = require("../../../Util/ApiResponse");
-const PaginatedResponse = require("../../../Util/PaginatedResponse");
-const { Op } = require("sequelize");
+const { User, SuperAdmin, sequelize } = require("../../../models");
+
+const { hashPassword } = require("../../Auth/helpers/passwordHelper");
+const { checkEmailExists } = require("../../Auth/helpers/userHelper");
 const {
-    hashPassword,
-    comparePassword,
-  } = require("../../Auth/helpers/passwordHelper");
-  const {
-    findUserByEmail,
-    findStudentByNationalId,
-    checkEmailExists,
-    checkNationalIdExists, 
-    findProductById,
-    generateQr,
-    getUser,
-    getUserFees
-  } = require("../../Auth/helpers/userHelper");
-  const {
-    validateRequiredFields,
-    validateName,
-    validatePassword,
-    validateNationalId,
-    
-  } = require("../../Auth/validations/registerValidation");
+  validateName,
+  validatePassword,
+} = require("../../Auth/validations/registerValidation");
 
-
-
-async function addSuperAdmin(SuperAdminInfo) {
-  const { Name, email , password ,confirmPassword } = SuperAdminInfo;
+async function addSuperAdmin(SuperAdminInfo, req) {
+  const { Name, email, password, confirmPassword } = SuperAdminInfo;
   const role = "SUPERADMIN";
 
-  if(!Name || !email || !password || !confirmPassword ){
-    throw new Error('missing_required_fields');
+  if (!Name || !email || !password || !confirmPassword) {
+    throw new Error("missing_required_fields");
   }
 
-  
   validateName(Name);
   validatePassword(password, confirmPassword);
-  
 
-  
   return sequelize.transaction(async (t) => {
     await checkEmailExists(email, t);
 
@@ -48,10 +26,8 @@ async function addSuperAdmin(SuperAdminInfo) {
     // ✅ Create User
     const user = await User.create(
       { email, passwordHash: hashedPassword, role },
-      { transaction: t }
+      { transaction: t },
     );
-
-    
 
     // ✅ Create SuperAdmin
     const SuperAdminData = await SuperAdmin.create(
@@ -59,9 +35,17 @@ async function addSuperAdmin(SuperAdminInfo) {
         userId: user.userId,
         Name: Name,
       },
-      { transaction: t }
+      { transaction: t },
     );
     // ✅ Return the formatted response
+
+    req.audit.affectedUser = {
+      _id: SuperAdminData.userId,
+      email: user.email,
+      name: SuperAdminData.Name,
+    };
+
+    req.audit.message = "SuperAdmin Added successfully";
     return {
       success: true,
       message: "Registration completed successfully",
@@ -78,9 +62,9 @@ async function getAllSuperAdmins() {
     include: [
       {
         model: User,
-        attributes: ['userId', 'email', 'role']
-      }
-    ]
+        attributes: ["userId", "email", "role"],
+      },
+    ],
   });
 }
 
@@ -90,18 +74,15 @@ async function getSuperAdminById(id) {
     include: [
       {
         model: User,
-        attributes: ['userId', 'email', 'role']
-      }
-    ]
+        attributes: ["userId", "email", "role"],
+      },
+    ],
   });
 
-  if (!sup) throw new Error('SuperAdmin_not_found');
+  if (!sup) throw new Error("SuperAdmin_not_found");
 
   return sup;
 }
-
-
-
 
 module.exports = {
   addSuperAdmin,

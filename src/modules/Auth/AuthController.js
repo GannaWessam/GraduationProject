@@ -12,56 +12,22 @@ const logger = require("../../Util/logger.js");
 const OTP = new OtpService(process.env.GMAIL_USER, process.env.GMAIL_PASS);
 
 exports.register = async (req, res, next) => {
-  const reqIp =
-    req.ip || req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-  const userData = req.body;
   try {
-        const result = await registerUser(userData, req.file?.filename);
-
-    await logger.info({
-      ip: reqIp,
-      user: {
-        _id: result.data.user.userId,
-        email: result.data.user.email,
-        name: userData.name_ar,
-      },
-      type: "modification",
-      message: "User registered successfully",
-    });
+    const result = await registerUser(req.body, req.file?.filename);
 
     return res.status(201).json(ApiResponse.created(result));
   } catch (error) {
-    await logger.error({
-      ip: reqIp,
-      user: { email: userData.email },
-      type: "modification",
-      message: `User registration failed: ${error.message}`,
-    });
     return next(error);
   }
 };
 
 exports.login = async (req, res, next) => {
-    const reqIp = req.ip || req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-  const { email } = req.body;
   try {
     const { email, password, rememberMe = false } = req.body;
     const result = await loginUser(email, password, rememberMe);
-     await logger.info({
-      ip: reqIp,
-      user: { _id: result.id, email },
-      type: "read",
-      message: "User logged in successfully",
-    });
+
     return res.status(200).json(ApiResponse.success(result));
   } catch (error) {
-    await logger.error({
-      ip: reqIp,
-      user: { email },
-      type: "read",
-      message: `Login failed: ${error.message}`,
-    });
-
     return next(error);
   }
 };

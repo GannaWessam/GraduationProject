@@ -26,7 +26,7 @@ router.get(
 router.put(
   "/:id",
   validateToken,
-  checkPermission("UPDATE_PRODUCT"),
+  checkPermission("EDIT_PRODUCT"),
   catchError(ProductController.updateProduct)
 );
 router.delete(

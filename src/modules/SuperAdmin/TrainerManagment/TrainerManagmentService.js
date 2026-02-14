@@ -1,41 +1,19 @@
-const {User , trainer ,sequelize ,Permission} = require("../../../models");
-const ApiFeature = require("../../../Util/ApiResponse");
+const { User, trainer, sequelize, Permission } = require("../../../models");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
-const { Op } = require("sequelize");
+const { hashPassword } = require("../../Auth/helpers/passwordHelper");
+const { checkEmailExists } = require("../../Auth/helpers/userHelper");
 const {
-    hashPassword,
-    comparePassword,
-  } = require("../../Auth/helpers/passwordHelper");
-  const {
-    findUserByEmail,
-    findStudentByNationalId,
-    checkEmailExists,
-    checkNationalIdExists, 
-    findProductById,
-    generateQr,
-    getUser,
-    getUserFees
-  } = require("../../Auth/helpers/userHelper");
-  const {
-    validateRequiredFields,
-    validateName,
-    validatePassword,
-    validateNationalId,
-    
-  } = require("../../Auth/validations/registerValidation");
+  validateName,
+  validatePassword,
+} = require("../../Auth/validations/registerValidation");
 
+async function addTrainer(TrainerInfo,req) {
+  const { Name, email, password, confirmPassword } = TrainerInfo;
+  const role = "TRAINER";
 
-
-async function addTrainer(TrainerInfo) {
-  const { Name, email , password ,confirmPassword } = TrainerInfo;
-  const role = "TRAINER"
-
-  
   validateName(Name);
   validatePassword(password, confirmPassword);
-  
 
-  
   return sequelize.transaction(async (t) => {
     await checkEmailExists(email, t);
 
@@ -44,10 +22,8 @@ async function addTrainer(TrainerInfo) {
     // ✅ Create User
     const user = await User.create(
       { email, passwordHash: hashedPassword, role },
-      { transaction: t }
+      { transaction: t },
     );
-
-    
 
     // ✅ Create Student
     const Trainer = await trainer.create(
@@ -55,8 +31,16 @@ async function addTrainer(TrainerInfo) {
         userId: user.userId,
         Name: Name,
       },
-      { transaction: t }
+      { transaction: t },
     );
+
+     req.audit.affectedUser = {
+    _id: Trainer.userId,
+    email:user.email,
+    name: Trainer.Name,
+  };
+
+  req.audit.message = "Trainer Added successfully";
     // ✅ Return the formatted response
     return {
       success: true,
@@ -71,7 +55,7 @@ async function addTrainer(TrainerInfo) {
 
 async function getAllTrainers(features) {
   const { count, rows: trainers } = await trainer.findAndCountAll({
-    ...features.options, 
+    ...features.options,
     include: [
       {
         model: User,
@@ -80,9 +64,9 @@ async function getAllTrainers(features) {
           {
             model: Permission,
             as: "permissions",
-            attributes: ["permissionId", "name"], 
+            attributes: ["permissionId", "name"],
             through: {
-              attributes: [], 
+              attributes: [],
             },
           },
         ],
@@ -96,7 +80,7 @@ async function getAllTrainers(features) {
     features,
     count,
     trainers,
-    "Trainers fetched successfully"
+    "Trainers fetched successfully",
   );
 }
 
@@ -111,9 +95,9 @@ async function getTrainerById(id) {
           {
             model: Permission,
             as: "permissions",
-            attributes: ["permissionId", "name"], 
+            attributes: ["permissionId", "name"],
             through: {
-              attributes: [], 
+              attributes: [],
             },
           },
         ],
@@ -121,12 +105,14 @@ async function getTrainerById(id) {
     ],
   });
 
-  if (!tr) throw new Error('trainer_not_found');
+  if (!tr) throw new Error("trainer_not_found");
 
   return tr;
 }
-async function deleteTrainer(id) {
-  const trainerData = await trainer.findByPk(id);
+async function deleteTrainer(id,req) {
+  const trainerData = await trainer.findByPk(id, {
+    include: [{ model: User }],
+  });
 
   if (!trainerData) throw new Error("trainer_not_found");
 
@@ -137,31 +123,36 @@ async function deleteTrainer(id) {
     await User.destroy({ where: { userId }, transaction: t });
   });
 
+   req.audit.affectedUser = {
+    _id: trainerData.userId,
+    email: trainerData.User.email,
+    name: trainerData.Name,
+  };
+
+  req.audit.message = "Trainer deleted successfully";
+
   return {
     success: true,
     message: "trainer and related user deleted",
   };
-}   
+}
 
-async function updateTrainer(id, updateData) {
+async function updateTrainer(id, updateData,req) {
   const trainerData = await trainer.findByPk(id, {
-    include: [{ model: User }] 
+    include: [{ model: User }],
   });
 
   if (!trainerData) throw new Error("trainer_not_found");
 
   const { Name, email, password, confirmPassword } = updateData;
 
-
   if (Name) trainerData.Name = Name;
-
 
   if (email && trainerData.User.email !== email) {
     await checkEmailExists(email);
     trainerData.User.email = email;
   }
 
-  
   if (password) {
     if (!confirmPassword) {
       throw new Error("confirmPassword_required");
@@ -179,6 +170,14 @@ async function updateTrainer(id, updateData) {
     await trainerData.User.save({ transaction: t });
   });
 
+
+   req.audit.affectedUser = {
+    _id: trainerData.userId,
+    email: trainerData.User.email,
+    name: trainerData.Name,
+  };
+
+  req.audit.message = "Trainer updated successfully";
   return {
     success: true,
     message: "trainer updated successfully",
@@ -186,12 +185,10 @@ async function updateTrainer(id, updateData) {
   };
 }
 
-
-
 module.exports = {
   addTrainer,
   getAllTrainers,
   getTrainerById,
   updateTrainer,
-  deleteTrainer
+  deleteTrainer,
 };

@@ -32,6 +32,22 @@ const sessionService = {
     if (new Date(sessionData.date) > new Date(eventObj.endDate)) {
     throw new Error(`Session date cannot be aftar event end date (${eventObj.startDate.toISOString().split('T')[0]})`);
   }
+
+    if (!sessionData.startTime || !sessionData.endTime) {
+      throw new Error("Start time and end time are required");
+        }
+
+      const startTime = new Date(`1970-01-01T${sessionData.startTime}`);
+      const endTime   = new Date(`1970-01-01T${sessionData.endTime}`);
+
+      if (isNaN(startTime) || isNaN(endTime)) {
+      throw new Error("Invalid time format, expected HH:mm:ss");
+      }
+
+      if (startTime >= endTime) {
+      throw new Error("Session start time must be before end time");
+      }
+
     const eventId = trainingObj.eventId;
   
     // 2) هات كل ال trainings اللي جوه نفس ال event

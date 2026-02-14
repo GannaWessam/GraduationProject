@@ -48,11 +48,11 @@ function computeReservationStatus(grade, examDate, uploadDate) {
  *
  * @param {string} eventId - UUID of the event
  * @param {import('sequelize').Transaction} [t]
- * @returns {Promise<{ eventRecord: import('sequelize').Model, courseTitleToExam: Map<string, { examId: string, examDate: Date }> }>}
+ * @returns {Promise<{ courseTitleToExam: Map<string, { examId: string, examDate: Date }> }>}
  */
 async function getEventExamsWithCourses(eventId, t) {
-  const eventRecord = await event.findByPk(eventId, { transaction: t }); //why i need this eventRecord?
-  if (!eventRecord) {
+  const eventExists = await event.findByPk(eventId, { transaction: t });
+  if (!eventExists) {
     throw new Error("Event not found");
   }
 
@@ -82,7 +82,7 @@ async function getEventExamsWithCourses(eventId, t) {
     }
   }
 
-  return { eventRecord, courseTitleToExam };
+  return { courseTitleToExam };
 }
 
 /**

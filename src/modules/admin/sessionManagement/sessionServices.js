@@ -7,6 +7,7 @@ require('dotenv').config();
 const fs = require("fs");
 const QRCode = require("qrcode");
 const archiver = require("archiver");
+const { validateSession } = require("./helper/validateSession");
 
 const sessionService = {
 
@@ -15,74 +16,12 @@ const sessionService = {
 
 
 
-  async   createSession(sessionData) {
-    // 1) تأكد إن ال training موجود
-    const trainingObj = await Training.findByPk(sessionData.trainingId, {
-    include: [{ model: event, as: "event" }] 
-  });
-  if (!trainingObj) {
-    throw new Error("Training not found");
-  }
+  async createSession(sessionData) {
+    await validateSession(sessionData);
 
-  const eventObj = trainingObj.event;
+    const newSession = await Session.create(sessionData);
 
-    if (new Date(sessionData.date) < new Date(eventObj.startDate)) {
-    throw new Error(`Session date cannot be before event start date (${eventObj.startDate.toISOString().split('T')[0]})`);
-  }
-    if (new Date(sessionData.date) > new Date(eventObj.endDate)) {
-    throw new Error(`Session date cannot be aftar event end date (${eventObj.startDate.toISOString().split('T')[0]})`);
-  }
-
-    if (!sessionData.startTime || !sessionData.endTime) {
-      throw new Error("Start time and end time are required");
-        }
-
-      const startTime = new Date(`1970-01-01T${sessionData.startTime}`);
-      const endTime   = new Date(`1970-01-01T${sessionData.endTime}`);
-
-      if (isNaN(startTime) || isNaN(endTime)) {
-      throw new Error("Invalid time format, expected HH:mm:ss");
-      }
-
-      if (startTime >= endTime) {
-      throw new Error("Session start time must be before end time");
-      }
-
-    const eventId = trainingObj.eventId;
-  
-    // 2) هات كل ال trainings اللي جوه نفس ال event
-    const trainingsInEvent = await Training.findAll({
-      where: { eventId },
-      attributes: ["trainingId"]
-    });
-  
-    const trainingIdsInEvent = trainingsInEvent.map(t => t.trainingId);
-  
-    // 3) اعمل تشيك تداخل
-    const conflict = await Session.findOne({
-      where: {
-        date: sessionData.date,
-        trainingId: {
-          [Op.in]: trainingIdsInEvent   
-        },
-        // overlap condition
-        [Op.and]: [
-          { startTime: { [Op.lt]: sessionData.endTime } },
-          { endTime: { [Op.gt]: sessionData.startTime } }
-        ]
-      }
-    });
-  
-    if (conflict) {
-      throw new Error("Session time overlaps with another session in the same training or event");
-    }
-  
-    // 4) create session
-    const newSession = await Session.create({
-      ...sessionData,
-    });
-  
-    return newSession;
+  return newSession;
   },
 
   async getAllSessions(features) {
@@ -161,12 +100,24 @@ const sessionService = {
 
   async updateSession(id, data) {
     return sequelize.transaction(async (t) => {
+
       const session = await Session.findByPk(id, { transaction: t });
       if (!session) throw new Error("session_not_found");
-
+  
+      // دمج القديم مع الجديد
+      const mergedData = {
+        ...session.toJSON(),
+        ...data
+      };
+  
+      // 🔥 الفاليديشن مع استثناء نفس السيشن
+      await validateSession(mergedData, id);
+  
       await session.update(data, { transaction: t });
+  
       return session;
     });
+  
   },
 
   async deleteSession(id) {

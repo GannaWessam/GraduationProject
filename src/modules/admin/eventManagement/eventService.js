@@ -76,31 +76,31 @@ const getEventById = async (eventId) => {
   try {
     // First get the event to check its type
     const eventt = await event.findByPk(eventId);
-    
+
     if (!eventt) {
       throw new Error("Event not found");
     }
 
-    // Check the event type and call the appropriate method
-    if (eventt.type === 'training') {
+    // Convert the event instance to plain object
+    const eventObj = eventt.get({ plain: true });
+
+    if (eventObj.type === 'training') {
       // Find the training associated with this event
-      const trainingg = await training.findOne({ 
+      const trainingg = await training.findAll({
         where: { eventId: eventId },
         include: [
           { model: course, attributes: ['name'] },
           { model: trainer, as: 'trainer', attributes: ['Name'] },
-          { model: event ,as: 'event', attributes: ['eventId','eventName', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
+          { model: event, as: 'event', attributes: ['eventId','eventName', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
         ]
       });
-      
-      if (!trainingg) {
-        throw new Error("Training not found for this event");
-      }
-      
-      return trainingg;
-    } else if (eventt.type === 'exam') {
-      // Find the exam associated with this event
-      const examm = await exam.findOne({ 
+
+      eventObj.trainings = trainingg.map(t => t.get({ plain: true }));
+      return eventObj;
+
+    } else if (eventObj.type === 'exam') {
+      // Find the exams associated with this event
+      const examm = await exam.findAll({
         where: { eventId: eventId },
         include: [
           { model: course, attributes: ['name'] },
@@ -108,18 +108,21 @@ const getEventById = async (eventId) => {
           { model: event, as: 'event', attributes: ['eventId','eventName', 'startDate', 'endDate', 'capacity', 'numberOfRegistered', 'status', 'type'] }
         ]
       });
-      
-      if (!examm) {
-        throw new Error("Exam not found for this event");
-      }
-      return examm;
+
+      // Convert exam instances to plain objects
+      eventObj.exams = examm.map(e => e.get({ plain: true }));
+
+      return eventObj;
+
     } else {
       throw new Error("Invalid event type");
     }
   } catch (error) {
+    console.error(error);
     throw new Error("Failed to fetch event");
   }
 };
+
 
 const closeEventById = async (eventId) => {
     const eventInstance  = await event.findByPk(eventId);

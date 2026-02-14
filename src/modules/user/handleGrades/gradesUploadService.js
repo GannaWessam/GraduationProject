@@ -1,0 +1,259 @@
+/**
+ * Database insertion logic for parsed student grades (Prompt A output).
+ * Uses courseTitle exactly as provided; no parsing or normalization of course names.
+ * One transaction per student; partial failures allowed (process students independently).
+ */
+
+const {
+  sequelize,
+  Student,
+  event,
+  exam,
+  course,
+  examReservation,
+} = require("../../../models");
+
+/** Number of required exams that must be passed (grade >= 65) to set student.status = succeeded */
+const REQUIRED_EXAMS_PASSED = 7;
+
+/** Pass threshold: grade >= this value → status = succeeded */
+const PASS_GRADE = 65;
+
+/**
+ * Status for exam reservation based on grade and dates.
+ * - grade >= 65 → succeeded
+ * - grade < 65 → failed
+ * - grade null: exam_date < uploadDate → absent, else → reserved
+ *
+ * @param {number | null} grade
+ * @param {Date} examDate
+ * @param {Date} uploadDate
+ * @returns {'succeeded' | 'failed' | 'absent' | 'reserved'}
+ */
+function computeReservationStatus(grade, examDate, uploadDate) {
+  if (grade !== null && grade !== undefined) {
+    return grade >= PASS_GRADE ? "succeeded" : "failed";
+  }
+  // grade is null
+  if (examDate && uploadDate && new Date(examDate) < new Date(uploadDate)) {
+    return "absent";
+  }
+  return "reserved";
+}
+
+/**
+ * Fetch event and its exams joined with courses (course_title for exact match).
+ * Builds a map: courseTitle (course.title) -> { examId, examDate }.
+ * Uses course.title as stored in DB; match is exact (no normalization).
+ *
+ * @param {string} eventId - UUID of the event
+ * @param {import('sequelize').Transaction} [t]
+ * @returns {Promise<{ eventRecord: import('sequelize').Model, courseTitleToExam: Map<string, { examId: string, examDate: Date }> }>}
+ */
+async function getEventExamsWithCourses(eventId, t) {
+  const eventRecord = await event.findByPk(eventId, { transaction: t }); //why i need this eventRecord?
+  if (!eventRecord) {
+    throw new Error("Event not found");
+  }
+
+  const examsWithCourse = await exam.findAll({
+    where: { eventId },
+    include: [
+      {
+        model: course,
+        attributes: ["courseId", "title"],
+        required: true,
+      },
+    ],
+    transaction: t,
+    raw: false,
+  });
+
+  const courseTitleToExam = new Map();
+  for (const ex of examsWithCourse) {
+    const c = ex.course;
+    const title = c ? c.title : null;
+    if (title != null && title !== "") {
+      // Exact match only: use course title as stored in DB
+      courseTitleToExam.set(title, {
+        examId: ex.examId,
+        examDate: ex.date,
+      });
+    }
+  }
+
+  return { eventRecord, courseTitleToExam };
+}
+
+/**
+ * Process one student: find exam reservations by matching courseTitle to event's exams,
+ * update or create examReservation rows, then update student status if all required exams passed.
+ *
+ * @param {string} nationalId
+ * @param {Date} uploadDate
+ * @param {Array<{ courseTitle: string, grade: number | null }>} quizzes
+ * @param {string} eventId
+ * @param {Map<string, { examId: string, examDate: Date }>} courseTitleToExam
+ * @param {import('sequelize').Transaction} t
+ * @returns {{ examsUpdated: number, studentSucceeded: boolean }}
+ */
+async function processOneStudent(
+  nationalId,
+  uploadDate,
+  quizzes, //for each student, we have an array of quizzes (courseTitle and grade)
+  eventId,
+  courseTitleToExam,// map from our db
+  t
+) {
+  const studentRecord = await Student.findOne({
+    where: { nationalId },
+    transaction: t,
+  });
+  if (!studentRecord) {
+    throw new Error(`Student not found for nationalId: ${nationalId}`);
+  }
+
+  const userId = studentRecord.userId;
+  let examsUpdated = 0;
+
+  for (const quiz of quizzes) {
+    // Match exactly: use courseTitle as provided from Excel (Prompt A)
+    const examInfo = courseTitleToExam.get(quiz.courseTitle);
+    if (!examInfo) {
+      // No exam for this course in this event 
+      throw new Error(`No exam found for course: ${quiz.courseTitle} for student: ${nationalId}`);
+    }
+
+    const { examId, examDate } = examInfo;
+    const status = computeReservationStatus(
+      quiz.grade,
+      examDate,
+      uploadDate
+    );
+    const resultValue =
+      quiz.grade !== null && quiz.grade !== undefined
+        ? String(quiz.grade)
+        : null;
+
+    // Reservation rows are created when the student reserves the event; we only update here
+    const er = await examReservation.findOne({
+      where: { examId, userId },
+      transaction: t,
+    });
+
+    if (er) {
+      await er.update(
+        {
+          result: resultValue,
+          reservationStatus: status,
+        },
+        { transaction: t }
+      );
+      examsUpdated += 1;
+    }
+  }
+
+  // Student final status: succeeded only if all 7 required exams (for this event) have grade >= 65
+  //courseTitleToExam gets the examId and examDate for each course in *specific event*
+  const allExamIds = [...courseTitleToExam.values()].map((e) => e.examId);
+  const requiredCount = Math.min(REQUIRED_EXAMS_PASSED, allExamIds.length);
+  const passedCount = await (async () => {
+    if (allExamIds.length === 0) return 0;
+    const reservations = await examReservation.findAll({
+      where: { userId, examId: allExamIds },
+      attributes: ["examId", "result", "reservationStatus"],
+      transaction: t,
+      raw: true,
+    });
+    return reservations.filter( //filter the rows that are succeeded 
+        r.reservationStatus === "succeeded" ||
+        (r.result != null && Number(r.result) >= PASS_GRADE)
+    ).length;
+  })();
+
+  const studentSucceeded =
+    requiredCount === REQUIRED_EXAMS_PASSED && passedCount >= REQUIRED_EXAMS_PASSED;
+  if (studentSucceeded) {
+    await studentRecord.update(
+      { status: "succeeded" },
+      { transaction: t }
+    );
+  }
+
+  return { examsUpdated, studentSucceeded };
+}
+
+/**
+ * Upload parsed grades into the database for a given event.
+ * Processes each student in a separate transaction; one failure does not roll back others.
+ *
+ * INPUT (from Prompt A / parseGradesFromExcelBuffer):
+ *   parsedData: Array<{
+ *     nationalId: string,
+ *     uploadDate: Date,
+ *     quizzes: Array<{ courseTitle: string, grade: number | null }>
+ *   }>
+ *
+ * @param {Array<{
+ *   nationalId: string,
+ *   uploadDate: Date,
+ *   quizzes: Array<{ courseTitle: string, grade: number | null }>
+ * }>} parsedData
+ * @param {string} eventId - UUID of the event
+ * @returns {Promise<{
+ *   studentsProcessed: number,
+ *   examsUpdated: number,
+ *   studentsSucceeded: number
+ * }>}
+ */
+async function uploadFromExcel(parsedData, eventId) {
+  if (!parsedData || !Array.isArray(parsedData)) {
+    throw new Error("parsedData must be a non-null array");
+  }
+  if (!eventId) {
+    throw new Error("eventId is required");
+  }
+
+  // Resolve event and build courseTitle -> exam map once (read-only, no transaction)
+  const { courseTitleToExam } = await getEventExamsWithCourses(eventId);
+
+  let studentsProcessed = 0;
+  let examsUpdated = 0;
+  let studentsSucceeded = 0;
+
+  for (const row of parsedData) { //for each student in the excel file
+    try {
+      await sequelize.transaction(async (t) => {
+        const { examsUpdated: n, studentSucceeded } = await processOneStudent( 
+          row.nationalId,
+          row.uploadDate,
+          row.quizzes,
+          eventId,
+          courseTitleToExam,
+          t
+        );
+        studentsProcessed += 1;
+        examsUpdated += n;
+        if (studentSucceeded) studentsSucceeded += 1;
+      });
+    } catch (err) {
+      // Do not swallow: rethrow so caller can handle (e.g. log and continue or fail request)
+      throw err;
+    }
+  }
+
+  return {
+    studentsProcessed,
+    examsUpdated,
+    studentsSucceeded,
+  };
+}
+
+module.exports = {
+  uploadFromExcel,
+  getEventExamsWithCourses,
+  processOneStudent,
+  computeReservationStatus,
+  REQUIRED_EXAMS_PASSED,
+  PASS_GRADE,
+};

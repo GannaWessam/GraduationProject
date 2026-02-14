@@ -125,7 +125,6 @@ const registerForExam = async (userId, eventId) => {
     const student = await Student.findOne({ where: { userId } });
     const examReservations = examsToReserve.map((ex) => ({
       reservationId: newReservation.reservationId,
-      nationalId :student.nationalId,
       userId,
       examId: ex.examId,
       type: "exam",

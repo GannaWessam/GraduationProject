@@ -31,10 +31,6 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(200), 
       allowNull: false     
     },
-    nationalId: {
-      type: DataTypes.STRING(200), 
-      allowNull: true     
-    },
 
     attempts: {
       type: DataTypes.INTEGER, 

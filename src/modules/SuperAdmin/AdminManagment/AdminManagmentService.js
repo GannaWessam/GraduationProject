@@ -10,7 +10,7 @@ const {
 const logger = require("../../../Util/logger");
 
 // --------------------- CREATE ADMIN ---------------------
-async function addAdmin(AdminInfo, reqUser, reqIp) {
+async function addAdmin(AdminInfo, req) {
   const { Name, email, password, confirmPassword } = AdminInfo;
   const role = "ADMIN";
 
@@ -26,42 +26,24 @@ async function addAdmin(AdminInfo, reqUser, reqIp) {
 
     const hashedPassword = await hashPassword(password);
 
-    // Create User
     const user = await User.create(
       { email, passwordHash: hashedPassword, role },
-      { transaction: t },
+      { transaction: t }
     );
 
-    // Create Admin
     const AdminData = await Admin.create(
-      {
-        userId: user.userId,
-        Name,
-      },
-      { transaction: t },
+      { userId: user.userId, Name },
+      { transaction: t }
     );
 
-    // Log creation
-    // reqUser is the user performing the action
-    const actor = reqUser;
+    req.audit.affectedUser = {
+      _id: user.userId,
+      email: user.email,
+      name: Name,
+    };
 
-    console.log(actor);
-    await logger.info({
-      ip: reqIp,
-      user: {
-        _id: actor.id ,
-        email: actor.email,
-        name: actor.name,
-      },
-      type: "modification",
-      level: "success",
-      affectedUser: {
-        _id: user.userId,
-        email: user.email,
-        name: Name,
-      },
-      message: "Admin created successfully",
-    });
+    req.audit.message = "Admin created successfully";
+
     return {
       success: true,
       message: "Registration completed successfully",
@@ -69,9 +51,7 @@ async function addAdmin(AdminInfo, reqUser, reqIp) {
     };
   });
 }
-
-// --------------------- GET ALL ADMINS ---------------------
-async function getAllAdmins(features, reqUser, reqIp) {
+async function getAllAdmins(features, req) {
   const { count, rows: admins } = await Admin.findAndCountAll({
     ...features.options,
     include: [
@@ -92,32 +72,17 @@ async function getAllAdmins(features, reqUser, reqIp) {
 
   if (!admins || admins.length === 0) throw new Error("not_found");
 
-  // Log read
-  const actor = reqUser ;
-  console.log(actor);
-  
-  await logger.info({
-    ip: reqIp,
-    user: {
-      _id: actor.id ||"",
-      email: actor.email ,
-      name: actor.name ,
-    },
-    type: "read",
-    level: "success",
-    message: "Fetched all admins",
-  });
+  // req.audit.message = "Fetched all admins";
 
   return PaginatedResponse.fromApiFeature(
     features,
     count,
     admins,
-    "admins fetched successfully",
+    "admins fetched successfully"
   );
 }
-
 // --------------------- GET ADMIN BY ID ---------------------
-async function getAdminById(id, reqUser, reqIp) {
+async function getAdminById(id, req) {
   const admin = await Admin.findByPk(id, {
     include: [
       {
@@ -136,33 +101,21 @@ async function getAdminById(id, reqUser, reqIp) {
   });
 
   if (!admin) throw new Error("Admin_not_found");
-  const actor = reqUser ;
 
-  // Log read
-  await logger.info({
-    ip: reqIp,
-    user: {
-      _id: actor.id ,
-      email: actor.email ,
-      name: actor.name ,
-    },
-    type: "read",
-    level: "success",
-    affectedUser: {
-      _id: admin.userId,
-      email: admin.User.email,
-      name: admin.Name,
-    },
-    message: "Fetched admin by ID",
-  });
+  req.audit.affectedUser = {
+    _id: admin.userId,
+    email: admin.User.email,
+    name: admin.Name,
+  };
+
+  req.audit.message = "Fetched admin by ID";
 
   return admin;
 }
 
 // --------------------- DELETE ADMIN ---------------------
-async function deleteAdmin(id, reqUser, reqIp) {
-  const admin = await Admin.findByPk(id);
-
+async function deleteAdmin(id, req) {
+  const admin = await Admin.findByPk(id, { include: [{ model: User }] });
   if (!admin) throw new Error("admin_not_found");
 
   const userId = admin.userId;
@@ -172,25 +125,13 @@ async function deleteAdmin(id, reqUser, reqIp) {
     await User.destroy({ where: { userId }, transaction: t });
   });
 
-  // Log deletion
-  const actor = reqUser;
-  await logger.info({
-    ip: reqIp,
-    user: {
-      _id: actor.id ,
-      email: actor.email ,
-      name: actor.name ,
-    },
-    type: "delete",
-    level: "success",
-    affectedUser: {
-      _id: userId,
-      email: admin.User?.email ,
-      name: admin.Name,
-    },
-    message: "Admin deleted successfully",
-  });
+  req.audit.affectedUser = {
+    _id: userId,
+    email: admin.User?.email,
+    name: admin.Name,
+  };
 
+  req.audit.message = "Admin deleted successfully";
 
   return {
     success: true,
@@ -198,10 +139,8 @@ async function deleteAdmin(id, reqUser, reqIp) {
   };
 }
 
-// --------------------- UPDATE ADMIN ---------------------
-async function updateAdmin(id, updateData, reqUser, reqIp) {
+async function updateAdmin(id, updateData, req) {
   const admin = await Admin.findByPk(id, { include: [{ model: User }] });
-
   if (!admin) throw new Error("Admin_not_found");
 
   const { Name, email, password, confirmPassword } = updateData;
@@ -215,10 +154,8 @@ async function updateAdmin(id, updateData, reqUser, reqIp) {
 
   if (password) {
     if (!confirmPassword) throw new Error("confirmPassword_required");
-
     validatePassword(password, confirmPassword);
-    const hashed = await hashPassword(password);
-    admin.User.passwordHash = hashed;
+    admin.User.passwordHash = await hashPassword(password);
   }
 
   await sequelize.transaction(async (t) => {
@@ -226,24 +163,14 @@ async function updateAdmin(id, updateData, reqUser, reqIp) {
     await admin.User.save({ transaction: t });
   });
 
-  // Log update
-  const actor = reqUser ;
-  await logger.info({
-    ip: reqIp,
-    user: {
-      _id: actor.id ,
-      email: actor.email ,
-      name: actor.name ,
-    },
-    type: "modification",
-    level: "success",
-    affectedUser: {
-      _id: admin.userId,
-      email: admin.User.email,
-      name: admin.Name,
-    },
-    message: "Admin updated successfully",
-  });
+  req.audit.affectedUser = {
+    _id: admin.userId,
+    email: admin.User.email,
+    name: admin.Name,
+  };
+
+  req.audit.message = "Admin updated successfully";
+
   return {
     success: true,
     message: "Admin updated successfully",

@@ -1,41 +1,20 @@
-const {User , supervisor ,sequelize ,Permission } = require("../../../models");
-const ApiFeature = require("../../../Util/ApiResponse");
+const { User, supervisor, sequelize, Permission } = require("../../../models");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
+const { hashPassword } = require("../../Auth/helpers/passwordHelper");
+const { checkEmailExists } = require("../../Auth/helpers/userHelper");
 const {
-    hashPassword,
-    comparePassword,
-  } = require("../../Auth/helpers/passwordHelper");
-  const {
-    findUserByEmail,
-    findStudentByNationalId,
-    checkEmailExists,
-    checkNationalIdExists, 
-    findProductById,
-    generateQr,
-    getUser,
-    getUserFees
-  } = require("../../Auth/helpers/userHelper");
-  const {
-    validateRequiredFields,
-    validateName,
-    validatePassword,
-    validateNationalId,
-    
-  } = require("../../Auth/validations/registerValidation");
+  validateName,
+  validatePassword,
+} = require("../../Auth/validations/registerValidation");
 
+async function addSupervisor(SupervisorInfo, req) {
+  const { Name, email, password, confirmPassword } = SupervisorInfo;
+  const role = "SUPERVISOR";
 
-
-async function addSupervisor(SupervisorInfo) {
-  const { Name, email , password ,confirmPassword } = SupervisorInfo;
-  const role = "SUPERVISOR"
-
-  
   validateName(Name);
   validatePassword(password, confirmPassword);
-  
 
-  
   return sequelize.transaction(async (t) => {
     await checkEmailExists(email, t);
 
@@ -44,10 +23,8 @@ async function addSupervisor(SupervisorInfo) {
     // ✅ Create User
     const user = await User.create(
       { email, passwordHash: hashedPassword, role },
-      { transaction: t }
+      { transaction: t },
     );
-
-    
 
     // ✅ Create Student
     const Supervisor = await supervisor.create(
@@ -55,9 +32,18 @@ async function addSupervisor(SupervisorInfo) {
         userId: user.userId,
         Name: Name,
       },
-      { transaction: t }
+      { transaction: t },
     );
     // ✅ Return the formatted response
+
+    req.audit.affectedUser = {
+      _id: Supervisor.userId,
+      email: user.email,
+      name: Supervisor.Name,
+    };
+
+    req.audit.message = "Registration completed successfully";
+
     return {
       success: true,
       message: "Registration completed successfully",
@@ -71,7 +57,7 @@ async function addSupervisor(SupervisorInfo) {
 
 async function getAllSupervisors(features) {
   const { count, rows: supervisors } = await supervisor.findAndCountAll({
-    ...features.options, 
+    ...features.options,
     include: [
       {
         model: User,
@@ -80,9 +66,9 @@ async function getAllSupervisors(features) {
           {
             model: Permission,
             as: "permissions",
-            attributes: ["permissionId", "name"], 
+            attributes: ["permissionId", "name"],
             through: {
-              attributes: [], 
+              attributes: [],
             },
           },
         ],
@@ -96,7 +82,7 @@ async function getAllSupervisors(features) {
     features,
     count,
     supervisors,
-    "Supervisors fetched successfully"
+    "Supervisors fetched successfully",
   );
 }
 
@@ -111,9 +97,9 @@ async function getSupervisorById(id) {
           {
             model: Permission,
             as: "permissions",
-            attributes: ["permissionId", "name"], 
+            attributes: ["permissionId", "name"],
             through: {
-              attributes: [], 
+              attributes: [],
             },
           },
         ],
@@ -121,31 +107,27 @@ async function getSupervisorById(id) {
     ],
   });
 
-  if (!sup) throw new Error('Supervisor_not_found');
+  if (!sup) throw new Error("Supervisor_not_found");
 
   return sup;
-}   
+}
 
-
-async function updateSupervisor(id, updateData) {
+async function updateSupervisor(id, updateData, req) {
   const supervisorData = await supervisor.findByPk(id, {
-    include: [{ model: User }] 
+    include: [{ model: User }],
   });
 
   if (!supervisorData) throw new Error("supervisor_not_found");
 
   const { Name, email, password, confirmPassword } = updateData;
 
-
   if (Name) supervisorData.Name = Name;
 
-
-  if (email && !supervisorData.User.email === email) {
+  if (email && supervisorData.User.email !== email) {
     await checkEmailExists(email);
     supervisorData.User.email = email;
   }
 
-  
   if (password) {
     if (!confirmPassword) {
       throw new Error("confirmPassword_required");
@@ -163,15 +145,24 @@ async function updateSupervisor(id, updateData) {
     await supervisorData.User.save({ transaction: t });
   });
 
+  req.audit.affectedUser = {
+    _id: supervisorData.userId,
+    email: supervisorData.User.email,
+    name: supervisorData.Name,
+  };
+
+  req.audit.message = "supervisor updated successfully";
   return {
     success: true,
     message: "supervisor updated successfully",
     data: supervisorData,
   };
-} 
+}
 
-async function deleteSupervisor(id) {
-  const supervisorData = await supervisor.findByPk(id);
+async function deleteSupervisor(id, req) {
+  const supervisorData = await supervisor.findByPk(id, {
+    include: [{ model: User }],
+  });
 
   if (!supervisorData) throw new Error("trainer_not_found");
 
@@ -182,19 +173,24 @@ async function deleteSupervisor(id) {
     await User.destroy({ where: { userId }, transaction: t });
   });
 
+  req.audit.affectedUser = {
+    _id: supervisorData.userId,
+    email: supervisorData.User.email,
+    name: supervisorData.Name,
+  };
+
+  req.audit.message = "supervisor deleted successfully";
+
   return {
     success: true,
     message: "supervisor and related user deleted",
   };
-}   
-
-
-
+}
 
 module.exports = {
   addSupervisor,
   getAllSupervisors,
   getSupervisorById,
   deleteSupervisor,
-  updateSupervisor
+  updateSupervisor,
 };

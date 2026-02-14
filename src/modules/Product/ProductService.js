@@ -5,7 +5,7 @@ const { concatLang } = require("../../Helpers/langHelper");
 const { formatProduct } = require("./helpers/responseHelper");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const logger = require("../../Util/logger");
-async function getAllProductsService(reqQuery = {}, reqUser, reqIp) {
+async function getAllProductsService(reqQuery = {}) {
   const apiFeature = new ApiFeature(reqQuery)
     .pagination()
     .filter()
@@ -43,16 +43,7 @@ async function getAllProductsService(reqQuery = {}, reqUser, reqIp) {
 
   const products = await Product.findAll(apiFeature.options);
   const totalProducts = await Product.count();
-  await logger.info({
-    ip: reqIp,
-    user: {
-      _id: reqUser?.id,
-      email: reqUser?.email,
-      name: reqUser?.name,
-    },
-    type: "read",
-    message: "Fetched all products",
-  });
+
   return PaginatedResponse.fromApiFeature(
     apiFeature,
     totalProducts,
@@ -61,7 +52,7 @@ async function getAllProductsService(reqQuery = {}, reqUser, reqIp) {
   );
 }
 
-async function addProduct(productInfo, reqUser, reqIp) {
+async function addProduct(productInfo, req) {
   const {
     courseNameEn,
     courseNameAr,
@@ -100,24 +91,17 @@ async function addProduct(productInfo, reqUser, reqIp) {
       include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
     },
   );
-  await logger.info({
-    ip: reqIp,
-    user: {
-      _id: reqUser?.id,
-      email: reqUser?.email,
-      name: reqUser?.name,
-    },
-    type: "modification",
-    affectedThing: {
-      _id: newProduct.productId,
-      name: newProduct.courseName,
-    },
-    message: "Product created",
-  });
+
+    req.audit.affectedThing = {
+      _id: newProduct.dataValues.productId,
+      name: newProduct.dataValues.courseName,
+    };
+
+  req.audit.message = "Product added successfully";
   return formatProduct(newProduct);
 }
 
-async function getProductById(id, reqUser, reqIp) {
+async function getProductById(id) {
   const product = await Product.findByPk(id, {
     include: [
       {
@@ -130,24 +114,11 @@ async function getProductById(id, reqUser, reqIp) {
   });
 
   if (!product) throw new Error("not_found");
-  await logger.info({
-    ip: reqIp,
-    user: {
-      _id: reqUser?.id,
-      email: reqUser?.email,
-      name: reqUser?.name,
-    },
-    type: "read",
-    affectedThing: {
-      _id: product.productId,
-      name:product.courseName,
-    },
-    message: "Fetched product by id",
-  });
+ 
   return formatProduct(product);
 }
 
-async function updateProduct(id, updateInfo, reqUser, reqIp) {
+async function updateProduct(id, updateInfo,req) {
   const {
     courseNameEn,
     courseNameAr,
@@ -194,43 +165,28 @@ async function updateProduct(id, updateInfo, reqUser, reqIp) {
     include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
   });
 
-  await logger.info({
-    ip: reqIp,
-    user: {
-      _id: reqUser?.id,
-      email: reqUser?.email,
-      name: reqUser?.name,
-    },
-    type: "edit",
-    affectedThing: {
-      _id: updated.productId,
-      name: updated.courseName,
-    },
-    message: "Product updated",
-  });
+    req.audit.affectedThing = {
+      _id: product.dataValues.productId,
+      name: product.courseName,
+    };
+
+  req.audit.message = "Product updated successfully";
   return formatProduct(updated);
 }
 
-async function deleteProduct(id, reqUser, reqIp) {
+async function deleteProduct(id,req) {
   const product = await Product.findByPk(id);
   if (!product) throw new Error("not_found");
 const productName = product.courseName;
   await product.destroy();
-   await logger.info({
-    ip: reqIp,
-    user: {
-      _id: reqUser?.id,
-      email: reqUser?.email,
-      name: reqUser?.name,
-    },
-    type: "delete",
-    affectedThing: {
-      _id: id,
+  console.log(product);
+  
+  req.audit.affectedThing = {
+      _id: product.dataValues.productId,
       name: productName,
-    },
-    message: "Product deleted",
-  });
-  return { deleted: true };
+    };
+
+  req.audit.message = "Product deleted successfully";
 }
 
 module.exports = {

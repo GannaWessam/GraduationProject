@@ -9,7 +9,7 @@ const permissionService = require("../../admin/usersManagment/usersServices.js")
 
 exports.register = async (req, res, next) => {
     try {
-      const result = await addSupervisor(req.body);
+      const result = await addSupervisor(req.body,req);
       const per = await permissionService.assignPermissionsToUser(result.data.user.userId,req.body.permissionList);
       return res.status(201).json(ApiResponse.created(result));
     } catch (error) {
@@ -46,7 +46,7 @@ exports.register = async (req, res, next) => {
 
   exports.remove = async (req, res, next) => {
     try {
-      const result = await deleteSupervisor(req.params.id);
+      const result = await deleteSupervisor(req.params.id,req);
       return res.json(
         ApiResponse.success(result, "supervisor deleted successfully"));
     } catch (error) {
@@ -56,7 +56,7 @@ exports.register = async (req, res, next) => {
 
   exports.update = async (req, res, next) => {
     try {
-      const result = await updateSupervisor(req.params.id, req.body);
+      const result = await updateSupervisor(req.params.id, req.body,req);
   
       return res.json(
         ApiResponse.success(result, "supervisor updated successfully")

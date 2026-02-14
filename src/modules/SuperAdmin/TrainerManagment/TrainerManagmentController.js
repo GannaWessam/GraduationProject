@@ -8,7 +8,7 @@ const permissionService = require("../../admin/usersManagment/usersServices.js")
 
 exports.register = async (req, res, next) => {
     try {
-      const result = await addTrainer(req.body);
+      const result = await addTrainer(req.body,req);
       const per = await permissionService.assignPermissionsToUser(result.data.user.userId,req.body.permissionList);
       return res.status(201).json(ApiResponse.created(result));
     } catch (error) {
@@ -44,7 +44,7 @@ exports.register = async (req, res, next) => {
 
   exports.remove = async (req, res, next) => {
     try {
-      const result = await deleteTrainer(req.params.id);
+      const result = await deleteTrainer(req.params.id,req);
       return res.json(
         ApiResponse.success(result, "Trainer deleted successfully"));
     } catch (error) {
@@ -54,7 +54,7 @@ exports.register = async (req, res, next) => {
 
   exports.update = async (req, res, next) => {
     try {
-      const result = await updateTrainer(req.params.id, req.body);
+      const result = await updateTrainer(req.params.id, req.body,req);
   
       return res.json(
         ApiResponse.success(result, "Trainer updated successfully")

@@ -15,7 +15,14 @@ const express = require("express");
 const router = express.Router();
 const ReportController = require("./reportController");
 const catchError = require("../../middlewares/catchError");
+const { validateToken } = require("../../middlewares/token");
+const checkPermission = require("../../middlewares/checkPermission");
 
-router.get("/arabic-report", catchError(ReportController.getArabicReport));
+router.get(
+  "/arabic-report",
+  validateToken,
+  // checkPermission("getReports"),
+  catchError(ReportController.getArabicReport)
+);
 
 module.exports = router;

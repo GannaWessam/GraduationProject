@@ -7,6 +7,7 @@ const trainingRoutes = require("./trainingManagement/trainingRoutes");
 const packageRoutes = require("./packageManagement/packageRoutes");
 const sessionRotes = require("./sessionManagement/sessionRoutes");
 const currencyRoutes = require("./currencyManagement/currencyRoutes");
+// const efadaRoutes = require("./EfadaManagement/EfadaRoute");
 const generateStudentDataExcelRoutes = require("./excelsManagement/generateStudentDataExcel/generateStudentDataExcelRoutes");
 
 router.use("/usersManagment", usersRoutes);
@@ -16,6 +17,8 @@ router.use("/trainingManagement", trainingRoutes);
 router.use("/packagegManagement", packageRoutes);
 router.use("/sessionManagement", sessionRotes);
 router.use("/currencyManagement", currencyRoutes);
+// router.use("/efada", efadaRoutes);
+
 router.use("/generateStudentDataExcel", generateStudentDataExcelRoutes);
 
 module.exports = router;

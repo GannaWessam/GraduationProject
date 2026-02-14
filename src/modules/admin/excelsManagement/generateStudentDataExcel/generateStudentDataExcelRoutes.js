@@ -8,7 +8,7 @@ const { validateToken } = require('../../../../middlewares/token');
 // Assumes authentication middleware exists (validateToken)
 router.get(
   '/downloadSheet/:eventId',
-  // validateToken,
+  validateToken,
   catchError(generateStudentDataExcelController.downloadSheet)
 );
 

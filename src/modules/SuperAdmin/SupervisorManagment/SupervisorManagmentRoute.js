@@ -3,12 +3,13 @@ const router = express.Router();
 const SupervisorController = require("./SupervisorManagmentController");
 const catchError = require("../../../middlewares/catchError");
 
-
-router.get("/",catchError(SupervisorController.getAll));
-router.get("/:id",catchError(SupervisorController.getById));
-router.post("/add-Supervisor",catchError(SupervisorController.register));
-router.put("/:id", catchError(SupervisorController.update));
-router.delete("/:id", catchError(SupervisorController.remove));
+const { validateToken } = require("../../../middlewares/token");
+const checkPermission = require("../../../middlewares/checkPermission");
+router.get("/",validateToken,checkPermission("VIEW_SUPERVISOR"),catchError(SupervisorController.getAll));
+router.get("/:id",validateToken,checkPermission("VIEW_SUPERVISOR"),catchError(SupervisorController.getById));
+router.post("/add-Supervisor",validateToken,checkPermission("ADD_SUPERVISOR"),catchError(SupervisorController.register));
+router.put("/:id", validateToken,checkPermission("EDIT_SUPERVISOR"),catchError(SupervisorController.update));
+router.delete("/:id", validateToken,checkPermission("DELETE_SUPERVISOR"),catchError(SupervisorController.remove));
 
 
 

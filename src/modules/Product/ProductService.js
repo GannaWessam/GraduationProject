@@ -4,8 +4,8 @@ const { Op } = require("sequelize");
 const { concatLang } = require("../../Helpers/langHelper");
 const { formatProduct } = require("./helpers/responseHelper");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
-
-async function getAllProductsService(reqQuery = {}) {
+const logger = require("../../Util/logger");
+async function getAllProductsService(reqQuery = {}, reqUser, reqIp) {
   const apiFeature = new ApiFeature(reqQuery)
     .pagination()
     .filter()
@@ -37,22 +37,31 @@ async function getAllProductsService(reqQuery = {}) {
     {
       model: currency,
       attributes: ["code"],
-      required: false, 
+      required: false,
     },
   ];
 
   const products = await Product.findAll(apiFeature.options);
   const totalProducts = await Product.count();
-
+  await logger.info({
+    ip: reqIp,
+    user: {
+      _id: reqUser?.id,
+      email: reqUser?.email,
+      name: reqUser?.name,
+    },
+    type: "read",
+    message: "Fetched all products",
+  });
   return PaginatedResponse.fromApiFeature(
     apiFeature,
     totalProducts,
     products.map(formatProduct),
-    "Products fetched successfully"
+    "Products fetched successfully",
   );
 }
 
-async function addProduct(productInfo) {
+async function addProduct(productInfo, reqUser, reqIp) {
   const {
     courseNameEn,
     courseNameAr,
@@ -63,7 +72,13 @@ async function addProduct(productInfo) {
     allowedUserTypes = [],
   } = productInfo;
 
-  if (!courseNameEn || !courseNameAr || !priceEgyptian || !priceOther || !currencyId) {
+  if (
+    !courseNameEn ||
+    !courseNameAr ||
+    !priceEgyptian ||
+    !priceOther ||
+    !currencyId
+  ) {
     throw new Error("missing_required");
   }
 
@@ -71,8 +86,6 @@ async function addProduct(productInfo) {
   if (!Currency) {
     throw new Error("currency_not_found");
   }
-
-  
 
   const newProduct = await Product.create(
     {
@@ -85,26 +98,65 @@ async function addProduct(productInfo) {
     },
     {
       include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
-    }
+    },
   );
-
+  await logger.info({
+    ip: reqIp,
+    user: {
+      _id: reqUser?.id,
+      email: reqUser?.email,
+      name: reqUser?.name,
+    },
+    type: "modification",
+    affectedThing: {
+      _id: newProduct.productId,
+      name: newProduct.courseName,
+    },
+    message: "Product created",
+  });
   return formatProduct(newProduct);
 }
 
-async function getProductById(id) {
+async function getProductById(id, reqUser, reqIp) {
   const product = await Product.findByPk(id, {
-    include: [{ model: ProductAllowedUserType, as: "allowedUserTypes",attributes:["userType"] },
-    {model:currency}
-  ],
+    include: [
+      {
+        model: ProductAllowedUserType,
+        as: "allowedUserTypes",
+        attributes: ["userType"],
+      },
+      { model: currency },
+    ],
   });
 
   if (!product) throw new Error("not_found");
-  return formatProduct(product); 
+  await logger.info({
+    ip: reqIp,
+    user: {
+      _id: reqUser?.id,
+      email: reqUser?.email,
+      name: reqUser?.name,
+    },
+    type: "read",
+    affectedThing: {
+      _id: product.productId,
+      name:product.courseName,
+    },
+    message: "Fetched product by id",
+  });
+  return formatProduct(product);
 }
 
-async function updateProduct(id, updateInfo) {
-  const { courseNameEn, courseNameAr, priceEgyptian, priceOther, allowedUserTypes,requirdCourses ,currencyId } =
-    updateInfo;
+async function updateProduct(id, updateInfo, reqUser, reqIp) {
+  const {
+    courseNameEn,
+    courseNameAr,
+    priceEgyptian,
+    priceOther,
+    allowedUserTypes,
+    requirdCourses,
+    currencyId,
+  } = updateInfo;
 
   const product = await Product.findByPk(id, {
     include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
@@ -112,46 +164,72 @@ async function updateProduct(id, updateInfo) {
   if (!product) throw new Error("not_found");
 
   if (courseNameEn || courseNameAr) {
-    product.courseName = concatLang(courseNameEn, courseNameAr); 
+    product.courseName = concatLang(courseNameEn, courseNameAr);
   }
   if (priceEgyptian) product.priceEgyptian = priceEgyptian;
   if (priceOther) product.priceOther = priceOther;
-  if(requirdCourses) product.requirdCourses=requirdCourses;
-  if(currencyId){
+  if (requirdCourses) product.requirdCourses = requirdCourses;
+  if (currencyId) {
     const Currency = await currency.findByPk(currencyId);
     if (!Currency) {
-    throw new Error("currency_not_found");
+      throw new Error("currency_not_found");
+    }
+    product.currencyId = currencyId;
   }
-    product.currencyId=currencyId;
-  } 
 
   await product.save();
 
   if (allowedUserTypes) {
-
     await ProductAllowedUserType.destroy({ where: { productId: id } });
-  
+
     await ProductAllowedUserType.bulkCreate(
       allowedUserTypes.map((type) => ({
         productId: id,
         userType: String(type),
-      }))
+      })),
     );
   }
 
   const updated = await Product.findByPk(id, {
-    include: [
-      { model: ProductAllowedUserType, as: "allowedUserTypes" },
-    ],
+    include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
   });
 
-  return formatProduct(updated); 
+  await logger.info({
+    ip: reqIp,
+    user: {
+      _id: reqUser?.id,
+      email: reqUser?.email,
+      name: reqUser?.name,
+    },
+    type: "edit",
+    affectedThing: {
+      _id: updated.productId,
+      name: updated.courseName,
+    },
+    message: "Product updated",
+  });
+  return formatProduct(updated);
 }
 
-async function deleteProduct(id) {
+async function deleteProduct(id, reqUser, reqIp) {
   const product = await Product.findByPk(id);
   if (!product) throw new Error("not_found");
+const productName = product.courseName;
   await product.destroy();
+   await logger.info({
+    ip: reqIp,
+    user: {
+      _id: reqUser?.id,
+      email: reqUser?.email,
+      name: reqUser?.name,
+    },
+    type: "delete",
+    affectedThing: {
+      _id: id,
+      name: productName,
+    },
+    message: "Product deleted",
+  });
   return { deleted: true };
 }
 

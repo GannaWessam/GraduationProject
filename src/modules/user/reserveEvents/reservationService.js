@@ -122,15 +122,16 @@ const registerForExam = async (userId, eventId) => {
       { userId, eventId },
       { transaction: t }
     );
-
+    const student = await Student.findOne({ where: { userId } });
     const examReservations = examsToReserve.map((ex) => ({
       reservationId: newReservation.reservationId,
+      nationalId :student.nationalId,
       userId,
       examId: ex.examId,
       type: "exam",
       reservationStatus: "reserved",
     }));
-    const student = await Student.findOne({ where: { userId } });
+   
     if (student) {
       student.status = "reserved Exam";
       await student.save({ transaction: t });

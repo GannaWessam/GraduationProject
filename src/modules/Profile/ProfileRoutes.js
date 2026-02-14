@@ -3,10 +3,12 @@ const router = express.Router();
 const ProfileController = require("./ProfileController");
 const catchError = require("../../middlewares/catchError");
 const checkPermission = require("../../middlewares/checkPermission");
+const { validateToken } = require("../../middlewares/token");
 
 // Create profile
 router.post(
   "/",
+  validateToken,
 //   checkPermission("CREATE_PROFILE"),
   catchError(ProfileController.addProfile)
 );
@@ -14,6 +16,7 @@ router.post(
 // Get all profiles
 router.get(
   "/",
+  validateToken,
 //   checkPermission("VIEW_PROFILE"),
   catchError(ProfileController.getAllProfilesController)
 );
@@ -21,6 +24,8 @@ router.get(
 // Get single profile
 router.get(
   "/:id",
+    validateToken,
+
 //   checkPermission("VIEW_PROFILE"),
   catchError(ProfileController.getProfileById)
 );
@@ -28,6 +33,8 @@ router.get(
 // Update profile
 router.put(
   "/:id",
+    validateToken,
+
 //   checkPermission("UPDATE_PROFILE"),
   catchError(ProfileController.updateProfile)
 );
@@ -35,6 +42,8 @@ router.put(
 // Delete profile
 router.delete(
   "/:id",
+    validateToken,
+
 //   checkPermission("DELETE_PROFILE"),
   catchError(ProfileController.deleteProfile)
 );

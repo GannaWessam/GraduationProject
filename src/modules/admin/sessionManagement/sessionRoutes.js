@@ -4,42 +4,105 @@ const sessionController = require("./sessionController");
 const catchError = require("../../../middlewares/catchError");
 const { validateToken } = require("../../../middlewares/token");
 const { uploadSessionMaterials } = require("../../../middlewares/UploadSessionMaterial");
+const checkPermission = require("../../../middlewares/checkPermission");
 
         //*================================================================================
                                     //*TODO: Session ROUTES
         //*=================================================================================
-router.get("/activeSessions",validateToken,catchError(sessionController.getUserActiveSessions));
-router.post("/", validateToken, catchError(sessionController.create));
-router.get("/", validateToken, catchError(sessionController.getAll));
-router.get("/:id", validateToken, catchError(sessionController.getById));
-router.get("/Training-Sessions/:id", validateToken, catchError(sessionController.getTrainingSessionsById));
-router.get("/Event-Sessions/:id", validateToken, catchError(sessionController.getEventSessionsById));
-router.put("/:id", validateToken, catchError(sessionController.update));
-router.delete("/:id", validateToken, catchError(sessionController.delete));
+router.get(
+  "/activeSessions",
+  validateToken,
+  // checkPermission("getSessions"),
+  catchError(sessionController.getUserActiveSessions)
+);
+router.post(
+  "/",
+  validateToken,
+  // checkPermission("createSession"),
+  catchError(sessionController.create)
+);
+router.get(
+  "/",
+  validateToken,
+  // checkPermission("getSessions"),
+  catchError(sessionController.getAll)
+);
+router.get(
+  "/:id",
+  validateToken,
+  // checkPermission("getSession"),
+  catchError(sessionController.getById)
+);
+router.get(
+  "/Training-Sessions/:id",
+  validateToken,
+  // checkPermission("getSession"),
+  catchError(sessionController.getTrainingSessionsById)
+);
+router.get(
+  "/Event-Sessions/:id",
+  validateToken,
+  // checkPermission("getSession"),
+  catchError(sessionController.getEventSessionsById)
+);
+router.put(
+  "/:id",
+  validateToken,
+  // checkPermission("updateSession"),
+  catchError(sessionController.update)
+);
+router.delete(
+  "/:id",
+  validateToken,
+  // checkPermission("deleteSession"),
+  catchError(sessionController.delete)
+);
 
         //*================================================================================
                                     //*TODO: Material ROUTES
         //*=================================================================================
 router.get(
-    "/Session/:sessionId/material",validateToken,catchError(sessionController.getSessionMaterialController)
-  );
+  "/Session/:sessionId/material",
+  validateToken,
+  // checkPermission("getSession"),
+  catchError(sessionController.getSessionMaterialController)
+);
 router.post(
-    "/sessions/:sessionId/material",
-    validateToken,
-    uploadSessionMaterials,
-    catchError(sessionController.uploadSessionMaterial)
+  "/sessions/:sessionId/material",
+  validateToken,
+  // checkPermission("createSession"),
+  uploadSessionMaterials,
+  catchError(sessionController.uploadSessionMaterial)
 );
 router.delete(
-    "/sessions/:mertialId/material",
-    validateToken,
-    catchError(sessionController.deleteMaterial)
+  "/sessions/:mertialId/material",
+  validateToken,
+  // checkPermission("deleteSession"),
+  catchError(sessionController.deleteMaterial)
 );
 router.get(
-    "/sessions/:sessionId/materials/download",
-    catchError(sessionController.downloadSessionMaterials)
+  "/sessions/:sessionId/materials/download",
+  validateToken,
+  // checkPermission("getSession"),
+  catchError(sessionController.downloadSessionMaterials)
 );
-router.get("/sessionQR/:sessionId", validateToken, catchError(sessionController.QRcontroller));
-router.get("/session-materials/download/:materialId",catchError(sessionController.downloadSessionMaterialController));
-router.get("/SessionMaterials", validateToken, catchError(sessionController.getAllSessionMaterialsController));
+router.get(
+  "/sessionQR/:sessionId",
+  validateToken,
+  // checkPermission("getSession"),
+  catchError(sessionController.QRcontroller)
+);
+router.get(
+  "/session-materials/download/:materialId",
+  validateToken,
+  // checkPermission("getSession"),
+  catchError(sessionController.downloadSessionMaterialController)
+);
+router.get(
+  "/SessionMaterials",
+  validateToken,
+  // checkPermission("getSessions"),
+  catchError(sessionController.getAllSessionMaterialsController)
+);
 
 module.exports = router;

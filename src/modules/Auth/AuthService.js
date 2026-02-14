@@ -33,7 +33,8 @@ const {
   studentCourse,
   Admin,
   supervisor,
-  trainer
+  trainer,
+  SuperAdmin
 } = require("../../models/index.js");
 const { where } = require("sequelize");
 
@@ -177,14 +178,15 @@ async function loginUser(email, password, rememberMe = false) {
   }else if(user.role === "SUPERVISOR"){
       USER = await supervisor.findOne({ where: { userId: user.userId } });
       NAME = USER.Name;
-  }else{
+  }
+  else if(user.role === "SUPERADMIN"){
+        USER=await SuperAdmin.findOne({ where: { userId: user.userId } });
+        NAME=USER.Name;
+  }
+  else{
       USER = await trainer.findOne({ where: { userId: user.userId } });
       NAME = USER.Name;
   }
-  
-  // user.Student = student;
-
-  // console.log(student);
 
   await comparePassword(password, user.passwordHash);
   const permissions = await user.getPermissions({
@@ -199,10 +201,10 @@ async function loginUser(email, password, rememberMe = false) {
     USER?.productId,
     USER?.status,
     rememberMe,
-    permissions.map((p) => p.name)
+    user.tokenVersion
   );
 
-  return formatLoginResponse(user, jwtToken ,permissions); //msh 3ayz el name?
+  return formatLoginResponse(user, jwtToken ,permissions.map((p) => p.name)); //msh 3ayz el name?
 }
 
 async function resetPassword(email, newPassword) {

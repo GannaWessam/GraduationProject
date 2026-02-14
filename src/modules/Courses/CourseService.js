@@ -1,71 +1,80 @@
-const { productCourse , course , Product ,studentCourse ,currency} = require("../../models");
+const {
+  productCourse,
+  course,
+  Product,
+  studentCourse,
+  currency,
+  L,
+} = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const { Op } = require("sequelize");
 
-
+const Log = require("../../models/Log");
 
 async function getProductCoursesById(id) {
-    const res = await Product.findOne({
-        where: { productId:id },
-        include: [
-        {
-            model: course,
-            attributes: ["name" , "courseId"],
-            through: { attributes: [] } 
-        },
-        ],
-    });
-
-    if (!res || res.length === 0) throw new Error("not_found");
-    return res;
+  const res = await Product.findOne({
+    where: { productId: id },
+    include: [
+      {
+        model: course,
+        attributes: ["name", "courseId"],
+        through: { attributes: [] },
+      },
+    ],
+  });
+  if (!res || res.length === 0) throw new Error("not_found");
+  return res;
 }
 
-async function chooseCoursesService(userId,courses ,examStatus,  trainingStatus) {
-    try {
+async function chooseCoursesService(
+  userId,
+  courses,
+  examStatus,
+  trainingStatus,
+) {
+  try {
     const data = courses.map((courseId) => ({
-        userId,
-        courseId,
-        examStatus,
-        trainingStatus,
+      userId,
+      courseId,
+      examStatus,
+      trainingStatus,
     }));
 
     const result = await studentCourse.bulkCreate(data);
 
     return {
-        status: "success",
-        message: "Courses inserted successfully",
-        data: result,
+      status: "success",
+      message: "Courses inserted successfully",
+      data: result,
     };
-    } catch (error) {
+  } catch (error) {
     console.error(error);
     throw new Error(error.message || "Failed to insert courses");
-    }
+  }
 }
 
-
-
-
 async function addCourse(courseInfo) {
-  const { name , title , priceEgyptian , priceOther , currencyId} = courseInfo;
-  if (!name || !priceEgyptian || !priceOther || !currencyId || !title) throw new Error("missing_required");
+  const { name, title, priceEgyptian, priceOther, currencyId } = courseInfo;
+  if (!name || !priceEgyptian || !priceOther || !currencyId || !title)
+    throw new Error("missing_required");
   const Currency = await currency.findByPk(currencyId);
   if (!Currency) {
     throw new Error("currency_not_found");
   }
-  const newCourse = await course.create({ 
-    name ,
+  const newCourse = await course.create({
+    name,
     title,
     priceEgyptian,
     priceOther,
-    currencyId});
+    currencyId,
+  });
   return newCourse;
 }
 
 async function getAllCoursesService(features) {
-  
   const { count, rows: courses } = await course.findAndCountAll({
-    ...features.options, 
+    ...features.options,
   });
 
   if (!courses) throw new Error("not_found");
@@ -74,49 +83,48 @@ async function getAllCoursesService(features) {
     features,
     count,
     courses,
-    "Courses fetched successfully"
+    "Courses fetched successfully",
   );
 }
-
 
 async function getCourseById(id) {
   const courseData = await course.findByPk(id, {
     include: [
       {
         model: currency,
-      }
-    ]
+      },
+    ],
   });
   if (!courseData) throw new Error("not_found");
   return courseData;
 }
 
 async function updateCourse(id, updateInfo) {
-    if (!id) throw new Error("missing_course_id");
-  
-    const allowedFields = [
-      "name",
-      "title",
-      "priceEgyptian",
-      "priceOther",
-      "currencyId",
-    ];
-  
-    const updateData = {};
-    for (const key of allowedFields) {
-      if (updateInfo[key] !== undefined) {
-        updateData[key] = updateInfo[key];
-      }
+  if (!id) throw new Error("missing_course_id");
+
+  const allowedFields = [
+    "name",
+    "title",
+    "priceEgyptian",
+    "priceOther",
+    "currencyId",
+  ];
+
+  const updateData = {};
+  for (const key of allowedFields) {
+    if (updateInfo[key] !== undefined) {
+      updateData[key] = updateInfo[key];
     }
-  
-    if (Object.keys(updateData).length === 0)
-      throw new Error("no_data_to_update");
-  
-    const courseToUpdate = await course.findByPk(id);
-    if (!courseToUpdate) throw new Error("course_not_found");
-  
-    await courseToUpdate.update(updateData);
-    return courseToUpdate;
+  }
+
+  if (Object.keys(updateData).length === 0)
+    throw new Error("no_data_to_update");
+
+  const courseToUpdate = await course.findByPk(id);
+  if (!courseToUpdate) throw new Error("course_not_found");
+
+  await courseToUpdate.update(updateData);
+  return courseToUpdate;
 }
 
 async function deleteCourse(id) {
@@ -127,13 +135,12 @@ async function deleteCourse(id) {
   return { deleted: true };
 }
 
-
-
 module.exports = {
- getProductCoursesById,
- chooseCoursesService,
+  getProductCoursesById,
+  chooseCoursesService,
   addCourse,
   getAllCoursesService,
   getCourseById,
   updateCourse,
-  deleteCourse,};
+  deleteCourse,
+};

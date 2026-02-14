@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router();
 const TrainerController = require("./TrainerManagmentController");
 const catchError = require("../../../middlewares/catchError");
+const { validateToken } = require("../../../middlewares/token");
+const checkPermission = require("../../../middlewares/checkPermission");
 
-
-router.get("/",catchError(TrainerController.getAll));
-router.get("/:id",catchError(TrainerController.getById));
-router.post("/add-Trainer",catchError(TrainerController.register));
-router.put("/:id", catchError(TrainerController.update));
-router.delete("/:id", catchError(TrainerController.remove));
+router.get("/",validateToken,checkPermission("VIEW_TRAINER"),catchError(TrainerController.getAll));
+router.get("/:id",validateToken,checkPermission("VIEW_TRAINER"),catchError(TrainerController.getById));
+router.post("/add-Trainer",validateToken,checkPermission("ADD_TRAINER"),catchError(TrainerController.register));
+router.put("/:id", validateToken,checkPermission("UPDATE_TRAINER"),catchError(TrainerController.update));
+router.delete("/:id",validateToken,checkPermission("DELETE_TRAINER"), catchError(TrainerController.remove));
 
 
 

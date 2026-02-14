@@ -6,7 +6,8 @@ const errorHandler = require("./src/middlewares/errorHandler.js");
 const routes = require("./src/routes.js");
 const syncDB = require("./src/connections/syncDB.js")
 
-
+const connectMongo = require("./src/connections/mongo.js");
+connectMongo();
 require("./src/models/User.js");
 require("./src/models/Student.js");
 
@@ -40,6 +41,8 @@ app.get("/dashboard", validateToken, (req, res) => {
 
 
 app.use(errorHandler);
+
+// your log model
 
 app.listen(port,"0.0.0.0", () => {
   console.log(`Server running on http://localhost:${port}`);

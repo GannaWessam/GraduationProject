@@ -44,10 +44,23 @@ module.exports = (sequelize) => {
       allowNull: false,
       defaultValue: DataTypes.NOW
     },
+    type: {
+      type: DataTypes.ENUM('text', 'voice', 'image', 'file'),
+      allowNull: false,
+      defaultValue: 'text'
+    },
+    duration: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
     seenBy: {
       type: DataTypes.ARRAY(DataTypes.UUID),
       allowNull: false,
       defaultValue: []
+    },
+    senderName: { 
+      type: DataTypes.STRING(200), 
+      allowNull: false 
     },
   }, {
     tableName: 'messages',

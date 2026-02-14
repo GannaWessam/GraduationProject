@@ -80,7 +80,13 @@ async function getAllCoursesService(features) {
 
 
 async function getCourseById(id) {
-  const courseData = await course.findByPk(id);
+  const courseData = await course.findByPk(id, {
+    include: [
+      {
+        model: currency,
+      }
+    ]
+  });
   if (!courseData) throw new Error("not_found");
   return courseData;
 }

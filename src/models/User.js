@@ -23,6 +23,11 @@ module.exports = (sequelize) => {
       allowNull: false,
       defaultValue: 'STUDENT',
     },
+    tokenVersion:{
+      type:DataTypes.INTEGER,
+      allowNull:false,
+      defaultValue:0
+    }
   }, {
     tableName: 'users',
     // indexes: [{ unique: true, fields: ['email'] }, { fields: ['role'] }],

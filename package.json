@@ -6,7 +6,8 @@
     "start": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed": "node seeder/index.js",
-    "seed:students": "node seeder/seedStudents.js"
+    "seed:students": "node seeder/seedStudents.js",
+    "seed:events": "node seeder/seedEventsAndReservations.js"
   },
   "keywords": [],
   "author": "",
@@ -17,12 +18,12 @@
     "arabic-persian-reshaper": "^1.0.1",
     "arabic-reshaper": "^1.1.0",
     "archiver": "^7.0.1",
-    "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "bidi-js": "^1.0.3",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^17.2.1",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "form-data": "^4.0.4",
     "fs-extra": "^11.3.2",

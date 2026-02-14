@@ -8,9 +8,9 @@ const { getMyTrainers, getMyUsers ,getMessagesByConversationId,getConversationsB
  */
 const sendMessageOnConversation = async (req, res, next) => {
   try {
-    const { message, senderId, conversationId } = req.body;
+    const { message, senderId, conversationId,senderName } = req.body;
 
-    if (!message || !senderId || !conversationId) {
+    if (!message || !senderId || !conversationId || !senderName) {
       return res
         .status(400)
         .json(
@@ -24,7 +24,10 @@ const sendMessageOnConversation = async (req, res, next) => {
     const result = await chattingService.sendMessageOnConversation(
       message,
       senderId,
-      conversationId
+      conversationId,
+      type="text",
+      duration=null,
+      senderName
     );
 
     res
@@ -34,6 +37,41 @@ const sendMessageOnConversation = async (req, res, next) => {
     return next(error);
   }
 };
+const sendVoiceOnConversation = async (req, res, next) => {
+  try {
+    const { senderId, conversationId, duration,senderName } = req.body;
+    const file = req.file;
+
+    if (!file || !senderId || !conversationId) {
+      return res.status(400).json(
+        ApiResponse.error(
+          400,
+          "file, senderId, and conversationId are required"
+        )
+      );
+    }
+
+    const type = "voice";
+    const message = file.filename;
+    const fileUrl = `${req.protocol}://${req.get("host")}/uploads/voices/${message}`;
+    console.log(fileUrl);
+    
+
+    const result = await chattingService.sendMessageOnConversation(
+      fileUrl,
+      senderId,
+      conversationId,
+      type,
+      duration,
+      senderName
+    );
+
+    res.status(200).json(ApiResponse.success(result, "Message sent successfully"));
+  } catch (error) {
+    return next(error);
+  }
+};
+
 
 /**
  * Create a group conversation
@@ -275,4 +313,5 @@ module.exports = {
   getMyPeople,
   fetchMessages,
   fetchConversations,
+  sendVoiceOnConversation
 };

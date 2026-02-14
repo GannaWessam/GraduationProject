@@ -1,5 +1,5 @@
 
-const {getAvailableEventsForUser} = require('./helper/helper')
+const {getAvailableEventsForUser} = require('./helpers/helper')
 
 
 const getAvailableEventsForUserService = async (userId, productId,query) => {

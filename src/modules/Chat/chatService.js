@@ -207,6 +207,8 @@ async function getConversationsByUserId(userId) {
           sentAt: lastMsg.sentAt,
           senderId: lastMsg.senderId,
           senderEmail: lastMsg.sender.email,
+          type:lastMsg.type,
+          duration:lastMsg.duration,
           senderName:
             lastMsg.sender.Student?.fullName ||
             lastMsg.sender.trainer?.Name ||
@@ -256,6 +258,9 @@ async function getMessagesByConversationId(conversationId) {
     content: msg.content,
     status: msg.status,
     sentAt: msg.sentAt,
+    type: msg.type || "text",
+    duration: msg.duration || null,
+    senderName:msg.senderName
   }));
 
   return {

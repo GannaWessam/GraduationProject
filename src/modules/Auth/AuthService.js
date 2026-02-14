@@ -31,8 +31,13 @@ const {
   Payment,
   productCourse,
   studentCourse,
+  Admin,
+  supervisor,
+  trainer,
+  SuperAdmin
 } = require("../../models/index.js");
 const { where } = require("sequelize");
+
 
 async function registerUser(payload, idImage) {
   const {
@@ -162,10 +167,26 @@ async function loginUser(email, password, rememberMe = false) {
   const user = await findUserByEmail(email);
   if (!user) throw new Error("invalid_email");
 
-  const student = await Student.findOne({ where: { userId: user.userId } });
-  // user.Student = student;
-
-  // console.log(student);
+  let USER;
+  let NAME;
+  if(user.role === "STUDENT"){
+      USER = await Student.findOne({ where: { userId: user.userId } });
+      NAME = USER.fullName;
+  }else if(user.role === "ADMIN"){
+      USER = await Admin.findOne({ where: { userId: user.userId } });
+      NAME = USER.Name;
+  }else if(user.role === "SUPERVISOR"){
+      USER = await supervisor.findOne({ where: { userId: user.userId } });
+      NAME = USER.Name;
+  }
+  else if(user.role === "SUPERADMIN"){
+        USER=await SuperAdmin.findOne({ where: { userId: user.userId } });
+        NAME=USER.Name;
+  }
+  else{
+      USER = await trainer.findOne({ where: { userId: user.userId } });
+      NAME = USER.Name;
+  }
 
   await comparePassword(password, user.passwordHash);
   const permissions = await user.getPermissions({
@@ -173,17 +194,17 @@ async function loginUser(email, password, rememberMe = false) {
   });
   const jwtToken = token.generateToken(
     email,
-    student?.fullName,
+    NAME,
     user.userId,
     user.role,
-    student?.NameEn,
-    student?.productId,
-    student?.status,
+    USER?.NameEn,
+    USER?.productId,
+    USER?.status,
     rememberMe,
-    permissions.map((p) => p.name)
+    user.tokenVersion
   );
 
-  return formatLoginResponse(user, jwtToken ,permissions); //msh 3ayz el name?
+  return formatLoginResponse(user, jwtToken ,permissions.map((p) => p.name)); //msh 3ayz el name?
 }
 
 async function resetPassword(email, newPassword) {

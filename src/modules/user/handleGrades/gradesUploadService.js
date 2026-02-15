@@ -12,12 +12,13 @@ const {
   course,
   examReservation,
 } = require("../../../models");
+const { error } = require("../../../Util/ApiResponse");
 
 /** Number of required exams that must be passed (grade >= 65) to set student.status = succeeded */
 const REQUIRED_EXAMS_PASSED = 7;
 
 /** Pass threshold: grade >= this value → status = succeeded */
-const PASS_GRADE = 65;
+const PASS_GRADE = 65.0;
 
 /**
  * Status for exam reservation based on grade and dates.
@@ -31,6 +32,7 @@ const PASS_GRADE = 65;
  * @returns {'succeeded' | 'failed' | 'absent' | 'reserved'}
  */
 function computeReservationStatus(grade, examDate, uploadDate) {
+  console.log("/n/n/n/n method computeReservationStatus /n/n/n/n")
   if (grade !== null && grade !== undefined) {
     return grade >= PASS_GRADE ? "succeeded" : "failed";
   }
@@ -51,6 +53,8 @@ function computeReservationStatus(grade, examDate, uploadDate) {
  * @returns {Promise<{ courseTitleToExam: Map<string, { examId: string, examDate: Date }> }>}
  */
 async function getEventExamsWithCourses(eventId, t) {
+  console.log("/n/n/n/n method getEventExamsWithCourses /n/n/n/n")
+
   const eventExists = await event.findByPk(eventId, { transaction: t });
   if (!eventExists) {
     throw new Error("Event not found");
@@ -71,6 +75,8 @@ async function getEventExamsWithCourses(eventId, t) {
 
   const courseTitleToExam = new Map();
   for (const ex of examsWithCourse) {
+    console.log(ex.course);
+    
     const c = ex.course;
     const title = c ? c.title : null;
     if (title != null && title !== "") {
@@ -78,6 +84,7 @@ async function getEventExamsWithCourses(eventId, t) {
       courseTitleToExam.set(title, {
         examId: ex.examId,
         examDate: ex.date,
+        name:c.title
       });
     }
   }
@@ -105,6 +112,7 @@ async function processOneStudent(
   courseTitleToExam,// map from our db
   t
 ) {
+    console.log("/n/n/n/n method processOneStudent /n/n/n/n")
   const studentRecord = await Student.findOne({
     where: { nationalId },
     transaction: t,
@@ -119,6 +127,7 @@ async function processOneStudent(
   for (const quiz of quizzes) {
     // Match exactly: use courseTitle as provided from Excel (Prompt A)
     const examInfo = courseTitleToExam.get(quiz.courseTitle);
+    courseTitleToExam.delete(quiz.courseTitle);
     if (!examInfo) {
       // No exam for this course in this event 
       throw new Error(`No exam found for course: ${quiz.courseTitle} for student: ${nationalId}`);
@@ -152,6 +161,11 @@ async function processOneStudent(
       examsUpdated += 1;
     }
   }
+  if(courseTitleToExam.size !== 0){
+    throw new Error(`this exams has diffrent namess in course title ${[...courseTitleToExam.values()].map((e)=>e.name)} , edit them | هذه الامتحانات لديها اسماء مختلفة فى عنواين الكورسات ${[...courseTitleToExam.values()].map((e)=>e.name)} برجاء تعديلها`)
+  }
+  
+
 
   // Student final status: succeeded only if all 7 required exams (for this event) have grade >= 65
   //courseTitleToExam gets the examId and examDate for each course in *specific event*
@@ -165,10 +179,10 @@ async function processOneStudent(
       transaction: t,
       raw: true,
     });
-    return reservations.filter( //filter the rows that are succeeded 
-        r.reservationStatus === "succeeded" ||
-        (r.result != null && Number(r.result) >= PASS_GRADE)
-    ).length;
+    return reservations.filter((r) => 
+    r.reservationStatus === "succeeded" ||
+    (r.result != null && Number(r.result) >= PASS_GRADE)
+).length;
   })();
 
   const studentSucceeded =
@@ -207,6 +221,8 @@ async function processOneStudent(
  * }>}
  */
 async function uploadFromExcel(parsedData, eventId) {
+    console.log("/n/n/n/n method uploadFromExcel /n/n/n/n")
+
   if (!parsedData || !Array.isArray(parsedData)) {
     throw new Error("parsedData must be a non-null array");
   }

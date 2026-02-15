@@ -1,3 +1,4 @@
+const { error } = require("../../../Util/ApiResponse");
 const { parseGradesFromExcelBuffer } = require("./gradesParsingService");
 const { uploadFromExcel } = require("./gradesUploadService");
 
@@ -17,7 +18,7 @@ const uploadGrades = async (req, res, next) => {
     }
 
     const { buffer, mimetype, originalname } = req.file;
-    const eventId = req.query.eventId || req.body?.eventId;
+    const eventId = req.params.id
 
     const isXlsxMime =
       mimetype ===
@@ -49,6 +50,7 @@ const uploadGrades = async (req, res, next) => {
         //}>
 
     // If eventId provided, persist grades and return upload summary
+    
     if (eventId) {
       const summary = await uploadFromExcel(parseResult.parsedData, eventId);
       return res.status(200).json({
@@ -58,6 +60,8 @@ const uploadGrades = async (req, res, next) => {
         errors: parseResult.errors,
         parsedData: parseResult.parsedData,
       });
+    }else{
+      throw new error("EVENT ID IS REQUIERD");
     }
 
     // No eventId: return parsing result only (no DB insertion)

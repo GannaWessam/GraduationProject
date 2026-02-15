@@ -5,13 +5,13 @@ async function seedCoursesAndPackage() {
   try {
     // ----- 1️⃣ كورسات -----
     const courseTitles = [
-      "IT V3",
-      "Word V3",
-      "Powerpoint V3",
-      "Database V3",
-      "Web V3",
-      "Mobile V3",
-      "Excel V3"
+      "Quiz: IT V3 (Real)",
+      "Quiz: Word V3 (Real)",
+      "Quiz: Powerpoint V3 (Real)",
+      "Quiz: Database V3 (Real)",
+      "Quiz: Web V3 (Real)",
+      "Quiz: Mobile V3 (Real)",
+      "Quiz: Excel V3 (Real)"
     ];
 
     const coursesPayload = courseTitles.map(title => ({

@@ -72,7 +72,7 @@ const nationalIds = [
 
 const { sequelize, User, Student, event, exam, packageCourse } = require("../src/models");
 
-const EVENT_ID = "52657cef-71d3-426b-87da-15bc3fa0503d";
+const EVENT_ID = "d5009952-5303-49b7-8c42-3bab51f679cf";
 
 /** Ensure the event has exam rows for each course in its package. */
 async function ensureEventHasExams() {

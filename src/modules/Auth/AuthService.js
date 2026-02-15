@@ -39,7 +39,7 @@ const {
 const { where } = require("sequelize");
 
 
-async function registerUser(payload, idImage) {
+async function registerUser(payload, idImage,req) {
   const {
     OCR,
     email,
@@ -146,6 +146,13 @@ async function registerUser(payload, idImage) {
     }
 
     // ✅ Return the formatted response
+  //    req.audit.user = {
+  //   _id: user.userId,
+  //   email: user.email,
+  //   name: NAME,
+  // };
+
+  // req.audit.message = "Admin loggedIn successfully";
     return {
       success: true,
       message: "Registration completed successfully",
@@ -163,7 +170,7 @@ async function registerUser(payload, idImage) {
   });
 }
 
-async function loginUser(email, password, rememberMe = false) {
+async function loginUser(email, password, rememberMe = false,req) {
   const user = await findUserByEmail(email);
   if (!user) throw new Error("invalid_email");
 
@@ -204,6 +211,13 @@ async function loginUser(email, password, rememberMe = false) {
     user.tokenVersion
   );
 
+  req.audit.user = {
+    _id: user.userId,
+    email: user.email,
+    name: NAME,
+  };
+
+  req.audit.message = "Admin loggedIn successfully";
   return formatLoginResponse(user, jwtToken ,permissions.map((p) => p.name)); //msh 3ayz el name?
 }
 

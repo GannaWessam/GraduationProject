@@ -13,33 +13,30 @@ class CloseExpiredEventsService {
 
   init() {
     this.cronJob = cron.schedule(
-      "0 0 * * *",
+      "0 1 * * *",
       async () => {
         await this.processExpiredEvents();
       },
       {
         scheduled: true,
-        timezone: "UTC",
-      }
+        timezone: "Africa/Cairo",
+      },
     );
 
     console.log(
-      "Close Expired Events Service initialized - Running daily at 00:00 UTC"
+      "Close Expired Events Service initialized - Running daily at 03:00 AM Egypt time",
     );
   }
-
   async processExpiredEvents() {
     if (this.isRunning) {
-      console.log(
-        "Close Expired Events process already running, skipping..."
-      );
+      console.log("Close Expired Events process already running, skipping...");
       return;
     }
 
     this.isRunning = true;
     const startTime = new Date();
     console.log(
-      `\n[${startTime.toISOString()}] Starting expired events check...`
+      `\n[${startTime.toISOString()}] Starting expired events check...`,
     );
 
     try {
@@ -63,9 +60,7 @@ class CloseExpiredEventsService {
         return;
       }
 
-      console.log(
-        `Found ${expiredEvents.length} expired event(s) to close:`
-      );
+      console.log(`Found ${expiredEvents.length} expired event(s) to close:`);
 
       const closedEvents = [];
       const failedEvents = [];
@@ -73,7 +68,7 @@ class CloseExpiredEventsService {
       for (const expiredEvent of expiredEvents) {
         try {
           console.log(
-            `\nProcessing event: ${expiredEvent.eventName} (ID: ${expiredEvent.eventId})`
+            `\nProcessing event: ${expiredEvent.eventName} (ID: ${expiredEvent.eventId})`,
           );
           console.log(`Type: ${expiredEvent.type}`);
           console.log(`Reservation End Date: ${expiredEvent.endDateRes}`);
@@ -91,7 +86,7 @@ class CloseExpiredEventsService {
         } catch (error) {
           console.error(
             `Failed to close event ${expiredEvent.eventName} (ID: ${expiredEvent.eventId}):`,
-            error.message
+            error.message,
           );
 
           failedEvents.push({
@@ -106,7 +101,7 @@ class CloseExpiredEventsService {
       const duration = ((endTime - startTime) / 1000).toFixed(2);
 
       console.log(
-        `\n[${endTime.toISOString()}] Expired Events Processing Summary:`
+        `\n[${endTime.toISOString()}] Expired Events Processing Summary:`,
       );
       console.log(`Successfully closed: ${closedEvents.length} event(s)`);
       console.log(`Failed to close: ${failedEvents.length} event(s)`);
@@ -116,7 +111,7 @@ class CloseExpiredEventsService {
         console.log(`\nClosed Events List:`);
         closedEvents.forEach((evt, index) => {
           console.log(
-            `${index + 1}. ${evt.eventName} (${evt.type}) - ID: ${evt.eventId}`
+            `${index + 1}. ${evt.eventName} (${evt.type}) - ID: ${evt.eventId}`,
           );
         });
       }
@@ -153,6 +148,10 @@ class CloseExpiredEventsService {
   }
 }
 
-const closeExpiredEventsService = new CloseExpiredEventsService();
+const service = new CloseExpiredEventsService();
 
-module.exports = closeExpiredEventsService;
+module.exports = {
+  name: "CloseExpiredEventsService",
+  init: () => service.init(),
+  stop: () => service.stop(),
+};

@@ -15,8 +15,10 @@ require("./src/models/Student.js");
 require("./src/Services/WebSocket.js");
 
 // Initialize background services
-const closeExpiredEventsService = require("./src/background/closeExpiredEvents.js");
-closeExpiredEventsService.init();
+const backgroundServices = require("./src/background");
+
+backgroundServices.loadServices();
+backgroundServices.startAll();
 
 const auditContext = require("./src/middlewares/auditContext");
 const app = express();

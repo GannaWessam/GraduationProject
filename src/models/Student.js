@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-
+require('dotenv').config();
 module.exports = (sequelize) => {
   const Student = sequelize.define(
     "Student",
@@ -30,7 +30,7 @@ module.exports = (sequelize) => {
         allowNull: true,
         get() {
           const rawValue = this.getDataValue("nationalIdImage");
-          return rawValue ? `http://localhost:3000/uploads/${rawValue}` : null;
+          return rawValue ? `${process.env.HOST_BACK}/uploads/${rawValue}` : null;
         },
       },
       university: { type: DataTypes.STRING(150), allowNull: true },

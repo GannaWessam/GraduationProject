@@ -48,7 +48,7 @@ module.exports = (req, res, next) => {
       await logger.log({
         ip: req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress,
 
-        user: actor,
+        user: actor || req.audit.user,
 
         type: methodToType(req.method),
 

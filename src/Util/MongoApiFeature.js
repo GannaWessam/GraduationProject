@@ -3,6 +3,7 @@ class MongoApiFeature {
     this.query = query;
     this.model = model;
     this.mongoQuery = model.find();
+    this.mongoFilter = {};
   }
 
   // ---------------- PAGINATION ----------------
@@ -21,7 +22,14 @@ class MongoApiFeature {
   // ---------------- FILTER ----------------
   filter() {
     const queryObj = { ...this.query };
-    const excluded = ["page", "limit", "sort", "fields", "search", "searchFields"];
+    const excluded = [
+      "page",
+      "limit",
+      "sort",
+      "fields",
+      "search",
+      "searchFields",
+    ];
     excluded.forEach((el) => delete queryObj[el]);
 
     const filter = {};
@@ -55,6 +63,7 @@ class MongoApiFeature {
       }
     }
 
+    this.mongoFilter = { ...this.mongoFilter, ...filter };
     this.mongoQuery = this.mongoQuery.find(filter);
     return this;
   }
@@ -89,14 +98,23 @@ class MongoApiFeature {
         [field]: { $regex: keyword, $options: "i" },
       }));
 
-      this.mongoQuery = this.mongoQuery.find({ $or: or });
+      const searchFilter = { $or: or };
+
+      this.mongoFilter = {
+        ...this.mongoFilter,
+        ...searchFilter,
+      };
+
+      this.mongoQuery = this.mongoQuery.find(searchFilter);
     }
     return this;
   }
 
   async exec() {
+    const total = await this.model.countDocuments(this.mongoFilter);
+
     const data = await this.mongoQuery.lean();
-    const total = await this.model.countDocuments();
+
     return { data, total };
   }
 }

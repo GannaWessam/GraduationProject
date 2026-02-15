@@ -544,7 +544,7 @@ async function getStudentCourseStatus(userId) {
   return { doneCourses, allowedForTraining, allowedForExam };
 }
 
-const ApiFeature = require("../../../../Util/ApiFeatures"); // adjust path
+const ApiFeature = require("../../../../Util/ApiFeatures"); 
 
 async function getAllOpenEvents(productId, query, language = null) {
   const apiFeature = new ApiFeature(query)
@@ -561,7 +561,6 @@ async function getAllOpenEvents(productId, query, language = null) {
     endDateRes: { [Op.gte]: new Date() }
   };
 
-  // Filter by language if provided (matches student's StudyLan)
   if (language) {
     apiFeature.options.where.language = language;
   }

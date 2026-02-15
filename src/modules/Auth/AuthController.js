@@ -13,7 +13,7 @@ const OTP = new OtpService(process.env.GMAIL_USER, process.env.GMAIL_PASS);
 
 exports.register = async (req, res, next) => {
   try {
-    const result = await registerUser(req.body, req.file?.filename);
+    const result = await registerUser(req.body, req.file?.filename,req);
 
     return res.status(201).json(ApiResponse.created(result));
   } catch (error) {
@@ -24,7 +24,7 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password, rememberMe = false } = req.body;
-    const result = await loginUser(email, password, rememberMe);
+    const result = await loginUser(email, password, rememberMe,req);
 
     return res.status(200).json(ApiResponse.success(result));
   } catch (error) {

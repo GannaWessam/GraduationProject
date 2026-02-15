@@ -70,45 +70,102 @@ const nationalIds = [
 "29701040100226",
 ];
 
-const { sequelize, User, Student } = require("../src/models");
+const { sequelize, User, Student, event, exam, packageCourse } = require("../src/models");
+
+const EVENT_ID = "52657cef-71d3-426b-87da-15bc3fa0503d";
+
+/** Ensure the event has exam rows for each course in its package. */
+async function ensureEventHasExams() {
+  const eventRow = await event.findByPk(EVENT_ID);
+  if (!eventRow || !eventRow.packageId) return;
+
+  const packageCourses = await packageCourse.findAll({
+    where: { packageId: eventRow.packageId },
+    attributes: ["courseId"],
+  });
+  if (packageCourses.length === 0) return;
+
+  const existingExams = await exam.findAll({
+    where: { eventId: EVENT_ID },
+    attributes: ["courseId"],
+  });
+  const existingCourseIds = new Set(existingExams.map((e) => e.courseId?.toString()));
+
+  const examDate = new Date();
+  examDate.setDate(examDate.getDate() + 14);
+
+  for (const pc of packageCourses) {
+    if (existingCourseIds.has(pc.courseId?.toString())) continue;
+    await exam.create({
+      eventId: EVENT_ID,
+      courseId: pc.courseId,
+      date: examDate,
+      place: null,
+      supervisorId: null,
+    });
+    existingCourseIds.add(pc.courseId?.toString());
+  }
+}
 
 async function seedStudents() {
   try {
     await sequelize.authenticate();
     console.log("DB Connected...");
 
+    await ensureEventHasExams();
+
     const hashedPassword = await bcrypt.hash("12345678", 10);
 
     for (let i = 0; i < nationalIds.length; i++) {
-
-      const userId = uuidv4();
       const nationalId = nationalIds[i];
+      const email = `student${i + 1}@test.com`;
 
-      // 1️⃣ Create User
-      const user = await User.create({
-        userId: userId,
-        email: `student${i + 1}@test.com`,
-        passwordHash: hashedPassword,
-        role: "STUDENT",
+      // 1️⃣ Find or create User (idempotent)
+      const [user] = await User.findOrCreate({
+        where: { email },
+        defaults: {
+          userId: uuidv4(),
+          email,
+          passwordHash: hashedPassword,
+          role: "STUDENT",
+        },
       });
 
-      // 2️⃣ Create Student
-      await Student.create({
-        userId: user.userId,
-        fullName: `Student ${i + 1}`,
-        NameEn: `Student ${i + 1}`,
-        Mobile: `0100000${(1000 + i)}`,
-        StudyLan: "EN",
-        nationality: "Egyptian",
-        nationalId: nationalId,
-        status: "approved",
-        university: "Cairo University",
-        college: "Computer Science",
-        department: "Information Systems",
-        type: "1",
+      // 2️⃣ Find or create Student (idempotent)
+      const [, studentCreated] = await Student.findOrCreate({
+        where: { userId: user.userId },
+        defaults: {
+          userId: user.userId,
+          fullName: `Student ${i + 1}`,
+          NameEn: `Student ${i + 1}`,
+          Mobile: `0100000${1000 + i}`,
+          StudyLan: "EN",
+          nationality: "Egyptian",
+          nationalId,
+          status: "approved",
+          university: "Cairo University",
+          college: "Computer Science",
+          department: "Information Systems",
+          type: "1",
+        },
       });
-    await reserve.registerForExam(user.userId ,"66ab5bc1-544d-4d7e-8468-fab7979cb90e" );
-      console.log(`✔ Created Student ${i + 1}`);
+
+      // 3️⃣ Register for event (ignore if already reserved)
+      try {
+        await reserve.registerForExam(user.userId, EVENT_ID);
+      } catch (err) {
+        if (err.name === "SequelizeUniqueConstraintError" && err.fields?.reservationId) {
+          console.error("\n❌ examReservation table has wrong primary key. Run: node scripts/fix-examReservation-pk.js\n");
+          throw err;
+        }
+        if (err.message?.includes("reserve") || err.message?.includes("register") || err.code === "23505") {
+          // already reserved or duplicate
+        } else {
+          throw err;
+        }
+      }
+
+      console.log(`✔ ${studentCreated ? "Created" : "Exists"} Student ${i + 1}`);
     }
 
     console.log("🎉 ALL STUDENTS SEEDED SUCCESSFULLY");

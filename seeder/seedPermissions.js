@@ -20,7 +20,8 @@ const seedAllPermissionsToUser = async (userId) => {
   }
 };
 
-const userId = "5020cb8e-8e25-46b2-aa6e-67db7312781c"
+// const userId = "5020cb8e-8e25-46b2-aa6e-67db7312781c"
+const userId = "0b693827-9eae-41e2-a2fa-9ce5907c9b62" //ganna's
 if (!userId) {
   console.error("Please provide a userId. Example: node seedPermissions.js 1");
   process.exit(1);

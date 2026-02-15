@@ -31,7 +31,7 @@ router.get(
 router.put(
   "/:id",
   validateToken,
-  checkPermission("UPDATE_COURSE"),
+  checkPermission("EDIT_COURSE"),
   catchError(CourseController.updateCourse)
 );
 router.delete(

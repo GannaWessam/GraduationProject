@@ -24,7 +24,7 @@ router.post(
 router.put(
   "/updateNationalId/:id",
   validateToken,
-  checkPermission("UPDATE_USER"),
+  checkPermission("EDIT_USER"),
   catchError(usersController.updateStudentNationalIdController)
 );
 

@@ -27,7 +27,7 @@ router.put(
 router.put(
   "/:id",
   validateToken,
-  checkPermission("UPDATE_EVENT"),
+  checkPermission("EDIT_EVENT"),
   catchError(eventController.updateEvent)
 );
 

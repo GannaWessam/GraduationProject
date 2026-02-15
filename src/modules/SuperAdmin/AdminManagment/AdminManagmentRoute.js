@@ -21,19 +21,19 @@ router.get(
 router.post(
   "/add-Admin",
   validateToken,
-  checkPermission("VIEW_ADMIN"),
+  checkPermission("ADD_ADMIN"),
   catchError(AdminController.register),
 );
 router.put(
   "/:id",
   validateToken,
-  checkPermission("VIEW_ADMIN"),
+  checkPermission("EDIT_ADMIN"),
   AdminController.update,
 );
 router.delete(
   "/:id",
   validateToken,
-  checkPermission("VIEW_ADMIN"),
+  checkPermission("DELETE_ADMIN"),
   AdminController.remove,
 );
 

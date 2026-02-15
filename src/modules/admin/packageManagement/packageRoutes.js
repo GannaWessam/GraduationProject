@@ -26,7 +26,7 @@ router.get(
 router.put(
   "/:id",
   validateToken,
-  checkPermission("UPDATE_PACKAGE"),
+  checkPermission("EDIT_PACKAGE"),
   catchError(packageController.update)
 );
 router.delete(

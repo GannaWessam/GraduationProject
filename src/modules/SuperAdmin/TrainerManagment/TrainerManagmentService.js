@@ -64,7 +64,7 @@ async function getAllTrainers(features) {
           {
             model: Permission,
             as: "permissions",
-            attributes: ["permissionId", "name"],
+            attributes: ["permissionId", "name","viewName"],
             through: {
               attributes: [],
             },

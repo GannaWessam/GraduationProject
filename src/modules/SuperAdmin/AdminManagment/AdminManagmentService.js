@@ -92,7 +92,7 @@ async function getAdminById(id, req) {
           {
             model: Permission,
             as: "permissions",
-            attributes: ["permissionId", "name"],
+            attributes: ["permissionId", "name","viewName"],
             through: { attributes: [] },
           },
         ],

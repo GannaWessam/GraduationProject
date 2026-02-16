@@ -18,14 +18,14 @@ router.post(
 );
 router.get(
   "/",
-  // validateToken,
-  checkPermission("VIEW_COURSES"),
+  validateToken,
+  checkPermission("VIEW_COURSE"),
   catchError(CourseController.getAllCoursesController)
 );
 router.get(
   "/:id",
   validateToken,
-  checkPermission("VIEW_COURSES"),
+  checkPermission("VIEW_COURSE"),
   catchError(CourseController.getCourseById)
 );
 router.put(

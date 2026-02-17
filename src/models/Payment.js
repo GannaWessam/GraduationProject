@@ -4,8 +4,8 @@ module.exports = (sequelize) => {
   const Payment = sequelize.define('Payment', {
     paymentId: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4, },
     userId: { type: DataTypes.UUID, allowNull: false,},
-    receiptId: { type: DataTypes.STRING, allowNull: false },
-    orderId: { type: DataTypes.STRING(100), allowNull: false,},
+    receiptId: { type: DataTypes.STRING, allowNull: true },
+    orderId: { type: DataTypes.STRING(100), allowNull: true,},
     productId: { type: DataTypes.UUID, allowNull: true,},
     amount: { type: DataTypes.DECIMAL(12, 2), allowNull: true },
     timestamp: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },

@@ -72,7 +72,7 @@ const getUser = async (email) => {
 const getUserFees = async (userId) => {
   const user = await Payment.findAll({
     where: { userId },
-    include: [{ model: Product }] 
+    include: [{ model: Product  }] 
   });
   
   if (!user) throw new Error("invalid_email");

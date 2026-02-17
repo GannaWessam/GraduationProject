@@ -54,7 +54,6 @@ Payment.belongsTo(User, {
 
 Payment.belongsTo(Product, {
   foreignKey: "productId",
-  as: "product",
 });
 Product.hasMany(Payment, {
   foreignKey: "productId",

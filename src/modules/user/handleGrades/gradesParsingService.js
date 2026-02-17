@@ -153,20 +153,20 @@ async function parseGradesFromExcelBuffer(buffer) {
         : "";
     const nationalIdTrimmed = nationalIdRaw.trim();
 
-    if (!isValidNationalId(nationalIdTrimmed)) {
-      errors.push({
-        row: rowNumber,
-        reason: "Invalid nationalId (must be 14 digits)",
-      });
-      continue;
-    }
+    // if (!isValidNationalId(nationalIdTrimmed)) {
+    //   errors.push({
+    //     row: rowNumber,
+    //     reason: "Invalid nationalId (must be 14 digits)",
+    //   });
+    //   continue;
+    // }
 
     const student = await Student.findOne({
       where: { nationalId: nationalIdTrimmed },
     });
     if (!student) {
       errors.push({ row: rowNumber, reason: "Student not found" });
-      continue;
+      throw new Error(`Student not found for nationalId: ${nationalIdTrimmed}`)
     }
 
     const quizzes = [];

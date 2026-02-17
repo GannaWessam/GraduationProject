@@ -81,6 +81,16 @@ const errorMessages = {
   "event_not_found_excel": { code: 404, msg: "Event not found | الفعالية غير موجودة" },
   "excel_generation_failed": { code: 500, msg: "Failed to generate Excel file | فشل في إنشاء ملف Excel" },
   "error_in_getting_student_data": { code: 500, msg: "Error in getting student data | خطأ في الحصول على بيانات الطلاب" },
+
+  /** Fallback for any error not in this map (centralized error handler uses this for audit) */
+  "internal_server_error": { code: 500, msg: "Internal server error | خطأ داخلي في الخادم" },
 };
 
-module.exports = { errorMessages };
+
+function getErrorPayload(errorKey) {
+  const entry = errorMessages[errorKey];
+  if (entry) return entry;
+  return errorMessages["internal_server_error"];
+}
+
+module.exports = { errorMessages, getErrorPayload };

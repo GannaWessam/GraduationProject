@@ -135,7 +135,7 @@ async function updateSuperAdmin(id, updateData, req) {
   };
 
   req.audit.message =
-    "Superadmin updated successfully | تم تحديث بيانات المسؤةل بنجاح";
+    "Superadmin updated successfully | تم تحديث بيانات المسؤول بنجاح";
   return {
     success: true,
     message: "superadmin updated successfully",

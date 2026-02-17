@@ -3,16 +3,16 @@ const paymentService = require('./paymentService');
 const createPaymentAndRedirect = async (req, res) => {
   try {
 
-    // لو عايز تاخد بيانات من الفرونت
-    const { billingDetails, receiptIds, studentReferenceId } = req.body;
+    const userId = req.userData.id;
+    const { email, receiptIds} = req.body;
 
     const paymentData = await paymentService.createPayment({
-      billingDetails,
+      email,
       receiptIds,
-      studentReferenceId
+      userId
     });
 
-    const { SenderID, RandomSecret, HashedRequestObject , RequestObject } = paymentData;
+    const { SenderID, RandomSecret, HashedRequestObject , RequestObject } = paymentData.formData;
 
     return res.send(`
       <!DOCTYPE html>

@@ -1,6 +1,7 @@
 const Log = require("../models/Log");
 
 const logger = {
+  
   log: async ({ ip, user, type, level, affectedUser,affectedThing, message, meta ,userAgent}) => {
     try {
       await Log.create({ ip, user, type, level, affectedUser, affectedThing,message, meta ,userAgent });

@@ -2,12 +2,17 @@ const logger = require("../Util/logger");
 
 const methodToType = (method) => {
   switch (method) {
-    case "GET": return "read";
-    case "POST": return "modification";
+    case "GET":
+      return "read";
+    case "POST":
+      return "modification";
     case "PUT":
-    case "PATCH": return "edit";
-    case "DELETE": return "delete";
-    default: return "read";
+    case "PATCH":
+      return "edit";
+    case "DELETE":
+      return "delete";
+    default:
+      return "read";
   }
 };
 
@@ -32,41 +37,43 @@ const getActorFromRequest = (req) => {
 };
 
 module.exports = (req, res, next) => {
-
   req.audit = {
     affectedUser: null,
     affectedThing: null,
-    message: null
+    message: null,
   };
 
   res.on("finish", async () => {
     try {
+      if (req.method === "GET") {
+        return;
+      } else {
+        const actor = getActorFromRequest(req);
 
-        if (req.method === "GE") return;
-      const actor = getActorFromRequest(req);
-      
-      await logger.log({
-        ip: req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+        await logger.log({
+          ip:
+            req.ip ||
+            req.headers["x-forwarded-for"] ||
+            req.socket.remoteAddress,
 
-        userAgent : req.headers['user-agent'],
+          userAgent: req.headers["user-agent"],
 
-        user: actor || req.audit.user,
+          user: actor || req.audit.user,
 
-        type: methodToType(req.method),
+          type: methodToType(req.method),
 
-        level: res.statusCode >= 400 ? "error" : "success",
+          level: res.statusCode >= 400 ? "error" : "success",
 
-        affectedUser: req.audit.affectedUser || undefined,
-        affectedThing: req.audit.affectedThing || undefined,
+          affectedUser: req.audit.affectedUser || undefined,
+          affectedThing: req.audit.affectedThing || undefined,
 
-        message:
-          req.audit.message ||
-          `${req.method} ${req.originalUrl} ${res.statusCode}`,
-
-      });
-
+          message:
+            req.audit.message ||
+            `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        });
+      }
     } catch (err) {
-        console.error("Audit logging failed:", err.message);
+      console.error("Audit logging failed:", err.message);
     }
   });
 

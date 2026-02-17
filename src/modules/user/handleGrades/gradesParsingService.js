@@ -166,7 +166,9 @@ async function parseGradesFromExcelBuffer(buffer) {
     });
     if (!student) {
       errors.push({ row: rowNumber, reason: "Student not found" });
-      throw new Error("student_not_found_for_national_id");
+      const err = new Error("student_not_found_for_national_id");
+      err.nationalId = nationalIdTrimmed;
+      throw err;
     }
 
     const quizzes = [];

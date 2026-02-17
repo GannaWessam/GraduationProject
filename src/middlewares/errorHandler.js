@@ -16,7 +16,11 @@ function errorHandler(err, req, res, next) {
     req.audit.message = msg;
   }
 
-  return res.status(code).json(ApiResponse.error(code, msg, [msg]));
+  const response = ApiResponse.error(code, msg, [msg]);
+  if (err && err.nationalId !== undefined) {
+    response.details = { nationalId: err.nationalId };
+  }
+  return res.status(code).json(response);
 }
 
 module.exports = errorHandler;

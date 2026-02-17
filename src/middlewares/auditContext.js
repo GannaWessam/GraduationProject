@@ -42,7 +42,7 @@ module.exports = (req, res, next) => {
   res.on("finish", async () => {
     try {
 
-        if (req.method === "GE") return;
+        if (req.method === "GET") return;
       const actor = getActorFromRequest(req);
       
       await logger.log({

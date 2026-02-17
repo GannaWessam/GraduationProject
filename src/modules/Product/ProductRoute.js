@@ -14,13 +14,11 @@ router.post(
 router.get(
   "/",
   validateToken,
-  checkPermission("VIEW_PRODUCT"),
   catchError(ProductController.getAllProductsController)
 );
 router.get(
   "/:id",
   validateToken,
-  checkPermission("VIEW_PRODUCT"),
   catchError(ProductController.getProductById)
 );
 router.put(

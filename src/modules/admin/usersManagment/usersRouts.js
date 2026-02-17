@@ -59,7 +59,6 @@ router.get(
 router.get(
   "/student/:id",
   validateToken,
-  checkPermission("VIEW_USER"),
   catchError(usersController.getStudentByIdController)
 );
 

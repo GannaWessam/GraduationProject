@@ -40,3 +40,30 @@
 //   await browser.close();
 //   return pdf;
 // };
+const { efada, Student} = require('../../../models/index');
+
+
+const efadaService = {
+  getAll: async () => {
+    const records = await efada.findAll({
+      include: [
+        {
+          model: Student,
+          attributes: ['userId', 'fullName', 'nationalId'] 
+        }
+      ],
+      order: [['date', 'DESC']] 
+    });
+    return records;
+  },
+
+  add: async (userId) => {
+    const newEfada = await efada.create({
+      userId: userId,
+      date: new Date(),
+    });
+    return newEfada;
+  }
+};
+
+module.exports = efadaService;

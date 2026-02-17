@@ -26,3 +26,44 @@
 //     });
 //   }
 // };
+const efadaService = require('./EfadaService');
+
+const efadaController = {
+  getAllEfadas: async (req, res) => {
+    try {
+      const efadas = await efadaService.getAll();
+      res.status(200).json({
+        success: true,
+        data: efadas
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching efada records'
+      });
+    }
+  },addEfada: async (req, res) => {
+    try {
+    const userId = req.userData.id;
+      if (!userId) {
+        return res.status(400).json({ success: false, message: 'Date is required' });
+      }
+
+      const newEfada = await efadaService.add(userId);
+
+      res.status(201).json({
+        success: true,
+        data: newEfada
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: 'Error creating efada record'
+      });
+    }
+  }
+};
+
+module.exports = efadaController;

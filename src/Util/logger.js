@@ -1,9 +1,9 @@
 const Log = require("../models/Log");
 
 const logger = {
-  log: async ({ ip, user, type, level, affectedUser,affectedThing, message, meta }) => {
+  log: async ({ ip, user, type, level, affectedUser,affectedThing, message, meta ,userAgent}) => {
     try {
-      await Log.create({ ip, user, type, level, affectedUser, affectedThing,message, meta });
+      await Log.create({ ip, user, type, level, affectedUser, affectedThing,message, meta ,userAgent });
     } catch (err) {
       console.error("Failed to save log:", err);
     }

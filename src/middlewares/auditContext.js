@@ -42,11 +42,13 @@ module.exports = (req, res, next) => {
   res.on("finish", async () => {
     try {
 
-        if (req.method === "GET") return;
+        if (req.method === "GE") return;
       const actor = getActorFromRequest(req);
-
+      
       await logger.log({
         ip: req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+
+        userAgent : req.headers['user-agent'],
 
         user: actor || req.audit.user,
 

@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const logSchema = new mongoose.Schema({
   ip: { type: String, required: true },
+  userAgent: { type: String, required: false },
   user: {
     _id: { type: String, required: false }, 
     email: { type: String, required: false }, 

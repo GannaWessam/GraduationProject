@@ -146,9 +146,9 @@ const createExamPackage = async (examData) => {
   const extra = requestCourseIds.filter((id) => !packageCourseIds.includes(id));
 
   if (missing.length > 0)
-    throw new Error(`missing courses from package: ${missing.join(", ")}`);
+    throw new Error("missing_courses_from_package");
   if (extra.length > 0)
-    throw new Error(`extra courses not in package: ${extra.join(", ")}`);
+    throw new Error("extra_courses_not_in_package");
 
   // ✅ Create exams for each course (one event for the first course only)
   let createNewEventDespiteTheSameData = true;
@@ -169,7 +169,7 @@ const createExamPackage = async (examData) => {
 const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
   const validationErrors = validateExamData(examData);
   if (validationErrors.length > 0)
-    throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
+    throw new Error("validation_failed");
 
   const { eventt, examm } = await sequelize.transaction(async (t) => {
     // ✅ Validate course

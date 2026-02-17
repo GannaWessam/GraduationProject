@@ -16,15 +16,11 @@ async function validateSession(sessionData, ignoreSessionId = null) {
     const sessionDate = new Date(sessionData.date);
   
     if (sessionDate < new Date(eventObj.startDate)) {
-      throw new Error(
-        `Session date cannot be before event start date (${eventObj.startDate.toISOString().split('T')[0]})`
-      );
+      throw new Error("session_date_before_event_start");
     }
-  
+
     if (sessionDate > new Date(eventObj.endDate)) {
-      throw new Error(
-        `Session date cannot be after event end date (${eventObj.endDate.toISOString().split('T')[0]})`
-      );
+      throw new Error("session_date_after_event_end");
     }
   
     // ✅ Time validation

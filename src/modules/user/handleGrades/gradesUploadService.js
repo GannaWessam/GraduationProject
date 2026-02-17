@@ -11,6 +11,7 @@ const {
   exam,
   course,
   examReservation,
+  studentCourse,
 } = require("../../../models");
 const { error } = require("../../../Util/ApiResponse");
 
@@ -92,6 +93,49 @@ async function getEventExamsWithCourses(eventId, t) {
   return { courseTitleToExam };
 }
 
+async function handleFailedExam(courseTitle, userId) {
+  console.log("/n/n/n/n method handleFailedExam /n/n/n/n");
+  const courseRecord = await course.findOne({
+    where: { title: courseTitle },
+  });
+  if (!courseRecord) {
+    throw new Error("course_not_found_by_title");
+  }
+  try {
+    await studentCourse.update(
+      {
+        examStatus: "failed",
+      },
+      {
+        where: { courseId: courseRecord.courseId, userId: userId },
+      }
+    );
+  } catch (error) {
+    throw new Error("failed_to_update_student_course");
+  }
+}
+
+async function handleAbsentExam(courseTitle, userId) {
+  console.log("/n/n/n/n method handleAbsentExam /n/n/n/n");
+  const courseRecord = await course.findOne({
+    where: { title: courseTitle },
+  });
+  if (!courseRecord) {
+    throw new Error("course_not_found_by_title");
+  }
+  try {
+    await studentCourse.update(
+      {
+        examStatus: "absent",
+      },
+      {
+        where: { courseId: courseRecord.courseId, userId: userId },
+      }
+    );
+  } catch (error) {
+    throw new Error("failed_to_update_student_course");
+  }
+}
 /**
  * Process one student: find exam reservations by matching courseTitle to event's exams,
  * update or create examReservation rows, then update student status if all required exams passed.
@@ -118,20 +162,21 @@ async function processOneStudent(
     transaction: t,
   });
   if (!studentRecord) {
-    throw new Error(`Student not found for nationalId: ${nationalId}`);
+    throw new Error("student_not_found_for_national_id");
   }
 
   const userId = studentRecord.userId;
   let examsUpdated = 0;
+  // Per-student set of event courses not yet seen in this row (do not mutate shared courseTitleToExam)
+  const remainingInEvent = new Set(courseTitleToExam.keys());
 
   for (const quiz of quizzes) {
     // Match exactly: use courseTitle as provided from Excel (Prompt A)
     const examInfo = courseTitleToExam.get(quiz.courseTitle);
-    courseTitleToExam.delete(quiz.courseTitle);
     if (!examInfo) {
-      // No exam for this course in this event 
-      throw new Error(`No exam found for course: ${quiz.courseTitle} for student: ${nationalId}`);
+      throw new Error("no_exam_found_for_course_and_student");
     }
+    remainingInEvent.delete(quiz.courseTitle);
 
     const { examId, examDate } = examInfo;
     const status = computeReservationStatus(
@@ -139,6 +184,12 @@ async function processOneStudent(
       examDate,
       uploadDate
     );
+    if(status === "failed"){
+      await handleFailedExam(quiz.courseTitle,userId);
+    }
+    else if(status === "absent"){
+      await handleAbsentExam(quiz.courseTitle,userId);
+    }
     const resultValue =
       quiz.grade !== null && quiz.grade !== undefined
         ? String(quiz.grade)
@@ -161,10 +212,9 @@ async function processOneStudent(
       examsUpdated += 1;
     }
   }
-  if(courseTitleToExam.size !== 0){
-    throw new Error(`this exams has diffrent namess in course title ${[...courseTitleToExam.values()].map((e)=>e.name)} , edit them | هذه الامتحانات لديها اسماء مختلفة فى عنواين الكورسات ${[...courseTitleToExam.values()].map((e)=>e.name)} برجاء تعديلها`)
+  if (remainingInEvent.size !== 0) {
+    throw new Error("event_excel_courses_mismatch");
   }
-  
 
 
   // Student final status: succeeded only if all 7 required exams (for this event) have grade >= 65

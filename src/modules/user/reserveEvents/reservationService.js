@@ -112,9 +112,7 @@ const registerForExam = async (userId, eventId, req) => {
         existingEvent.startDate < eventData.endDate;
 
       if (overlap) {
-        throw new Error(
-          `You already have a reservation (${existingEvent.type}) that overlaps with this event.`
-        );
+        throw new Error("reservation_overlaps_with_event");
       }
     }
 
@@ -233,9 +231,7 @@ const registerForTraining = async (userId, eventId, req) => {
         eventData.startDate < ev.endDate && ev.startDate < eventData.endDate;
 
       if (overlap) {
-        throw new Error(
-          `You already have a reservation (${ev.type}) that overlaps with this event.`
-        );
+        throw new Error("reservation_overlaps_with_event");
       }
     }
 

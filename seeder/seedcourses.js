@@ -1,43 +1,70 @@
 const { sequelize, course, package, packageCourse } = require('../src/models'); // استيراد كل الموديلات
 const { v4: uuidv4 } = require('uuid');
 
+/** Original full format only — use these for name and title. */
+const COURSE_TITLES_ORIGINAL = [
+  "Quiz: IT V3 (Real)",
+  "Quiz: Word V3 (Real)",
+  "Quiz: Powerpoint V3 (Real)",
+  "Quiz: Database V3 (Real)",
+  "Quiz: Web V3 (Real)",
+  "Quiz: Mobile V3 (Real)",
+  "Quiz: Excel V3 (Real)",
+];
+
 async function seedCoursesAndPackage() {
   try {
-    // ----- 1️⃣ كورسات -----
-    const courseTitles = [
-      "Quiz: IT V3 (Real)",
-      "Quiz: Word V3 (Real)",
-      "Quiz: Powerpoint V3 (Real)",
-      "Quiz: Database V3 (Real)",
-      "Quiz: Web V3 (Real)",
-      "Quiz: Mobile V3 (Real)",
-      "Quiz: Excel V3 (Real)"
-    ];
+    // ----- 1️⃣ كورسات (original format only: "Quiz: X V3 (Real)") -----
+    const courseTitles = [...COURSE_TITLES_ORIGINAL];
 
-    const coursesPayload = courseTitles.map(title => ({
+    const coursesPayload = courseTitles.map((title) => ({
       name: title,
       title: title,
       priceEgyptian: 0,
       priceOther: 0,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }));
+
+    // Fix existing courses that were inserted with short format (e.g. "Web V3") → original format
+    const shortToFull = {
+      "IT V3": "Quiz: IT V3 (Real)",
+      "Word V3": "Quiz: Word V3 (Real)",
+      "Powerpoint V3": "Quiz: Powerpoint V3 (Real)",
+      "Database V3": "Quiz: Database V3 (Real)",
+      "Web V3": "Quiz: Web V3 (Real)",
+      "Mobile V3": "Quiz: Mobile V3 (Real)",
+      "Excel V3": "Quiz: Excel V3 (Real)",
+    };
+    const allCoursesInDb = await course.findAll({ attributes: ["courseId", "title", "name"] });
+    for (const c of allCoursesInDb) {
+      const fullTitle = shortToFull[c.title] || shortToFull[c.name];
+      if (fullTitle && (c.title !== fullTitle || c.name !== fullTitle)) {
+        await c.update({ title: fullTitle, name: fullTitle });
+        console.log(`✅ Updated course to original format: "${c.title}" → "${fullTitle}"`);
+      }
+    }
 
     const existingCourses = await course.findAll({
       where: { title: courseTitles },
-      attributes: ['courseId', 'title']
+      attributes: ["courseId", "title"],
     });
 
-    const existingTitles = new Set(existingCourses.map(c => c.title));
-    const coursesToInsert = coursesPayload.filter(c => !existingTitles.has(c.title));
+    const existingTitles = new Set(existingCourses.map((c) => c.title));
+    const coursesToInsert = coursesPayload.filter((c) => !existingTitles.has(c.title));
 
     let allCourses;
     if (coursesToInsert.length > 0) {
-      const createdCourses = await course.bulkCreate(coursesToInsert, { ignoreDuplicates: true, returning: true });
-      console.log(`✅ Seeded ${createdCourses.length} new courses (${existingTitles.size} already existed)`);
+      const createdCourses = await course.bulkCreate(coursesToInsert, {
+        ignoreDuplicates: true,
+        returning: true,
+      });
+      console.log(
+        `✅ Seeded ${createdCourses.length} new courses (${existingTitles.size} already existed) — all in original format "Quiz: X V3 (Real)"`
+      );
       allCourses = [...existingCourses, ...createdCourses];
     } else {
-      console.log(`✅ All courses already exist (${existingTitles.size} total)`);
+      console.log(`✅ All courses already exist (${existingTitles.size} total) — original format`);
       allCourses = existingCourses;
     }
 

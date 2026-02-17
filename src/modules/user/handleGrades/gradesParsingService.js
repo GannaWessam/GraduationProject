@@ -126,7 +126,7 @@ async function parseGradesFromExcelBuffer(buffer) {
   const nationalIdHeader = "ID number";
   const nationalIdCol = headerIndexMap.get(nationalIdHeader); //index of the column that contains the national id
   if (nationalIdCol == null) {
-    throw new Error(`Required column "${nationalIdHeader}" not found`);
+    throw new Error("required_column_not_found");
   }
 
   // Grade columns: only those whose header exists exactly in course.title
@@ -153,20 +153,20 @@ async function parseGradesFromExcelBuffer(buffer) {
         : "";
     const nationalIdTrimmed = nationalIdRaw.trim();
 
-    if (!isValidNationalId(nationalIdTrimmed)) {
-      errors.push({
-        row: rowNumber,
-        reason: "Invalid nationalId (must be 14 digits)",
-      });
-      continue;
-    }
+    // if (!isValidNationalId(nationalIdTrimmed)) {
+    //   errors.push({
+    //     row: rowNumber,
+    //     reason: "Invalid nationalId (must be 14 digits)",
+    //   });
+    //   continue;
+    // }
 
     const student = await Student.findOne({
       where: { nationalId: nationalIdTrimmed },
     });
     if (!student) {
       errors.push({ row: rowNumber, reason: "Student not found" });
-      continue;
+      throw new Error("student_not_found_for_national_id");
     }
 
     const quizzes = [];

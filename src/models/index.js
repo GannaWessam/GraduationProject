@@ -113,6 +113,15 @@ Admin.belongsTo(User, { foreignKey: "userId" });
 
 //==============================================================
 
+Product.belongsTo(course, {
+  foreignKey: 'productId',
+  as: 'product',
+});
+Product.hasMany(Payment, {
+  foreignKey: 'productId',
+  as: 'payments',
+});
+
 
 User.hasMany(Payment, {
   foreignKey: { name: "userId", allowNull: false },

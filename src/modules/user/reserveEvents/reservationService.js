@@ -16,7 +16,7 @@ const { Op } = require("sequelize");
 const { handleCreateGroupChatForEvent } = require("./helpers/helper");
 
 
-const registerForExam = async (userId, eventId) => {
+const registerForExam = async (userId, eventId, req) => {
   return sequelize.transaction(async (t) => {
     const eventData = await event.findOne({
       where: { eventId },
@@ -143,7 +143,24 @@ const registerForExam = async (userId, eventId) => {
     if (eventData.capacity <= eventData.numberOfRegistered) {
       eventData.status = "closed";
       await eventData.save();
-      await handleCreateGroupChatForEvent(eventData.eventId, eventData.eventName, eventData.type, t);
+      await handleCreateGroupChatForEvent(
+        eventData.eventId,
+        eventData.eventName,
+        eventData.type,
+        t
+      );
+    }
+
+    if (req && req.audit) {
+      req.audit.affectedUser = {
+        _id: userId,
+      };
+      req.audit.affectedThing = {
+        _id: eventData.eventId,
+        name: eventData.eventName,
+      };
+      req.audit.message =
+        "Exam event reserved successfully | تم حجز حدث الامتحان بنجاح";
     }
 
     return {
@@ -156,7 +173,7 @@ const registerForExam = async (userId, eventId) => {
   });
 };
 
-const registerForTraining = async (userId, eventId) => {
+const registerForTraining = async (userId, eventId, req) => {
   return sequelize.transaction(async (t) => {
     const eventData = await event.findOne({
       where: { eventId, type: "training" },
@@ -250,10 +267,27 @@ const registerForTraining = async (userId, eventId) => {
 
     if (eventData.numberOfRegistered >= eventData.capacity) {
       eventData.status = "closed";
-      await handleCreateGroupChatForEvent(eventData.eventId, eventData.eventName, "training", t);
+      await handleCreateGroupChatForEvent(
+        eventData.eventId,
+        eventData.eventName,
+        "training",
+        t
+      );
     }
 
     await eventData.save({ transaction: t });
+
+    if (req && req.audit) {
+      req.audit.affectedUser = {
+        _id: userId,
+      };
+      req.audit.affectedThing = {
+        _id: eventData.eventId,
+        name: eventData.eventName,
+      };
+      req.audit.message =
+        "Training event reserved successfully | تم حجز حدث التدريب بنجاح";
+    }
 
     return {
       message: `Training reserved successfully for ${trainingReservations.length} session(s).`,

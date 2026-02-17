@@ -7,7 +7,7 @@ const registerForExam = async (req, res, next) => {
   try {
     const userId = req.userData.id;
     const { eventId } = req.body;
-    const result = await reservationService.registerForExam(userId, eventId);
+    const result = await reservationService.registerForExam(userId, eventId, req);
     res.status(200).json(ApiResponse.success(result));
   } catch (error) {
     return next(error);
@@ -18,7 +18,7 @@ const registerForTraining = async (req, res, next) => {
   try {
     const userId =req.userData.id;
     const {  eventId } = req.body;
-    const result = await reservationService.registerForTraining(userId, eventId);
+    const result = await reservationService.registerForTraining(userId, eventId, req);
     res.status(200).json(ApiResponse.success(result, "User registered for training"));
   } catch (error) {
     return next(error);

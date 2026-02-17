@@ -7,7 +7,7 @@ const { where } = require("sequelize");
 
 
 async function addCourse(req, res) {
-  const result = await CourseService.addCourse(req.body);
+  const result = await CourseService.addCourse(req.body, req);
   return res.status(201).json(ApiResponse.created(result));
 }
 
@@ -40,12 +40,12 @@ async function getCourseById(req, res) {
 }
 
 async function updateCourse(req, res) {
-  const result = await CourseService.updateCourse(req.params.id, req.body);
+  const result = await CourseService.updateCourse(req.params.id, req.body, req);
   return res.status(200).json(ApiResponse.success(result));
 }
 
 async function deleteCourse(req, res) {
-  const result = await CourseService.deleteCourse(req.params.id);
+  const result = await CourseService.deleteCourse(req.params.id, req);
   return res.status(200).json(ApiResponse.success(result));
 }
 
@@ -78,7 +78,13 @@ async function chooseCoursesController(req, res) {
         trainingStatus = null
     }
 
-    const result = await CourseService.chooseCoursesService(StudentData.userId , req.body.courses, examStatus,trainingStatus);
+    const result = await CourseService.chooseCoursesService(
+      StudentData.userId,
+      req.body.courses,
+      examStatus,
+      trainingStatus,
+      req
+    );
     return res.status(200).json(ApiResponse.success(result));
 }
 

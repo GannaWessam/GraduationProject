@@ -52,7 +52,16 @@ const uploadGrades = async (req, res, next) => {
     // If eventId provided, persist grades and return upload summary
     
     if (eventId) {
-      const summary = await uploadFromExcel(parseResult.parsedData, eventId);
+      const summary = await uploadFromExcel(
+        parseResult.parsedData,
+        eventId,
+      );
+
+      if (req.audit) {
+        req.audit.message =
+          "Grades uploaded from Excel successfully | تم رفع الدرجات من ملف إكسل بنجاح";
+      }
+
       return res.status(200).json({
         ...summary,
         studentsParsed: parseResult.studentsParsed,

@@ -32,6 +32,7 @@ async function chooseCoursesService(
   courses,
   examStatus,
   trainingStatus,
+  req,
 ) {
   try {
     const data = courses.map((courseId) => ({
@@ -42,6 +43,14 @@ async function chooseCoursesService(
     }));
 
     const result = await studentCourse.bulkCreate(data);
+
+    if (req && req.audit) {
+      req.audit.affectedUser = {
+        _id: userId,
+      };
+      req.audit.message =
+        "Courses selected successfully | تم اختيار الكورسات بنجاح";
+    }
 
     return {
       status: "success",
@@ -54,7 +63,7 @@ async function chooseCoursesService(
   }
 }
 
-async function addCourse(courseInfo) {
+async function addCourse(courseInfo, req) {
   const { name, title, priceEgyptian, priceOther, currencyId } = courseInfo;
   if (!name || !priceEgyptian || !priceOther || !currencyId || !title)
     throw new Error("missing_required");
@@ -69,6 +78,16 @@ async function addCourse(courseInfo) {
     priceOther,
     currencyId,
   });
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: newCourse.courseId,
+      name: newCourse.name,
+    };
+    req.audit.message =
+      "Course created successfully | تم إنشاء الكورس بنجاح";
+  }
+
   return newCourse;
 }
 
@@ -99,7 +118,7 @@ async function getCourseById(id) {
   return courseData;
 }
 
-async function updateCourse(id, updateInfo) {
+async function updateCourse(id, updateInfo, req) {
   if (!id) throw new Error("missing_course_id");
 
   const allowedFields = [
@@ -124,14 +143,34 @@ async function updateCourse(id, updateInfo) {
   if (!courseToUpdate) throw new Error("course_not_found");
 
   await courseToUpdate.update(updateData);
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: courseToUpdate.courseId,
+      name: courseToUpdate.name,
+    };
+    req.audit.message =
+      "Course updated successfully | تم تحديث الكورس بنجاح";
+  }
+
   return courseToUpdate;
 }
 
-async function deleteCourse(id) {
+async function deleteCourse(id, req) {
   const coursee = await course.findByPk(id);
   if (!coursee) throw new Error("not_found");
 
   await coursee.destroy();
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: id,
+      name: coursee.name,
+    };
+    req.audit.message =
+      "Course deleted successfully | تم حذف الكورس بنجاح";
+  }
+
   return { deleted: true };
 }
 

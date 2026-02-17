@@ -98,7 +98,7 @@ async function getSupervisorById(id) {
           {
             model: Permission,
             as: "permissions",
-            attributes: ["permissionId", "name"],
+            attributes: ["permissionId", "name","viewName"],
             through: {
               attributes: [],
             },

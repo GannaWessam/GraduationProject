@@ -54,7 +54,6 @@ Payment.belongsTo(User, {
 
 Payment.belongsTo(Product, {
   foreignKey: "productId",
-  as: "product",
 });
 Product.hasMany(Payment, {
   foreignKey: "productId",
@@ -113,12 +112,11 @@ Admin.belongsTo(User, { foreignKey: "userId" });
 
 //==============================================================
 
-Product.hasMany(Payment, {
-  foreignKey: { name: "productId", allowNull: false },
-  onDelete: "RESTRICT",
-  onUpdate: "CASCADE",
+Product.belongsTo(course, {
+  foreignKey: 'productId',
+  as: 'product',
 });
-Payment.belongsTo(Product, { foreignKey: "productId" });
+
 
 User.hasMany(Payment, {
   foreignKey: { name: "userId", allowNull: false },

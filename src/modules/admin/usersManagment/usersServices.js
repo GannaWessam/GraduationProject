@@ -381,8 +381,7 @@ const getStudentById = async (userId) => {
             attributes: ["amount", "status", "timestamp"],
             include: [
               {
-                model: Product,
-                as: "product", // matches Payment.belongsTo(Product, { as: 'product' })
+                model: Product,// matches Payment.belongsTo(Product, { as: 'product' })
                 attributes: ["courseName"],
               },
             ],

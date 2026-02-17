@@ -18,6 +18,7 @@
     "arabic-persian-reshaper": "^1.0.1",
     "arabic-reshaper": "^1.1.0",
     "archiver": "^7.0.1",
+    "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "bidi-js": "^1.0.3",
     "cors": "^2.8.5",

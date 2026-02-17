@@ -4,7 +4,7 @@ const ApiResponse = require("../../../Util/ApiResponse");
 
 const sessionController = {
   async create(req, res) {
-    const session = await sessionService.createSession(req.body);
+    const session = await sessionService.createSession(req.body, req);
     res.status(201).json(ApiResponse.success(session));
   },
 
@@ -36,14 +36,18 @@ const sessionController = {
   },
 
   async update(req, res) {
-    const session = await sessionService.updateSession(req.params.id, req.body);
+    const session = await sessionService.updateSession(
+      req.params.id,
+      req.body,
+      req
+    );
     res.status(200).json(ApiResponse.success(session));
   },
 
   async delete(req, res ,next) {
     try {
       const { materialId } = req.params;
-      const result = await sessionService.deleteSessionMaterial(materialId);
+      const result = await sessionService.deleteSessionMaterial(materialId, req);
   
       res.status(200).json({
         status: "success",
@@ -71,7 +75,8 @@ const sessionController = {
   
       const result = await sessionService.uploadSessionMaterialService(
         sessionId,
-        files
+        files,
+        req
       );
   
       res.status(200).json({

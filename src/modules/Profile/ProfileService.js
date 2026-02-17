@@ -31,7 +31,7 @@ async function getAllProfilesService(reqQuery = {}) {
   );
 }
 
-async function addProfile(profileInfo) {
+async function addProfile(profileInfo, req) {
   const { name, permissionIds = [] } = profileInfo;
 
   if (!name) throw new Error("missing_required");
@@ -47,9 +47,20 @@ async function addProfile(profileInfo) {
   }
 
   // Fetch with permissions
-  return await Profile.findByPk(profile.profileId, {
+  const fullProfile = await Profile.findByPk(profile.profileId, {
     include: [{ model: Permission, as: "permissions", through: { attributes: [] } }],
   });
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: profile.profileId,
+      name: profile.name,
+    };
+    req.audit.message =
+      "Profile created successfully | تم إنشاء البروفايل بنجاح";
+  }
+
+  return fullProfile;
 }
 
 async function getProfileById(id) {
@@ -62,7 +73,7 @@ async function getProfileById(id) {
   return profile;
 }
 
-async function updateProfile(id, updateInfo) {
+async function updateProfile(id, updateInfo, req) {
   const { name, permissionIds } = updateInfo;
 
   const profile = await Profile.findByPk(id);
@@ -76,16 +87,37 @@ async function updateProfile(id, updateInfo) {
     await profile.setPermissions(permissionIds);
   }
 
-  return await Profile.findByPk(profile.profileId, {
+  const fullProfile = await Profile.findByPk(profile.profileId, {
     include: [{ model: Permission, as: "permissions", through: { attributes: [] } }],
   });
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: profile.profileId,
+      name: profile.name,
+    };
+    req.audit.message =
+      "Profile updated successfully | تم تحديث البروفايل بنجاح";
+  }
+
+  return fullProfile;
 }
 
-async function deleteProfile(id) {
+async function deleteProfile(id, req) {
   const profile = await Profile.findByPk(id);
   if (!profile) throw new Error("not_found");
 
   await profile.destroy();
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: id,
+      name: profile.name,
+    };
+    req.audit.message =
+      "Profile deleted successfully | تم حذف البروفايل بنجاح";
+  }
+
   return { deleted: true };
 }
 

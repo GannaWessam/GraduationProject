@@ -39,7 +39,7 @@ const {
 const { where } = require("sequelize");
 
 
-async function registerUser(payload, idImage,req) {
+async function registerUser(payload, idImage, req) {
   const {
     OCR,
     email,
@@ -145,14 +145,18 @@ async function registerUser(payload, idImage,req) {
       assignedCourses = createdCourses.map((c) => c.courseId);
     }
 
-    // ✅ Return the formatted response
-  //    req.audit.user = {
-  //   _id: user.userId,
-  //   email: user.email,
-  //   name: NAME,
-  // };
+    // ✅ Set audit log context
+    if (req && req.audit) {
+      req.audit.user = {
+        _id: user.userId,
+        email: user.email,
+        name: name_ar,
+      };
+      req.audit.message =
+        "User registered successfully | تم تسجيل المستخدم بنجاح";
+    }
 
-  // req.audit.message = "Admin loggedIn successfully";
+    // ✅ Return the formatted response
     return {
       success: true,
       message: "Registration completed successfully",
@@ -170,7 +174,7 @@ async function registerUser(payload, idImage,req) {
   });
 }
 
-async function loginUser(email, password, rememberMe = false,req) {
+async function loginUser(email, password, rememberMe = false, req) {
   const user = await findUserByEmail(email);
   if (!user) throw new Error("invalid_email");
 
@@ -211,17 +215,20 @@ async function loginUser(email, password, rememberMe = false,req) {
     user.tokenVersion
   );
 
-  req.audit.user = {
-    _id: user.userId,
-    email: user.email,
-    name: NAME,
-  };
+  if (req && req.audit) {
+    req.audit.user = {
+      _id: user.userId,
+      email: user.email,
+      name: NAME,
+    };
 
-  req.audit.message = "Admin loggedIn successfully";
+    req.audit.message =
+      "User logged in successfully | تم تسجيل دخول المستخدم بنجاح";
+  }
   return formatLoginResponse(user, jwtToken ,permissions.map((p) => p.name)); //msh 3ayz el name?
 }
 
-async function resetPassword(email, newPassword) {
+async function resetPassword(email, newPassword, req) {
   const user = await findUserByEmail(email);
   if (!user) throw new Error("invalid_email");
 
@@ -230,24 +237,63 @@ async function resetPassword(email, newPassword) {
   user.passwordHash = await hashPassword(newPassword);
   await user.save();
 
+  if (req && req.audit) {
+    req.audit.user = {
+      _id: user.userId,
+      email: user.email,
+      name: user.email,
+    };
+    req.audit.message =
+      "User password reset successfully | تم إعادة تعيين كلمة مرور المستخدم بنجاح";
+  }
+
   return { email: user.email };
 }
 
 ///mkanha msh hna
-async function getuser(email) {
+async function getuser(email, req) {
   const user = await getUser(email);
+
+  if (req && req.audit) {
+    req.audit.affectedUser = {
+      _id: user.userId,
+      email: user.email,
+      name: user.Student?.fullName || user.email,
+    };
+    req.audit.message =
+      "Fetched user details by email | تم جلب بيانات المستخدم بواسطة البريد الإلكتروني";
+  }
+
   return { user };
 }
 
-async function getuserfees(userId) {
+async function getuserfees(userId, req) {
   const fees = await getUserFees(userId);
+
+  if (req && req.audit) {
+    req.audit.affectedUser = {
+      _id: userId,
+    };
+    req.audit.message =
+      "Fetched user fees | تم جلب الرسوم الخاصة بالمستخدم";
+  }
+
   return { fees };
 }
 
-async function verifyEmail(email) {
+async function verifyEmail(email, req) {
   const user = await User.findOne({ where: { email } });
 
   if (!user) throw new Error("invalid_email");
+
+  if (req && req.audit) {
+    req.audit.affectedUser = {
+      _id: user.userId,
+      email: user.email,
+    };
+    req.audit.message =
+      "Verified user email | تم التحقق من بريد المستخدم الإلكتروني بنجاح";
+  }
 
   return { email: user.email };
 }

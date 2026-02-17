@@ -35,7 +35,7 @@ exports.login = async (req, res, next) => {
 exports.updatePassword = async (req, res, next) => {
   try {
     const { email, newPassword } = req.body;
-    const result = await resetPassword(email, newPassword);
+    const result = await resetPassword(email, newPassword, req);
     return res
       .status(200)
       .json(ApiResponse.success(result, "Password updated successfully"));
@@ -60,7 +60,7 @@ exports.verifyOTP = async (req, res) => {
 
 exports.getUser = async (req, res, next) => {
   try {
-    const result = await getuser(req.query.email);
+    const result = await getuser(req.query.email, req);
     return res.status(201).json(ApiResponse.created(result));
   } catch (error) {
     return next(error);
@@ -69,7 +69,7 @@ exports.getUser = async (req, res, next) => {
 
 exports.getUserFees = async (req, res, next) => {
   try {
-    const result = await getuserfees(req.query.userId);
+    const result = await getuserfees(req.query.userId, req);
     return res.status(201).json(ApiResponse.created(result));
   } catch (error) {
     return next(error);
@@ -79,7 +79,7 @@ exports.getUserFees = async (req, res, next) => {
 exports.verifyEmail = async (req, res, next) => {
   try {
     const { email } = req.body;
-    const result = await verifyEmail(email);
+    const result = await verifyEmail(email, req);
 
     return res
       .status(200)

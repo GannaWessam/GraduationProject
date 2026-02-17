@@ -1,7 +1,7 @@
 const { currency } = require("../../../models");
 
 const currencyService = {
-    async createCurrency(data) {
+  async createCurrency(data, req) {
 
         const { code, name, symbol } = data;
 
@@ -26,7 +26,18 @@ const currencyService = {
           throw error;
         }
       
-        return await currency.create(data);
+        const created = await currency.create(data);
+
+        if (req && req.audit) {
+          req.audit.affectedThing = {
+            _id: created.currencyId,
+            code: created.code,
+          };
+          req.audit.message =
+            "Currency created successfully | تم إنشاء العملة بنجاح";
+        }
+
+        return created;
       }
       ,
 
@@ -47,19 +58,39 @@ const currencyService = {
     return Currency;
   },
 
-  async updateCurrency(id, data) {
+  async updateCurrency(id, data, req) {
     const Currency = await currency.findByPk(id);
     if (!Currency) throw new Error("Currency not found");
 
     await Currency.update(data);
+
+    if (req && req.audit) {
+      req.audit.affectedThing = {
+        _id: Currency.currencyId,
+        code: Currency.code,
+      };
+      req.audit.message =
+        "Currency updated successfully | تم تحديث العملة بنجاح";
+    }
+
     return Currency;
   },
 
-  async deleteCurrency(id) {
+  async deleteCurrency(id, req) {
     const Currency = await currency.findByPk(id);
     if (!Currency) throw new Error("Currency not found");
 
     await Currency.destroy();
+
+    if (req && req.audit) {
+      req.audit.affectedThing = {
+        _id: Currency.currencyId,
+        code: Currency.code,
+      };
+      req.audit.message =
+        "Currency deleted successfully | تم حذف العملة بنجاح";
+    }
+
     return { message: "Currency deleted successfully" };
   },
 };

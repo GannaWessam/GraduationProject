@@ -42,7 +42,8 @@ async function addAdmin(AdminInfo, req) {
       name: Name,
     };
 
-    req.audit.message = "Admin created successfully";
+    req.audit.message =
+      "Admin created successfully | تم إنشاء المشرف بنجاح";
 
     return {
       success: true,
@@ -108,7 +109,8 @@ async function getAdminById(id, req) {
     name: admin.Name,
   };
 
-  req.audit.message = "Fetched admin by ID";
+  req.audit.message =
+    "Fetched admin by ID | تم جلب بيانات المشرف حسب المعرّف";
 
   return admin;
 }
@@ -131,7 +133,8 @@ async function deleteAdmin(id, req) {
     name: admin.Name,
   };
 
-  req.audit.message = "Admin deleted successfully";
+  req.audit.message =
+    "Admin deleted successfully | تم حذف المشرف بنجاح";
 
   return {
     success: true,
@@ -169,7 +172,8 @@ async function updateAdmin(id, updateData, req) {
     name: admin.Name,
   };
 
-  req.audit.message = "Admin updated successfully";
+  req.audit.message =
+    "Admin updated successfully | تم تحديث بيانات المشرف بنجاح";
 
   return {
     success: true,

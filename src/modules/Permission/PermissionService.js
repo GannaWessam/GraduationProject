@@ -141,7 +141,7 @@ async function getAllPermissionsService(reqQuery = {}) {
 }
 
 
-async function addPermission(permissionInfo) {
+async function addPermission(permissionInfo, req) {
   const { name, containerId } = permissionInfo;
 
   if (!name) throw new Error("missing_required");
@@ -150,6 +150,16 @@ async function addPermission(permissionInfo) {
   if (exists) throw new Error("permission_exists");
 
   const permission = await Permission.create({ name, containerId });
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: permission.permissionId,
+      name: permission.name,
+    };
+    req.audit.message =
+      "Permission created successfully | تم إنشاء الصلاحية بنجاح";
+  }
+
   return permission;
 }
 
@@ -169,7 +179,7 @@ async function getPermissionById(id) {
 }
 
 
-async function updatePermission(id, updateInfo) {
+async function updatePermission(id, updateInfo, req) {
   const { name, containerId } = updateInfo;
 
   const permission = await Permission.findByPk(id);
@@ -179,15 +189,35 @@ async function updatePermission(id, updateInfo) {
   if (containerId !== undefined) permission.containerId = containerId;
 
   await permission.save();
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: permission.permissionId,
+      name: permission.name,
+    };
+    req.audit.message =
+      "Permission updated successfully | تم تحديث الصلاحية بنجاح";
+  }
+
   return permission;
 }
 
 
-async function deletePermission(id) {
+async function deletePermission(id, req) {
   const permission = await Permission.findByPk(id);
   if (!permission) throw new Error("not_found");
 
   await permission.destroy();
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: id,
+      name: permission.name,
+    };
+    req.audit.message =
+      "Permission deleted successfully | تم حذف الصلاحية بنجاح";
+  }
+
   return { deleted: true };
 }
 

@@ -25,11 +25,22 @@ async function getAllUniversityCollegesService(reqQuery = {}) {
   };
 }
 
-async function addUniversityCollege(info) {
+async function addUniversityCollege(info, req) {
   const { universityId, collegeId } = info;
   if (!universityId || !collegeId) throw new Error("missing_required");
 
   const newUC = await university_college.create({ universityId, collegeId });
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: newUC.id,
+      universityId: newUC.universityId,
+      collegeId: newUC.collegeId,
+    };
+    req.audit.message =
+      "University-college link created successfully | تم إنشاء ربط الجامعة بالكلية بنجاح";
+  }
+
   return newUC;
 }
 
@@ -44,7 +55,7 @@ async function getUniversityCollegeById(id) {
   return uc;
 }
 
-async function updateUniversityCollege(id, updateInfo) {
+async function updateUniversityCollege(id, updateInfo, req) {
   const uc = await university_college.findByPk(id);
   if (!uc) throw new Error("not_found");
 
@@ -52,14 +63,36 @@ async function updateUniversityCollege(id, updateInfo) {
   if (updateInfo.collegeId) uc.collegeId = updateInfo.collegeId;
 
   await uc.save();
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: id,
+      universityId: uc.universityId,
+      collegeId: uc.collegeId,
+    };
+    req.audit.message =
+      "University-college link updated successfully | تم تحديث ربط الجامعة بالكلية بنجاح";
+  }
+
   return uc;
 }
 
-async function deleteUniversityCollege(id) {
+async function deleteUniversityCollege(id, req) {
   const uc = await university_college.findByPk(id);
   if (!uc) throw new Error("not_found");
 
   await uc.destroy();
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: id,
+      universityId: uc.universityId,
+      collegeId: uc.collegeId,
+    };
+    req.audit.message =
+      "University-college link deleted successfully | تم حذف ربط الجامعة بالكلية بنجاح";
+  }
+
   return { deleted: true };
 }
   

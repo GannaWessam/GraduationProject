@@ -26,7 +26,7 @@ async function getAllCollegesService(reqQuery = {}) {
   };
 }
 
-async function addCollege(collegeInfo) {
+async function addCollege(collegeInfo, req) {
   const { nameEn, nameAr } = collegeInfo;
   if (!nameEn || !nameAr) throw new Error("missing_required");
 
@@ -34,7 +34,18 @@ async function addCollege(collegeInfo) {
     Name: concatLang(nameEn, nameAr),
   });
 
-  return formatCollege(newCollege);
+  const formatted = formatCollege(newCollege);
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: newCollege.collegeId,
+      name: formatted.nameEn,
+    };
+    req.audit.message =
+      "College created successfully | تم إنشاء الكلية بنجاح";
+  }
+
+  return formatted;
 }
 
 async function getCollegeById(id) {
@@ -43,7 +54,7 @@ async function getCollegeById(id) {
   return formatCollege(col);
 }
 
-async function updateCollege(id, updateInfo) {
+async function updateCollege(id, updateInfo, req) {
   const col = await college.findByPk(id);
   if (!col) throw new Error("not_found");
 
@@ -56,14 +67,36 @@ async function updateCollege(id, updateInfo) {
   }
 
   await col.save();
-  return formatCollege(col);
+  const formatted = formatCollege(col);
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: id,
+      name: formatted.nameEn,
+    };
+    req.audit.message =
+      "College updated successfully | تم تحديث الكلية بنجاح";
+  }
+
+  return formatted;
 }
 
-async function deleteCollege(id) {
+async function deleteCollege(id, req) {
   const col = await college.findByPk(id);
   if (!col) throw new Error("not_found");
 
   await col.destroy();
+
+  if (req && req.audit) {
+    const formatted = formatCollege(col);
+    req.audit.affectedThing = {
+      _id: id,
+      name: formatted.nameEn,
+    };
+    req.audit.message =
+      "College deleted successfully | تم حذف الكلية بنجاح";
+  }
+
   return { deleted: true };
 }
 

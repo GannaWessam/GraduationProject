@@ -26,7 +26,7 @@ async function getAllUniversitiesService(reqQuery = {}) {
   };
 }
 
-async function addUniversity(universityInfo) {
+async function addUniversity(universityInfo, req) {
   const { nameEn, nameAr } = universityInfo;
   if (!nameEn || !nameAr) throw new Error("missing_required");
 
@@ -34,7 +34,18 @@ async function addUniversity(universityInfo) {
     Name: concatLang(nameEn, nameAr),
   });
 
-  return formatUni(newUniversity);
+  const formatted = formatUni(newUniversity);
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: newUniversity.UniversityId,
+      name: formatted.nameEn,
+    };
+    req.audit.message =
+      "University created successfully | تم إنشاء الجامعة بنجاح";
+  }
+
+  return formatted;
 }
 
 async function getUniversityById(id) {
@@ -43,7 +54,7 @@ async function getUniversityById(id) {
   return formatUni(uni);
 }
 
-async function updateUniversity(id, updateInfo) {
+async function updateUniversity(id, updateInfo, req) {
   const uni = await university.findByPk(id);
   if (!uni) throw new Error("not_found");
 
@@ -56,14 +67,36 @@ async function updateUniversity(id, updateInfo) {
   }
 
   await uni.save();
-  return formatUni(uni);
+  const formatted = formatUni(uni);
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: id,
+      name: formatted.nameEn,
+    };
+    req.audit.message =
+      "University updated successfully | تم تحديث الجامعة بنجاح";
+  }
+
+  return formatted;
 }
 
-async function deleteUniversity(id) {
+async function deleteUniversity(id, req) {
   const uni = await university.findByPk(id);
   if (!uni) throw new Error("not_found");
 
   await uni.destroy();
+
+  if (req && req.audit) {
+    const formatted = formatUni(uni);
+    req.audit.affectedThing = {
+      _id: id,
+      name: formatted.nameEn,
+    };
+    req.audit.message =
+      "University deleted successfully | تم حذف الجامعة بنجاح";
+  }
+
   return { deleted: true };
 }
 

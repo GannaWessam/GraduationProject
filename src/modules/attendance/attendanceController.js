@@ -8,7 +8,8 @@ const attendanceController = {
     const userId =  req.userData.id;
     const attendance = await attendanceService.createAttendance(
       userId,
-      req.params.sessionId
+      req.params.sessionId,
+      req
     );
 
     res.status(201).json(ApiResponse.success(attendance));
@@ -59,7 +60,7 @@ const attendanceController = {
 
 
   async delete(req, res) {
-    const data = await attendanceService.deleteAttendance(req.params.id);
+    const data = await attendanceService.deleteAttendance(req.params.id, req);
     res.json(ApiResponse.success(data));
   },
 };

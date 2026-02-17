@@ -6,7 +6,7 @@ const PaginatedResponse = require("../../Util/PaginatedResponse");
 const attendanceService = {
 
   // ✅ Create Attendance (Check-in)
-  async createAttendance( userId, sessionId) {
+  async createAttendance(userId, sessionId, req) {
     
     const Session = await session.findByPk(sessionId);
     if (!Session) throw new Error("session_not_found");
@@ -17,10 +17,20 @@ const attendanceService = {
     });
     if (exists) throw new Error("attendance_already_exists");
 
-    return attendance.create({
+    const record = await attendance.create({
       userId,
       sessionId,
     });
+    
+    if (req && req.audit) {
+      req.audit.affectedUser = {
+        _id: userId,
+      };
+      req.audit.message =
+        "Attendance created successfully | تم تسجيل الحضور بنجاح";
+    }
+
+    return record;
   },
 
   // 📌 Get all attendance
@@ -137,11 +147,17 @@ const attendanceService = {
   },
 
   // ❌ Delete attendance
-  async deleteAttendance(id) {
+  async deleteAttendance(id, req) {
     const Attendance = await attendance.findByPk(id);
     if (!Attendance) throw new Error("attendance_not_found");
 
     await Attendance.destroy();
+
+    if (req && req.audit) {
+      req.audit.message =
+        "Attendance deleted successfully | تم حذف سجل الحضور بنجاح";
+    }
+
     return { message: "Attendance deleted successfully" };
   },
 };

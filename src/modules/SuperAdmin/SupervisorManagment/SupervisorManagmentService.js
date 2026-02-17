@@ -26,7 +26,7 @@ async function addSupervisor(SupervisorInfo, req) {
       { transaction: t },
     );
 
-    // ✅ Create Student
+    // ✅ Create Supervisor
     const Supervisor = await supervisor.create(
       {
         userId: user.userId,
@@ -42,7 +42,8 @@ async function addSupervisor(SupervisorInfo, req) {
       name: Supervisor.Name,
     };
 
-    req.audit.message = "Registration completed successfully";
+    req.audit.message =
+      "Supervisor added successfully | تم إضافة المشرف بنجاح";
 
     return {
       success: true,
@@ -151,7 +152,8 @@ async function updateSupervisor(id, updateData, req) {
     name: supervisorData.Name,
   };
 
-  req.audit.message = "supervisor updated successfully";
+  req.audit.message =
+    "Supervisor updated successfully | تم تحديث بيانات المشرف بنجاح";
   return {
     success: true,
     message: "supervisor updated successfully",
@@ -179,7 +181,8 @@ async function deleteSupervisor(id, req) {
     name: supervisorData.Name,
   };
 
-  req.audit.message = "supervisor deleted successfully";
+  req.audit.message =
+    "Supervisor deleted successfully | تم حذف المشرف بنجاح";
 
   return {
     success: true,

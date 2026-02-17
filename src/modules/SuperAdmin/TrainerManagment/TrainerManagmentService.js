@@ -25,7 +25,7 @@ async function addTrainer(TrainerInfo,req) {
       { transaction: t },
     );
 
-    // ✅ Create Student
+    // ✅ Create Trainer
     const Trainer = await trainer.create(
       {
         userId: user.userId,
@@ -34,13 +34,14 @@ async function addTrainer(TrainerInfo,req) {
       { transaction: t },
     );
 
-     req.audit.affectedUser = {
-    _id: Trainer.userId,
-    email:user.email,
-    name: Trainer.Name,
-  };
+    req.audit.affectedUser = {
+      _id: Trainer.userId,
+      email: user.email,
+      name: Trainer.Name,
+    };
 
-  req.audit.message = "Trainer Added successfully";
+    req.audit.message =
+      "Trainer added successfully | تم إضافة المدرب بنجاح";
     // ✅ Return the formatted response
     return {
       success: true,
@@ -123,13 +124,14 @@ async function deleteTrainer(id,req) {
     await User.destroy({ where: { userId }, transaction: t });
   });
 
-   req.audit.affectedUser = {
+  req.audit.affectedUser = {
     _id: trainerData.userId,
     email: trainerData.User.email,
     name: trainerData.Name,
   };
 
-  req.audit.message = "Trainer deleted successfully";
+  req.audit.message =
+    "Trainer deleted successfully | تم حذف المدرب بنجاح";
 
   return {
     success: true,
@@ -171,13 +173,14 @@ async function updateTrainer(id, updateData,req) {
   });
 
 
-   req.audit.affectedUser = {
+  req.audit.affectedUser = {
     _id: trainerData.userId,
     email: trainerData.User.email,
     name: trainerData.Name,
   };
 
-  req.audit.message = "Trainer updated successfully";
+  req.audit.message =
+    "Trainer updated successfully | تم تحديث بيانات المدرب بنجاح";
   return {
     success: true,
     message: "trainer updated successfully",

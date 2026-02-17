@@ -4,7 +4,7 @@ const ApiResponse = require("../../../Util/ApiResponse");
 
 const currencyController = {
   async create(req, res) {
-    const currency = await currencyService.createCurrency(req.body);
+    const currency = await currencyService.createCurrency(req.body, req);
     res.status(201).json(ApiResponse.success(currency));
   },
 
@@ -28,13 +28,14 @@ const currencyController = {
   async update(req, res) {
     const currency = await currencyService.updateCurrency(
       req.params.id,
-      req.body
+      req.body,
+      req
     );
     res.status(200).json(ApiResponse.success(currency));
   },
 
   async delete(req, res) {
-    const result = await currencyService.deleteCurrency(req.params.id);
+    const result = await currencyService.deleteCurrency(req.params.id, req);
     res.status(200).json(ApiResponse.success(result));
   },
 };

@@ -45,7 +45,8 @@ async function addSuperAdmin(SuperAdminInfo, req) {
       name: SuperAdminData.Name,
     };
 
-    req.audit.message = "SuperAdmin Added successfully";
+    req.audit.message =
+      "Super admin added successfully | تم إضافة المدير الأعلى للنظام بنجاح";
     return {
       success: true,
       message: "Registration completed successfully",

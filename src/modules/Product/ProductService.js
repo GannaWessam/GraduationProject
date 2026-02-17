@@ -92,12 +92,13 @@ async function addProduct(productInfo, req) {
     },
   );
 
-    req.audit.affectedThing = {
-      _id: newProduct.dataValues.productId,
-      name: newProduct.dataValues.courseName,
-    };
+  req.audit.affectedThing = {
+    _id: newProduct.dataValues.productId,
+    name: newProduct.dataValues.courseName,
+  };
 
-  req.audit.message = "Product added successfully";
+  req.audit.message =
+    "Product added successfully | تم إضافة المنتج بنجاح";
   return formatProduct(newProduct);
 }
 
@@ -165,12 +166,13 @@ async function updateProduct(id, updateInfo,req) {
     include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
   });
 
-    req.audit.affectedThing = {
-      _id: product.dataValues.productId,
-      name: product.courseName,
-    };
+  req.audit.affectedThing = {
+    _id: product.dataValues.productId,
+    name: product.courseName,
+  };
 
-  req.audit.message = "Product updated successfully";
+  req.audit.message =
+    "Product updated successfully | تم تحديث بيانات المنتج بنجاح";
   return formatProduct(updated);
 }
 
@@ -182,11 +184,12 @@ const productName = product.courseName;
   console.log(product);
   
   req.audit.affectedThing = {
-      _id: product.dataValues.productId,
-      name: productName,
-    };
+    _id: product.dataValues.productId,
+    name: productName,
+  };
 
-  req.audit.message = "Product deleted successfully";
+  req.audit.message =
+    "Product deleted successfully | تم حذف المنتج بنجاح";
 }
 
 module.exports = {

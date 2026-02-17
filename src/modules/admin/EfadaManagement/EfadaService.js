@@ -57,11 +57,20 @@ const efadaService = {
     return records;
   },
 
-  add: async (userId) => {
+  add: async (userId, req) => {
     const newEfada = await efada.create({
       userId: userId,
       date: new Date(),
     });
+    
+    if (req && req.audit) {
+      req.audit.affectedUser = {
+        _id: userId,
+      };
+      req.audit.message =
+        "Efada record created successfully | تم إنشاء إفادة جديدة بنجاح";
+    }
+
     return newEfada;
   }
 };

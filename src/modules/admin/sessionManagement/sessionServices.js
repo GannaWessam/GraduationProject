@@ -16,10 +16,19 @@ const sessionService = {
 
 
 
-  async createSession(sessionData) {
+  async createSession(sessionData, req) {
     await validateSession(sessionData);
 
     const newSession = await Session.create(sessionData);
+
+    if (req && req.audit) {
+      req.audit.affectedThing = {
+        _id: newSession.sessionId,
+        name: newSession.name,
+      };
+      req.audit.message =
+        "Session created successfully | تم إنشاء الجلسة بنجاح";
+    }
 
   return newSession;
   },
@@ -98,7 +107,7 @@ const sessionService = {
     return sessions;
   },
 
-  async updateSession(id, data) {
+  async updateSession(id, data, req) {
     return sequelize.transaction(async (t) => {
 
       const session = await Session.findByPk(id, { transaction: t });
@@ -114,18 +123,37 @@ const sessionService = {
       await validateSession(mergedData, id);
   
       await session.update(data, { transaction: t });
-  
+
+      if (req && req.audit) {
+        req.audit.affectedThing = {
+          _id: session.sessionId,
+          name: session.name,
+        };
+        req.audit.message =
+          "Session updated successfully | تم تحديث الجلسة بنجاح";
+      }
+
       return session;
     });
   
   },
 
-  async deleteSession(id) {
+  async deleteSession(id, req) {
     return sequelize.transaction(async (t) => {
       const session = await Session.findByPk(id, { transaction: t });
       if (!session) throw new Error("session_not_found");
 
       await session.destroy({ transaction: t });
+
+      if (req && req.audit) {
+        req.audit.affectedThing = {
+          _id: id,
+          name: session.name,
+        };
+        req.audit.message =
+          "Session deleted successfully | تم حذف الجلسة بنجاح";
+      }
+
       return { message: "Session deleted successfully" };
     });
   },
@@ -166,7 +194,7 @@ const sessionService = {
     });
   },
 
-  async uploadSessionMaterialService (sessionId, files) {
+  async uploadSessionMaterialService (sessionId, files, req) {
     if (!files || files.length === 0) {
       throw new Error("No files uploaded");
     }
@@ -187,9 +215,18 @@ const sessionService = {
     });
   
     const createdMaterials = await SessionMaterial.bulkCreate(materials);
+
+    if (req && req.audit) {
+      req.audit.affectedThing = {
+        _id: sessionId,
+      };
+      req.audit.message =
+        "Session materials uploaded successfully | تم رفع مواد الجلسة بنجاح";
+    }
+
     return createdMaterials;
   },
-  async deleteSessionMaterial(materialId) {
+  async deleteSessionMaterial(materialId, req) {
     const t = await sequelize.transaction();
 
     try {
@@ -210,14 +247,22 @@ const sessionService = {
       // حذف السطر من الداتابيز أولاً
       await material.destroy({ transaction: t });
   
-      // لو الملف موجود على السيرفر، نحذفه
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath); // ممكن تتحول لـ async لو حابب
       }
   
       // commit للـ transaction
       await t.commit();
-  
+
+      if (req && req.audit) {
+        req.audit.affectedThing = {
+          _id: materialId,
+          name: material.name,
+        };
+        req.audit.message =
+          "Session material deleted successfully | تم حذف مادة الجلسة بنجاح";
+      }
+
       return { message: "Material deleted successfully" };
     } catch (error) {
       // rollback لو أي حاجة فشلت

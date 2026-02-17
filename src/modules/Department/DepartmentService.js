@@ -35,12 +35,22 @@ async function getAllDepartmentsInCollegeService(id) {
   );
 }
 
-async function addDepartment(departmentInfo) {
+async function addDepartment(departmentInfo, req) {
   const { Name, CollegeId } = departmentInfo;
 
   if (!Name || !CollegeId) throw new Error("missing_required");
 
   const newDepartment = await Department.create({ Name, CollegeId });
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: newDepartment.DepartmentId,
+      name: newDepartment.Name,
+    };
+    req.audit.message =
+      "Department created successfully | تم إنشاء القسم بنجاح";
+  }
+
   return newDepartment;
 }
 
@@ -52,7 +62,7 @@ async function getDepartmentById(id) {
   return department;
 }
 
-async function updateDepartment(id, updateInfo) {
+async function updateDepartment(id, updateInfo, req) {
   const department = await Department.findByPk(id);
   if (!department) throw new Error("not_found");
 
@@ -60,13 +70,33 @@ async function updateDepartment(id, updateInfo) {
   if (updateInfo.CollegeId) department.CollegeId = updateInfo.CollegeId;
 
   await department.save();
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: department.DepartmentId,
+      name: department.Name,
+    };
+    req.audit.message =
+      "Department updated successfully | تم تحديث القسم بنجاح";
+  }
+
   return department;
 }
 
-async function deleteDepartment(id) {
+async function deleteDepartment(id, req) {
   const department = await Department.findByPk(id);
   if (!department) throw new Error("not_found");
   await department.destroy();
+
+  if (req && req.audit) {
+    req.audit.affectedThing = {
+      _id: id,
+      name: department.Name,
+    };
+    req.audit.message =
+      "Department deleted successfully | تم حذف القسم بنجاح";
+  }
+
   return { deleted: true };
 }
 

@@ -43,14 +43,16 @@ const efadaController = {
         message: 'Error fetching efada records'
       });
     }
-  },addEfada: async (req, res) => {
+  },
+
+  addEfada: async (req, res) => {
     try {
     const userId = req.userData.id;
       if (!userId) {
         return res.status(400).json({ success: false, message: 'Date is required' });
       }
 
-      const newEfada = await efadaService.add(userId);
+      const newEfada = await efadaService.add(userId, req);
 
       res.status(201).json({
         success: true,

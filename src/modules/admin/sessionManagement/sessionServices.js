@@ -203,7 +203,7 @@ const sessionService = {
     const materials = files.map((file) => {
       const ext = file.originalname.split(".").pop().toLowerCase();
       if (!["pdf", "zip","docx","ppt","pptx"].includes(ext)) {
-        throw new Error("Invalid file type: " + file.originalname);
+        throw new Error("invalid_file_type");
       }
       const originalName = Buffer.from(file.originalname, "latin1").toString("utf8");
       return {

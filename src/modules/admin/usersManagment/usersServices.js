@@ -318,7 +318,7 @@ const getAllUserss = async () => {
     });
     return users;
   } catch (error) {
-    throw new Error("Failed to fetch users: " + error.message);
+    throw new Error("failed_to_fetch_users");
   }
 };
 

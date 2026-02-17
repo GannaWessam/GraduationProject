@@ -66,7 +66,7 @@ const getAllEvents = async (features) => {
       "All events fetched successfully"
     );
   } catch (error) {
-    throw new Error(`Failed to fetch events: ${error.message}`);
+    throw new Error("failed_to_fetch_events");
   }
 };
 

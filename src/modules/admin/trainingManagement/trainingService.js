@@ -40,9 +40,9 @@ const createTrainingPackage = async (trainingData) => {
   const extra = requestCourseIds.filter((id) => !packageCourseIds.includes(id));
 
   if (missing.length > 0)
-    throw new Error(`missing courses from package: ${missing.join(", ")}`);
+    throw new Error("missing_courses_from_package");
   if (extra.length > 0)
-    throw new Error(`extra courses not in package: ${extra.join(", ")}`);
+    throw new Error("extra_courses_not_in_package");
 
   let createNewEventDespiteTheSameData = true;
   for (let i = 0; i < pkg.courses.length; i++) {

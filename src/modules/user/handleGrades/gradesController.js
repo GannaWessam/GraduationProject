@@ -69,8 +69,8 @@ const uploadGrades = async (req, res, next) => {
         errors: parseResult.errors,
         parsedData: parseResult.parsedData,
       });
-    }else{
-      throw new error("EVENT ID IS REQUIERD");
+    } else {
+      throw new Error("eventId is required");
     }
 
     // No eventId: return parsing result only (no DB insertion)

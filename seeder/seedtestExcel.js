@@ -70,20 +70,66 @@ const nationalIds = [
 "29701040100226",
 ];
 
-const { sequelize, User, Student, event, exam, packageCourse } = require("../src/models");
+const { sequelize, User, Student, event, exam, package: Package, packageCourse } = require("../src/models");
+const seedCoursesAndPackage = require("./seedcourses");
 
-const EVENT_ID = "d5009952-5303-49b7-8c42-3bab51f679cf";
+/** Event ID used for registrations and grade upload — set by ensureEventAndExams(). */
+let EVENT_ID = null;
 
-/** Ensure the event has exam rows for each course in its package. */
-async function ensureEventHasExams() {
-  const eventRow = await event.findByPk(EVENT_ID);
-  if (!eventRow || !eventRow.packageId) return;
+/**
+ * 1) Ensure courses + "Starter Package" exist (run seedcourses if needed).
+ * 2) Get or create an event with that packageId (so it has Quiz: IT V3 (Real), etc.).
+ * 3) Ensure that event has exam rows for each package course.
+ * Use the returned eventId when uploading grades so course titles match.
+ */
+async function ensureEventAndExams() {
+  await seedCoursesAndPackage();
+
+  const pkg = await Package.findOne({ where: { packageName: "Starter Package" } });
+  if (!pkg) throw new Error("Starter Package not found. Run: node seeder/seedcourses.js");
 
   const packageCourses = await packageCourse.findAll({
-    where: { packageId: eventRow.packageId },
+    where: { packageId: pkg.packageId },
     attributes: ["courseId"],
   });
-  if (packageCourses.length === 0) return;
+  if (packageCourses.length === 0) throw new Error("No courses linked to Starter Package. Run: node seeder/seedcourses.js");
+
+  let eventRow = await event.findOne({
+    where: { packageId: pkg.packageId },
+    order: [["createdAt", "DESC"]],
+  });
+
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() + 7);
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 3);
+  const startDateRes = new Date(now);
+  startDateRes.setDate(startDateRes.getDate() - 7);
+  const endDateRes = new Date(startDate);
+  endDateRes.setDate(endDateRes.getDate() + 1);
+
+  if (!eventRow) {
+    eventRow = await event.create({
+      eventName: "Exam Event – Starter Package",
+      packageId: pkg.packageId,
+      productId: null,
+      startDate,
+      endDate,
+      startDateRes,
+      endDateRes,
+      capacity: 500,
+      numberOfRegistered: 0,
+      status: "opend",
+      type: "exam",
+      language: "AR",
+    });
+    console.log("✅ Created event for Starter Package:", eventRow.eventId);
+  } else {
+    console.log("✅ Using existing event for Starter Package:", eventRow.eventId);
+  }
+
+  EVENT_ID = eventRow.eventId;
 
   const existingExams = await exam.findAll({
     where: { eventId: EVENT_ID },
@@ -105,6 +151,8 @@ async function ensureEventHasExams() {
     });
     existingCourseIds.add(pc.courseId?.toString());
   }
+
+  console.log("   → Use this eventId when uploading grades:", EVENT_ID);
 }
 
 async function seedStudents() {
@@ -112,7 +160,7 @@ async function seedStudents() {
     await sequelize.authenticate();
     console.log("DB Connected...");
 
-    await ensureEventHasExams();
+    await ensureEventAndExams();
 
     const hashedPassword = await bcrypt.hash("12345678", 10);
 
@@ -169,6 +217,7 @@ async function seedStudents() {
     }
 
     console.log("🎉 ALL STUDENTS SEEDED SUCCESSFULLY");
+    console.log("   → For grade upload, use eventId:", EVENT_ID);
     process.exit();
 
   } catch (error) {

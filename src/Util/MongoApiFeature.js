@@ -50,14 +50,21 @@ class MongoApiFeature {
           ne: "$ne",
           in: "$in",
           nin: "$nin",
+          contains: "contains",
         };
 
         if (!filter[field]) filter[field] = {};
 
         if (mongoOps[op]) {
-          filter[field][mongoOps[op]] =
-            op === "in" || op === "nin" ? value.split(",") : value;
+          if (op === "in" || op === "nin") {
+            filter[field][mongoOps[op]] = value.split(",");
+          } else if (op === "contains") {
+            filter[field] = { $regex: value, $options: "i" };
+          } else {
+            filter[field][mongoOps[op]] = value;
+          }
         }
+        
       } else {
         filter[key] = queryObj[key];
       }

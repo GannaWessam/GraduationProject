@@ -1,4 +1,5 @@
-const {Payment , Student} = require("../../models");
+const {Payment , Student ,Product} = require("../../models");
+const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 
 
@@ -10,7 +11,7 @@ const createPayment = async ({
   receiptIds,
   userId
 }) => {
- 
+
   const user = await Student.findOne({
     where: { userId: userId } 
   });
@@ -78,6 +79,82 @@ const createPayment = async ({
   };
 };
 
+const getPaymentsByUserId = async (userId) => {
+  return await Payment.findAll({
+    where: { userId },
+    attributes: [
+      "paymentId",
+      "userId",
+      "productId",
+      "amount",
+      "status",
+      "timestamp"
+    ],
+    include: [
+      {
+        model: Student,
+        attributes: ["fullName", "Mobile", "nationalId"]
+      },
+      {
+        model: Product,
+        attributes: ["courseName"]
+      }
+    ],
+    order: [["timestamp", "DESC"]],
+  });
+};
+
+
+
+const getAllPayments = async (features) => {
+  try {
+    const opts = { ...(features.options || {}) };
+
+    const queryOptions = {
+      attributes: [
+        "paymentId",
+        "userId",
+        "productId",
+        "actualAmount",
+        "status",
+        "timestamp"
+      ],
+      include: [
+        {
+          model: Student,
+          attributes: ["fullName", "Mobile"]
+        },
+        {
+          model: Product,
+          attributes: ["courseName"]
+        }
+      ],
+      where: opts.where || {},
+      order: opts.order || [["timestamp", "DESC"]],
+      limit: opts.limit,
+      offset: opts.offset,
+      attributes: opts.attributes,
+      distinct: true
+    };
+
+    const { count, rows } =
+      await Payment.findAndCountAll(queryOptions);
+
+    return PaginatedResponse.fromApiFeature(
+      features,
+      count,
+      rows,
+      "Payments fetched successfully"
+    );
+
+  } catch (error) {
+    throw new Error("failed_to_fetch_payments");
+  }
+};
+
+
 module.exports = {
-  createPayment
+  createPayment,
+  getPaymentsByUserId,
+  getAllPayments
 };

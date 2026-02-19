@@ -43,13 +43,11 @@ const Profile = require("./Profile")(sequelize);
 const ProfilePermission = require("./ProfilePermission")(sequelize);
 const Container = require("./Container")(sequelize);
 
-User.hasMany(Payment, {
+Student.hasMany(Payment, {
   foreignKey: "userId",
-  as: "payments", // ✅ alias
 });
-Payment.belongsTo(User, {
+Payment.belongsTo(Student, {
   foreignKey: "userId",
-  as: "paymentUser", // ✅ alias مختلف
 });
 
 Payment.belongsTo(Product, {

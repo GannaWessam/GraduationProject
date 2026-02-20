@@ -38,7 +38,7 @@ const getAllReservationsByEvent = async (eventId, features) => {
         },
         {
           model: Student,
-          attributes: ["userId", "fullName"],
+          attributes: ["userId", "fullName","NameEn","nationalId"],
         },
       ],
       where: opts.where || {},

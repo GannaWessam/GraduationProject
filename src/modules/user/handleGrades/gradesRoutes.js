@@ -3,6 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const { uploadGrades } = require("./gradesController");
 const { validateToken } = require("../../../middlewares/token");
+const checkPermission = require("../../../middlewares/checkPermission");
 
 const router = express.Router();
 
@@ -37,6 +38,7 @@ router.post(
   "/upload/:id",
   validateToken,
   upload.single("file"),
+  checkPermission("UPLOAD_RESULTS"),
   uploadGrades
 );
 

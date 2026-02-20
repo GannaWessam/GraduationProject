@@ -1,6 +1,7 @@
 const { saveSubscription, sendNotificationToUser, sendNotificationToUsers } = require('../../Services/pushService');
 const {getAllNotificationToUserService, markAllAsRead, getDilveredCount} = require('./NotificationService');
 const ApiResponse = require("../../Util/ApiResponse");
+const ApiFeature = require('../../Util/ApiFeatures');
 
 exports.subscribeUser = async (req, res, next) => {
   try {
@@ -65,14 +66,20 @@ exports.sendToMultipleUsers = async (req, res, next) => {
 
 
 exports.getAllNotificationToUserController = async (req, res) => {
-  const result = await getAllNotificationToUserService(req.params.id);
+  const features = new ApiFeature(req.query)
+  .filter()          
+  .search()          
+  .sort()            
+  .pagination()      
+  .selectedFields(); 
+  const result = await getAllNotificationToUserService(req.params.id,features);
 
   if (req.audit) {
     req.audit.message =
       "Fetched user notifications successfully | تم جلب إشعارات المستخدم بنجاح";
   }
 
-  return res.status(200).json(ApiResponse.success(result));
+  return res.status(200).json(ApiResponse.success(result,"Fetched user notifications successfully | تم جلب إشعارات المستخدم بنجاح"));
 };
 
 exports.MakeAllNotificationReadController = async (req, res) => {

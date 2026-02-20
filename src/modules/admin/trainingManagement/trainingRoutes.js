@@ -16,7 +16,7 @@ router.post(
 router.get(
   "/",
   validateToken,
-  checkPermission("VIEW_EVENT"),
+  checkPermission(["VIEW_EVENT","VIEW_ASSGINED_TRAININGS"]),
   catchError(trainingController.getAllTrainings)
 );
 router.get(

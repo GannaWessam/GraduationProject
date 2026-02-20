@@ -6,9 +6,11 @@ const createPaymentAndRedirect = async (req, res) => {
   try {
 
     const userId = req.userData.id;
+    const paymentId=req.params.id
     const { email, receiptIds} = req.body;
 
     const paymentData = await paymentService.createPayment({
+      paymentId,
       email,
       receiptIds,
       userId
@@ -55,11 +57,7 @@ const getPaymentsByUserId = async (req, res, next) => {
 
     const payments = await paymentService.getPaymentsByUserId(userId);
 
-    res.status(200).json({
-      success: true,
-      count: payments.length,
-      data: payments,
-    });
+    res.status(200).json(ApiResponse.success(payments,"Payment fetched successfully"));
 
   } catch (error) {
     next(error);

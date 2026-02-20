@@ -3,7 +3,7 @@ const router = express.Router();
 const controller = require("./gradeController");
 
 
-router.get("/", controller.getAllReservations);
+router.get("/event/:eventId", controller.getAllReservations);
 
 router.get("/:userId", controller.getReservationsByUserId);
 

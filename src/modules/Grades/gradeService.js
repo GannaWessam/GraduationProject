@@ -1,80 +1,101 @@
-const { examReservation, exam, course, User ,Student } = require("../../models");
+const {
+  examReservation,
+  exam,
+  course,
+  User,
+  Student,
+} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 
-
-
-const getAllReservations = async (features) => {
+const getAllReservationsByEvent = async (eventId, features) => {
   try {
     const opts = { ...(features.options || {}) };
 
     const queryOptions = {
+      attributes: {
+        exclude: [
+          "createdAt",
+          "updatedAt",
+          "examReservationId",
+          "reservationId",
+          "userId",
+          "examId",
+          "type",
+        ],
+      },
       include: [
         {
           model: exam,
+          required: true,
+          where: { eventId },
           attributes: ["examId", "date", "place"],
           include: [
             {
               model: course,
-              attributes: ["courseId", "name", "title"]
-            }
-          ]
+              attributes: ["courseId", "name", "title"],
+            },
+          ],
         },
         {
           model: Student,
-          attributes: ["userId", "fullName"]
-        }
+          attributes: ["userId", "fullName"],
+        },
       ],
       where: opts.where || {},
       order: opts.order || [["createdAt", "DESC"]],
       limit: opts.limit,
       offset: opts.offset,
-      attributes: opts.attributes,
-      distinct: true
+      distinct: true,
     };
 
-    const { count, rows } =
-      await examReservation.findAndCountAll(queryOptions);
+    const { count, rows } = await examReservation.findAndCountAll(queryOptions);
 
     return PaginatedResponse.fromApiFeature(
       features,
       count,
       rows,
-      "Reservations fetched successfully"
+      "Reservations fetched successfully by event",
     );
-
   } catch (error) {
-    throw new Error("failed_to_fetch_reservations");
+    throw new Error("failed_to_fetch_reservations_by_event");
   }
 };
 
-  
-  
-
-  const getReservationsByUserId = async (userId) => {
-    return await examReservation.findAll({
-      where: { userId },
-      include: [
-        {
-          model: exam,
-          attributes: ["examId", "date", "place"],
-          include: [
-            {
-              model: course,
-              attributes: ["courseId", "name", "title"]
-            }
-          ]
-        },
-        {
-          model: Student,
-          attributes: ["userId", "fullName"]
-        }
+const getReservationsByUserId = async (userId) => {
+  return await examReservation.findAll({
+    attributes: {
+      exclude: [
+        "createdAt",
+        "updatedAt",
+        "examReservationId",
+        "reservationId",
+        "userId",
+        "examId",
+        "type",
       ],
-      order: [["createdAt", "DESC"]],
-    });
-  };
-  
-  
-  module.exports = {
-    getAllReservations,
-    getReservationsByUserId,
-  };
+    },
+    where: { userId },
+    include: [
+      {
+        model: exam,
+        attributes: ["examId", "date", "place"],
+        include: [
+          {
+            model: course,
+            attributes: ["courseId", "name", "title"],
+          },
+        ],
+      },
+      {
+        model: Student,
+        attributes: ["userId", "fullName"],
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+  });
+};
+
+module.exports = {
+  getAllReservationsByEvent,
+  getReservationsByUserId,
+};

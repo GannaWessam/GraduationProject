@@ -6,6 +6,7 @@ const ApiResponse = require("../../Util/ApiResponse");
 
 const getAllReservations = async (req, res, next) => {
     try {
+      const { eventId } = req.params;
       const features = new ApiFeature(req.query)
         .filter()
         .search()
@@ -13,7 +14,7 @@ const getAllReservations = async (req, res, next) => {
         .pagination()
         .selectedFields();
   
-      const result = await service.getAllReservations(features);
+      const result = await service.getAllReservationsByEvent(eventId,features);
   
       res
         .status(200)

@@ -170,11 +170,14 @@ async function processOneStudent(
   // Per-student set of event courses not yet seen in this row (do not mutate shared courseTitleToExam)
   const remainingInEvent = new Set(courseTitleToExam.keys());
 
-  for (const quiz of quizzes) {
+  let examCount = 0;
+  for (const quiz of quizzes) { // excel quizzes 
     // Match exactly: use courseTitle as provided from Excel (Prompt A)
     const examInfo = courseTitleToExam.get(quiz.courseTitle);
     if (!examInfo) {
-      throw new Error("no_exam_found_for_course_and_student");
+      // throw new Error("no_exam_found_for_course_and_student");
+      examCount++;
+      continue;
     }
     remainingInEvent.delete(quiz.courseTitle);
 
@@ -214,6 +217,9 @@ async function processOneStudent(
   }
   if (remainingInEvent.size !== 0) {
     throw new Error("event_excel_courses_mismatch");
+  }
+  if (examCount !== courseTitleToExam.size) {
+    throw new Error("exam_count_mismatch")
   }
 
 

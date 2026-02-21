@@ -465,6 +465,7 @@ const errorMessages = {
     code: 409,
     msg: "Container already exists | الحاوية موجودة مسبقاً",
   },
+  "exam_count_mismatch": { code: 400, msg: "Exam count mismatch, student has not taken all required exams for this event | عدد الامتحانات غير متطابق" },
   profile_exists: {
     code: 409,
     msg: "Profile already exists | البروفايل موجود مسبقاً",

@@ -176,7 +176,6 @@ async function processOneStudent(
     const examInfo = courseTitleToExam.get(quiz.courseTitle);
     if (!examInfo) {
       // throw new Error("no_exam_found_for_course_and_student");
-      examCount++;
       continue;
     }
     examCount++;

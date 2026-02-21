@@ -34,10 +34,9 @@ const {
   Admin,
   supervisor,
   trainer,
-  SuperAdmin
+  SuperAdmin,
 } = require("../../models/index.js");
 const { where } = require("sequelize");
-
 
 async function registerUser(payload, idImage, req) {
   const {
@@ -88,7 +87,7 @@ async function registerUser(payload, idImage, req) {
     // ✅ Create User
     const user = await User.create(
       { email, passwordHash: hashedPassword, role },
-      { transaction: t }
+      { transaction: t },
     );
 
     // ✅ Create Payment
@@ -99,7 +98,7 @@ async function registerUser(payload, idImage, req) {
         status: "PENDING",
         amount: productPrice,
       },
-      { transaction: t }
+      { transaction: t },
     );
 
     // ✅ Create Student
@@ -121,7 +120,7 @@ async function registerUser(payload, idImage, req) {
         productId: product.productId,
         profilePhoto: qrResult,
       },
-      { transaction: t }
+      { transaction: t },
     );
 
     // ✅ Assign all courses from productCourse
@@ -176,30 +175,51 @@ async function registerUser(payload, idImage, req) {
 
 async function loginUser(email, password, rememberMe = false, req) {
   const user = await findUserByEmail(email);
-  if (!user) throw new Error("invalid_email");
+  if (!user) {
+    if (req?.audit) {
+      req.audit.user = {
+        email: email,
+      };
+
+    }
+
+    throw new Error("Failed login attempt");
+  }
 
   let USER;
   let NAME;
-  if(user.role === "STUDENT"){
-      USER = await Student.findOne({ where: { userId: user.userId } });
-      NAME = USER.fullName;
-  }else if(user.role === "ADMIN"){
-      USER = await Admin.findOne({ where: { userId: user.userId } });
-      NAME = USER.Name;
-  }else if(user.role === "SUPERVISOR"){
-      USER = await supervisor.findOne({ where: { userId: user.userId } });
-      NAME = USER.Name;
-  }
-  else if(user.role === "SUPERADMIN"){
-        USER=await SuperAdmin.findOne({ where: { userId: user.userId } });
-        NAME=USER.Name;
-  }
-  else{
-      USER = await trainer.findOne({ where: { userId: user.userId } });
-      NAME = USER.Name;
+  if (user.role === "STUDENT") {
+    USER = await Student.findOne({ where: { userId: user.userId } });
+    NAME = USER.fullName;
+  } else if (user.role === "ADMIN") {
+    USER = await Admin.findOne({ where: { userId: user.userId } });
+    NAME = USER.Name;
+  } else if (user.role === "SUPERVISOR") {
+    USER = await supervisor.findOne({ where: { userId: user.userId } });
+    NAME = USER.Name;
+  } else if (user.role === "SUPERADMIN") {
+    USER = await SuperAdmin.findOne({ where: { userId: user.userId } });
+    NAME = USER.Name;
+  } else {
+    USER = await trainer.findOne({ where: { userId: user.userId } });
+    NAME = USER.Name;
   }
 
-  await comparePassword(password, user.passwordHash);
+  try {
+    await comparePassword(password, user.passwordHash);
+  } catch (err) {
+    if (req?.audit) {
+      req.audit.user = {
+        _id: user.userId,
+        email: user.email,
+      };
+
+      req.audit.message =
+        "Failed login attempt (wrong password) | محاولة تسجيل دخول فاشلة (كلمة مرور خاطئة)";
+    }
+
+    throw new Error("Failed login attempt");
+  }
   const permissions = await user.getPermissions({
     attributes: ["name"],
   });
@@ -212,7 +232,7 @@ async function loginUser(email, password, rememberMe = false, req) {
     USER?.productId,
     USER?.status,
     rememberMe,
-    user.tokenVersion
+    user.tokenVersion,
   );
 
   if (req && req.audit) {
@@ -225,7 +245,11 @@ async function loginUser(email, password, rememberMe = false, req) {
     req.audit.message =
       "User logged in successfully | تم تسجيل دخول المستخدم بنجاح";
   }
-  return formatLoginResponse(user, jwtToken ,permissions.map((p) => p.name)); //msh 3ayz el name?
+  return formatLoginResponse(
+    user,
+    jwtToken,
+    permissions.map((p) => p.name),
+  ); //msh 3ayz el name?
 }
 
 async function resetPassword(email, newPassword, req) {
@@ -274,8 +298,7 @@ async function getuserfees(userId, req) {
     req.audit.affectedUser = {
       _id: userId,
     };
-    req.audit.message =
-      "Fetched user fees | تم جلب الرسوم الخاصة بالمستخدم";
+    req.audit.message = "Fetched user fees | تم جلب الرسوم الخاصة بالمستخدم";
   }
 
   return { fees };

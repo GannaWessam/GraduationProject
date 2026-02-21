@@ -22,7 +22,8 @@ const AttendanceManagmentRoute = require('./modules/attendance/attendanceRoute')
 const gradesRoutes = require("./modules/user/handleGrades/gradesRoutes");
 const logsRoutes = require("./modules/Log/LogRoutes");
 const payment = require("./modules/payment/paymentRoute");
-
+const gradesManagmentRoutes = require("./modules/Grades/gradeRoute");
+const serviceRoutes = require("./modules/ServiceManagement/ServiceRoutes");
 
 const { validateToken } = require("./middlewares/token");
 const reportRoutes = require("./modules/Report/ReportRoute");
@@ -53,6 +54,8 @@ router.use("/api/Container", ContainerRoute);
 router.use("/api/grades", gradesRoutes);
 router.use("/api/logs", logsRoutes);
 router.use("/api/pay", payment);
+router.use("/api/gradesManagment", gradesManagmentRoutes);
+router.use("/api/services", serviceRoutes);
 
 
 module.exports = router;

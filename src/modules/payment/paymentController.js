@@ -1,12 +1,16 @@
 const paymentService = require('./paymentService');
+const ApiFeature = require("../../Util/ApiFeatures");
+const ApiResponse = require("../../Util/ApiResponse");
 
 const createPaymentAndRedirect = async (req, res) => {
   try {
 
     const userId = req.userData.id;
+    const paymentId=req.params.id
     const { email, receiptIds} = req.body;
 
     const paymentData = await paymentService.createPayment({
+      paymentId,
       email,
       receiptIds,
       userId
@@ -46,6 +50,46 @@ const createPaymentAndRedirect = async (req, res) => {
   }
 };
 
+
+const getPaymentsByUserId = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const payments = await paymentService.getPaymentsByUserId(userId);
+
+    res.status(200).json(ApiResponse.success(payments,"Payment fetched successfully"));
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+const getAllPayments = async (req, res, next) => {
+  try {
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
+
+    const result = await paymentService.getAllPayments(features);
+
+    res
+      .status(200)
+      .json(ApiResponse.success(result, "Payments retrieved successfully"));
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
 module.exports = {
-  createPaymentAndRedirect
+  createPaymentAndRedirect,
+  getPaymentsByUserId,
+  getAllPayments,
 };

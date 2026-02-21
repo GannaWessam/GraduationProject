@@ -42,14 +42,13 @@ const UserPermission = require("./UserPermission")(sequelize);
 const Profile = require("./Profile")(sequelize);
 const ProfilePermission = require("./ProfilePermission")(sequelize);
 const Container = require("./Container")(sequelize);
+const Service = require("./Service")(sequelize);
 
-User.hasMany(Payment, {
+Student.hasMany(Payment, {
   foreignKey: "userId",
-  as: "payments", // ✅ alias
 });
-Payment.belongsTo(User, {
+Payment.belongsTo(Student, {
   foreignKey: "userId",
-  as: "paymentUser", // ✅ alias مختلف
 });
 
 Payment.belongsTo(Product, {
@@ -450,7 +449,8 @@ currency.hasMany(course, { foreignKey: 'currencyId' });
 Product.belongsTo(currency, { foreignKey: 'currencyId' });
 currency.hasMany(Product, { foreignKey: 'currencyId' });
 
-
+Service.belongsTo(currency, { foreignKey: "currencyId" });
+currency.hasMany(Service, { foreignKey: "currencyId" });
 
 efada.belongsTo(Student, {
   foreignKey: 'userId',
@@ -462,6 +462,9 @@ Student.hasMany(efada, {
   foreignKey: 'userId',
   as: 'efadas'
 });
+
+
+
 
 module.exports = {
   sequelize,
@@ -505,5 +508,6 @@ module.exports = {
   Admin,
   attendance,
   currency,
-  efada
+  efada,
+  Service
 };

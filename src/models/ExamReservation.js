@@ -53,7 +53,7 @@ module.exports = (sequelize) => {
     tableName: 'examReservation',
     timestamps: true,
     indexes: [
-      { unique: true, fields: ['examId', 'userId'] },
+      // { unique: true, fields: ['examId', 'userId'] },
     ],
   });
 

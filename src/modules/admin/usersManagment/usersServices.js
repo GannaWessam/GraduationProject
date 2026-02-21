@@ -366,7 +366,7 @@ async function updateStudentNationalId(userId, nationalId) {
 
  // adjust path to your models folder
 
-const getStudentById = async (userId) => {
+ const getStudentById = async (userId) => {
   const student = await Student.findOne({
     where: { userId },
     include: [
@@ -374,17 +374,16 @@ const getStudentById = async (userId) => {
       {
         model: User,
         attributes: ["email", "role"],
+      },
+
+      // ===== Payments =====
+      {
+        model: Payment,
+        attributes: ["amount", "status", "timestamp"],
         include: [
           {
-            model: Payment,
-            as: "payments", // matches User.hasMany(Payment, { as: 'payments' })
-            attributes: ["amount", "status", "timestamp"],
-            include: [
-              {
-                model: Product,// matches Payment.belongsTo(Product, { as: 'product' })
-                attributes: ["courseName"],
-              },
-            ],
+            model: Product,
+            attributes: ["courseName"],
           },
         ],
       },
@@ -418,7 +417,7 @@ const getStudentById = async (userId) => {
             include: [
               {
                 model: event,
-                as: "event", // keep this if exam.belongsTo(event, { as: 'event' })
+                as: "event",
                 attributes: ["eventId", "eventName", "startDate", "endDate"],
               },
             ],
@@ -442,7 +441,7 @@ const getStudentById = async (userId) => {
             include: [
               {
                 model: event,
-                as: "event", // keep this if training.belongsTo(event, { as: 'event' })
+                as: "event",
                 attributes: ["eventId", "eventName", "startDate", "endDate"],
               },
             ],
@@ -457,8 +456,14 @@ const getStudentById = async (userId) => {
         include: [
           {
             model: event,
-            as: "reservationEvent", // <<-- changed to match reservation association alias
-            attributes: ["eventId", "eventName", "type", "startDate", "endDate"],
+            as: "reservationEvent",
+            attributes: [
+              "eventId",
+              "eventName",
+              "type",
+              "startDate",
+              "endDate",
+            ],
           },
         ],
       },

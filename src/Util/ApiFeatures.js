@@ -24,65 +24,65 @@ class ApiFeature {
 
 
   filter() {
-  let queryObj = { ...this.searchQuery };
-
-  const excluded = [
-    "page",
-    "limit",
-    "sort",
-    "fields",
-    "search",
-    "searchFields",
-  ];
-  excluded.forEach((el) => delete queryObj[el]);
-
-  const opMap = {
-    gt: Op.gt,
-    gte: Op.gte,
-    lt: Op.lt,
-    lte: Op.lte,
-    in: Op.in,
-    nin: Op.notIn,
-    eq: Op.eq,
-    ne: Op.ne,
-    contains: Op.iLike,
-  };
-
-  const where = {};
-
-  for (let key in queryObj) {
-
-    const match = key.match(/([\w.]+)\[(\w+)\]/);
-
-    if (match) {
-      const field = match[1];  
-      const op = match[2];
-      const value = queryObj[key];
-
-      const sequelizeField = field.includes(".")
-        ? `$${field}$`
-        : field;
-
-      if (!where[sequelizeField]) where[sequelizeField] = {};
-
-      if (opMap[op]) {
-        if (op === "contains") {
-          where[sequelizeField][opMap[op]] = `%${value}%`;
-        } else {
-          where[sequelizeField][opMap[op]] = value;
+    let queryObj = { ...this.searchQuery };
+  
+    const excluded = [
+      "page",
+      "limit",
+      "sort",
+      "fields",
+      "search",
+      "searchFields",
+    ];
+    excluded.forEach((el) => delete queryObj[el]);
+  
+    const opMap = {
+      gt: Op.gt,
+      gte: Op.gte,
+      lt: Op.lt,
+      lte: Op.lte,
+      in: Op.in,
+      nin: Op.notIn,
+      eq: Op.eq,
+      ne: Op.ne,
+      contains: Op.iLike,
+    };
+  
+    const where = {};
+  
+    for (let key in queryObj) {
+      const match = key.match(/([\w.]+)\[(\w+)\]/);
+  
+      if (match) {
+        const field = match[1];
+        const op = match[2];
+        let value = queryObj[key];
+  
+        const sequelizeField = field.includes(".") ? `$${field}$` : field;
+  
+        if (!where[sequelizeField]) where[sequelizeField] = {};
+  
+        if (opMap[op]) {
+          if (op === "in" || op === "nin") {
+            if (typeof value === "string") value = value.split(",");
+            where[sequelizeField][opMap[op]] = value;
+          }
+          else if (op === "contains") {
+            where[sequelizeField][opMap[op]] = `%${value}%`;
+          }
+          else {
+            where[sequelizeField][opMap[op]] = value;
+          }
         }
+      } else {
+        where[key] = queryObj[key];
       }
-
-    } else {
-      
-      where[key] = queryObj[key];
     }
+  
+    this.options.where = where;
+  
+    return this;
   }
-
-  this.options.where = where;
-
-  return this;
-}
 
 
   sort() {

@@ -219,7 +219,16 @@ async function processOneStudent(
     throw new Error("event_excel_courses_mismatch");
   }
   if (examCount !== courseTitleToExam.size) {
-    throw new Error("exam_count_mismatch")
+    const err = new Error(
+      'exam_count_mismatch'
+    );
+    err.code = "exam_count_mismatch";
+    err.details = {
+      requiredExamsCount: courseTitleToExam.size,
+      takenExamsCount: examCount,
+      missingExams: [...remainingInEvent],
+    };
+    throw err;
   }
 
 

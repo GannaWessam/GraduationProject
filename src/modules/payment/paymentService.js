@@ -1,4 +1,4 @@
-const {Payment , Student ,Product ,webhook} = require("../../models");
+const {Payment , Student ,Product ,webhook ,sequelize} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
@@ -156,35 +156,48 @@ const getAllPayments = async (features) => {
 
 
 
-const processWebhook = async ({
-  signature,
-  webhookId,
-  event,
-  timestamp,
-  body,
-}) => {
+const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody, body }) => {
+  const t = await sequelize.transaction();
 
+  try {
+    // تحقق من signature
+    const isValid = verifySignature(rawBody, signature, secretKey);
+    if (!isValid) {
+      const error = new Error("Unauthorized - Invalid or missing signature");
+      error.statusCode = 401;
+      throw error;
+    }
 
-  const rawBody = JSON.stringify(body);
-  const isValid = verifySignature(rawBody, signature, secretKey);
-  if (!isValid) {
-    const error = new Error("Invalid webhook signature");
-    error.statusCode = 401;
+    // التحقق من idempotency
+    const existing = await webhook.findOne({ where: { webhookId }, transaction: t });
+    if (existing) {
+      await t.commit();
+      return true;
+    }
+
+    // تخزين webhook
+    await webhook.create({ webhookId, webhookEvent: event }, { transaction: t });
+
+    // تحديث بيانات الدفع
+    const paymentData = await Payment.findOne({ where: { orderId: body.transaction.merchantOrderId }, transaction: t });
+    if (!paymentData) {
+      const error = new Error("Bad request - Invalid payload format");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    paymentData.status = body.transaction.status;
+    if (body.transaction.netAmount !== undefined) {
+      paymentData.actualAmount = body.transaction.netAmount;
+    }
+    await paymentData.save({ transaction: t });
+
+    await t.commit();
+    return true;
+  } catch (error) {
+    await t.rollback();
     throw error;
   }
-
-  const existing = await webhook.findOne({ where: { webhookId } });
-  if (existing) {
-    return true; 
-  }
-
-  await webhook.create({
-    webhookId,
-    webhookEvent: event
-  });
-
-
-  return true;
 };
 
 module.exports = {

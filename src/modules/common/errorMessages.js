@@ -470,6 +470,14 @@ const errorMessages = {
     code: 409,
     msg: "Profile already exists | البروفايل موجود مسبقاً",
   },
+  "Unauthorized - Invalid or missing signature": {
+    code: 401,
+    msg: "Unauthorized - Invalid or missing signature",
+  },
+  "Bad request - Invalid payload format": {
+    code: 400,
+    msg: "Bad request - Invalid payload format",
+  },
 
   /** Fallback for any error not in this map (centralized error handler uses this for audit) */
   internal_server_error: {

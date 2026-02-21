@@ -36,6 +36,7 @@ const SessionMaterial = require("./SessionMaterial")(sequelize);
 const attendance = require("./attendance")(sequelize);
 const currency = require("./Currency")(sequelize);
 const efada = require("./Efada")(sequelize);
+const webhook = require("./Webhook")(sequelize);
 
 const Permission = require("./Permissions")(sequelize);
 const UserPermission = require("./UserPermission")(sequelize);
@@ -509,5 +510,6 @@ module.exports = {
   attendance,
   currency,
   efada,
-  Service
+  Service,
+  webhook
 };

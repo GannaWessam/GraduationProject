@@ -87,9 +87,44 @@ const getAllPayments = async (req, res, next) => {
 };
 
 
+const handleWebhook = async (req, res, next) => {
+  try {
+    const signature = req.get("X-Webhook-Signature");
+const webhookId = req.get("X-Webhook-ID");
+const event = req.get("X-Webhook-Event");
+const timestamp = req.get("X-Webhook-Timestamp");
+
+
+
+    if (!signature || !webhookId || !event || !timestamp) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required webhook headers",
+      });
+    }
+//K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
+
+    await paymentService.processWebhook({
+      signature,
+      webhookId,
+      event,
+      timestamp,   
+      body: req.body,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Webhook processed successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 module.exports = {
   createPaymentAndRedirect,
   getPaymentsByUserId,
   getAllPayments,
+  handleWebhook
 };

@@ -1,8 +1,9 @@
-const {Payment , Student ,Product} = require("../../models");
+const {Payment , Student ,Product ,webhook} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
-
-
+const crypto = require("crypto");
+const secretKey = process.env.WEBHOOK_SECRET;
+const { verifySignature } = require("./helper/Webhook");
 
 
 
@@ -150,8 +151,45 @@ const getAllPayments = async (features) => {
 };
 
 
+
+
+
+
+
+const processWebhook = async ({
+  signature,
+  webhookId,
+  event,
+  timestamp,
+  body,
+}) => {
+
+
+  const rawBody = JSON.stringify(body);
+  const isValid = verifySignature(rawBody, signature, secretKey);
+  if (!isValid) {
+    const error = new Error("Invalid webhook signature");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const existing = await webhook.findOne({ where: { webhookId } });
+  if (existing) {
+    return true; 
+  }
+
+  await webhook.create({
+    webhookId,
+    webhookEvent: event
+  });
+
+
+  return true;
+};
+
 module.exports = {
   createPayment,
   getPaymentsByUserId,
-  getAllPayments
+  getAllPayments,
+  processWebhook
 };

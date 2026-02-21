@@ -168,14 +168,20 @@ const assignPermissionsToUserController = async (req, res, next) => {
 const getUserExamsController = async (req, res) => {
   try {
     const { userId } = req.params;
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
 
     if (!userId) {
       return res.status(400).json({ success: false, message: 'userId required' });
     }
 
-    const exams = await userServices.getUserExams(userId);
+    const exams = await userServices.getUserExams(userId,features);
 
-    res.status(200).json({ success: true, count: exams.length, data: exams });
+    res.status(200).json(ApiResponse.success(exams));
   } catch (error) {
     console.error('Erorr', error);
     res.status(500).json({ success: false, message: 'Erorr', error: error.message });

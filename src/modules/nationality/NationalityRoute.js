@@ -2,13 +2,9 @@ const express = require("express");
 const router = express.Router();
 const NationalityController = require("./NationalityController");
 const catchError = require("../../middlewares/catchError");
-const { validateToken } = require("../../middlewares/token");
-const checkPermission = require("../../middlewares/checkPermission");
 
 router.get(
   "/",
-  validateToken,
-  // checkPermission("getNationalities"),
   catchError(NationalityController.getAllNationalitysController)
 );
 

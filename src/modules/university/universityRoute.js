@@ -7,32 +7,22 @@ const checkPermission = require("../../middlewares/checkPermission");
 
 router.post(
   "/",
-  validateToken,
-  // checkPermission("createUniversity"),
   catchError(UniversityController.addUniversity)
 );
 router.get(
   "/",
-  validateToken,
-  // checkPermission("getUniversities"),
   catchError(UniversityController.getAllUniversitiesController)
 );
 router.get(
   "/:id",
-  validateToken,
-  // checkPermission("getUniversity"),
   catchError(UniversityController.getUniversityById)
 );
 router.put(
   "/:id",
-  validateToken,
-  // checkPermission("updateUniversity"),
   catchError(UniversityController.updateUniversity)
 );
 router.delete(
   "/:id",
-  validateToken,
-  // checkPermission("deleteUniversity"),
   catchError(UniversityController.deleteUniversity)
 );
 

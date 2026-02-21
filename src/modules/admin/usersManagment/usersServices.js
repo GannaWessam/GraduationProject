@@ -195,12 +195,10 @@ const getAllUsersByStatus = async (status, features) => {
         include: [
           {
             model: Payment,
-            as: "payments",
             attributes: ["amount", "status", "timestamp"],
             include: [
               {
                 model: Product,
-                as: "product",
                 attributes: ["courseName"],
               },
             ],
@@ -623,14 +621,19 @@ const assignPermissionsToUser = async (userId, permissionNames = []) => {
   });
 };
 
-const getUserExams = async (userId) => {
+const getUserExams = async (userId,fetaures) => {
   try {
-    const reservations = await examReservation.findAll({
+    const page = fetaures.page * 1 || 1;
+    const limit = fetaures.limit * 1 || 10;
+    const offset = (page - 1) * limit;
+    const {count , rows} = await examReservation.findAndCountAll({
       where: { userId },
+      limit,
+      offset,
       attributes: ['examId'],
     });
 
-    const examIds = reservations.map(r => r.examId).filter(id => id !== null);
+    const examIds = rows.map(r => r.examId).filter(id => id !== null);
 
     if (examIds.length === 0) return [];
 
@@ -645,7 +648,12 @@ const getUserExams = async (userId) => {
       ]
     });
 
-    return exams;
+    return PaginatedResponse.fromApiFeature(
+      fetaures,
+      count,
+      exams,
+      "Exams fetched successfully"
+    );
   } catch (error) {
     console.error('Erorr', error);
     throw error;

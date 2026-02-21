@@ -13,7 +13,6 @@ router.post(
 );
 router.get(
   "/",
-  validateToken,
   catchError(ProductController.getAllProductsController)
 );
 router.get(

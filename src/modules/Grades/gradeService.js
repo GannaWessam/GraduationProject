@@ -63,8 +63,11 @@ const getAllReservationsByEvent = async (eventId, features) => {
   }
 };
 
-const getReservationsByUserId = async (userId) => {
-  return await examReservation.findAll({
+const getReservationsByUserId = async (userId,features) => {
+    const page = features.page * 1 || 1;
+    const limit = features.limit * 1 || 10;
+    const offset = (page - 1) * limit;
+    const {count,rows} =await examReservation.findAndCountAll({
     attributes: {
       exclude: [
         "createdAt",
@@ -77,6 +80,8 @@ const getReservationsByUserId = async (userId) => {
       ],
     },
     where: { userId },
+    limit,
+    offset,
     include: [
       {
         model: exam,
@@ -88,13 +93,15 @@ const getReservationsByUserId = async (userId) => {
           },
         ],
       },
-      {
-        model: Student,
-        attributes: ["userId", "fullName"],
-      },
     ],
     order: [["createdAt", "DESC"]],
   });
+  return PaginatedResponse.fromApiFeature(
+    features,
+    count,
+    rows,
+    "grades fetched successfully"
+  );
 };
 
 module.exports = {

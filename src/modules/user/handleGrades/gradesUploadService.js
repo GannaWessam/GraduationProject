@@ -179,6 +179,7 @@ async function processOneStudent(
       examCount++;
       continue;
     }
+    examCount++;
     remainingInEvent.delete(quiz.courseTitle);
 
     const { examId, examDate } = examInfo;

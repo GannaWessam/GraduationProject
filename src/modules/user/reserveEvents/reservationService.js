@@ -81,7 +81,7 @@ const registerForExam = async (userId, eventId, req) => {
 
     if (previousReservations.length > 0) {
       const hasNonFailResult = previousReservations.some(
-        (r) => r.result !== "fail"
+        (r) => r.reservationStatus  !== "failed"
       );
 
       if (hasNonFailResult) {

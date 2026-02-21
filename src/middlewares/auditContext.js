@@ -45,7 +45,7 @@ module.exports = (req, res, next) => {
 
   res.on("finish", async () => {
     try {
-      if (req.method === "GET") {
+      if (req.method === "GET" || req.originalUrl.includes("/api/chat")) {
         return;
       } else {
         const actor = getActorFromRequest(req);

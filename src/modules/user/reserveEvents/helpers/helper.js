@@ -451,7 +451,7 @@ const {
   supervisor,
   reservation,
   Student,
-
+  examReservation,
 } = require("../../../../models");
 
 //bfkr a3ml 3leha endpoint?
@@ -464,11 +464,11 @@ async function getAvailableEventsForUser(userId, productId, query) {
     await getStudentCourseStatus(userId);
 
   // Get student's StudyLan to filter events by language
-  const student = await Student.findOne({ 
+  const student = await Student.findOne({
     where: { userId },
-    attributes: ["StudyLan"]
+    attributes: ["StudyLan"],
   });
-  
+
   if (!student) {
     throw new Error("Student not found");
   }
@@ -483,7 +483,7 @@ async function getAvailableEventsForUser(userId, productId, query) {
     allowedForTraining,
     allowedForExam,
     requiredTotal,
-    optionalAllowed
+    optionalAllowed,
   );
 }
 
@@ -544,7 +544,7 @@ async function getStudentCourseStatus(userId) {
   return { doneCourses, allowedForTraining, allowedForExam };
 }
 
-const ApiFeature = require("../../../../Util/ApiFeatures"); 
+const ApiFeature = require("../../../../Util/ApiFeatures");
 
 async function getAllOpenEvents(productId, query, language = null) {
   const apiFeature = new ApiFeature(query)
@@ -557,8 +557,8 @@ async function getAllOpenEvents(productId, query, language = null) {
     ...apiFeature.options.where,
     status: "opend",
     productId,
-    startDateRes: { [Op.lte]: new Date() },  
-    endDateRes: { [Op.gte]: new Date() }
+    startDateRes: { [Op.lte]: new Date() },
+    endDateRes: { [Op.gte]: new Date() },
   };
 
   if (language) {
@@ -608,7 +608,7 @@ function filterEligibleEvents(
   allowedForTraining,
   allowedForExam,
   requiredTotal,
-  optionalAllowed
+  optionalAllowed,
 ) {
   const filtered = [];
 
@@ -628,7 +628,7 @@ function filterEligibleEvents(
         allowedForExam,
         requiredTotal,
         optionalCourses,
-        optionalAllowed
+        optionalAllowed,
       )
     )
       continue;
@@ -648,7 +648,7 @@ function shouldSkipEvent(
   allowedForExam,
   requiredTotal,
   optionalCourses,
-  optionalAllowed
+  optionalAllowed,
 ) {
   if (courseIds.some((id) => doneCourses.includes(id))) return true;
 
@@ -668,10 +668,10 @@ function shouldSkipEvent(
   if (totalAfter > requiredTotal) return true;
 
   const doneOptionalCount = doneCourses.filter((id) =>
-    optionalCourses.includes(id)
+    optionalCourses.includes(id),
   ).length;
   const packageOptionalCount = courseIds.filter((id) =>
-    optionalCourses.includes(id)
+    optionalCourses.includes(id),
   ).length;
   const optionalAfter = doneOptionalCount + packageOptionalCount;
   if (optionalAfter > optionalAllowed) return true;
@@ -685,7 +685,12 @@ const chattingService = require("../../../../Services/chattingService");
 // Training: group = trainers (from training) + users (from reservation).
 // Exam: group = supervisors (from exam) + users (from reservation).
 // Optional 4th arg: transaction so calls run in the same transaction.
-async function handleCreateGroupChatForEvent(eventId, eventName, eventType, transaction = null) {
+async function handleCreateGroupChatForEvent(
+  eventId,
+  eventName,
+  eventType,
+  transaction = null,
+) {
   const tx = transaction ?? undefined;
 
   const allReservations = await reservation.findAll({
@@ -704,18 +709,14 @@ async function handleCreateGroupChatForEvent(eventId, eventName, eventType, tran
       attributes: ["trainerId"],
       transaction: tx,
     });
-    staffIds = trainings
-      .map((tr) => tr.trainerId)
-      .filter((id) => id != null);
+    staffIds = trainings.map((tr) => tr.trainerId).filter((id) => id != null);
   } else if (eventType === "exam") {
     const exams = await exam.findAll({
       where: { eventId },
       attributes: ["supervisorId"],
       transaction: tx,
     });
-    staffIds = exams
-      .map((ex) => ex.supervisorId)
-      .filter((id) => id != null);
+    staffIds = exams.map((ex) => ex.supervisorId).filter((id) => id != null);
   }
 
   const finalGroupMembers = [...new Set([...staffIds, ...userIds])];
@@ -723,9 +724,8 @@ async function handleCreateGroupChatForEvent(eventId, eventName, eventType, tran
   await chattingService.createGroupConversation(
     finalGroupMembers,
     eventId,
-    eventName
+    eventName,
   );
 }
-
 
 module.exports = { getAvailableEventsForUser, handleCreateGroupChatForEvent };

@@ -85,7 +85,7 @@ let EVENT_ID = null;
 async function ensureEventAndExams() {
   await seedCoursesAndPackage();
 
-  const pkg = await Package.findOne({ where: { packageName: "Starter Package" } });
+  const pkg = await Package.findOne({ where: { packageName: "Package of seven courses | حزمة سبع دوارات" } });
   if (!pkg) throw new Error("Starter Package not found. Run: node seeder/seedcourses.js");
 
   const packageCourses = await packageCourse.findAll({
@@ -129,7 +129,7 @@ async function ensureEventAndExams() {
     console.log("✅ Using existing event for Starter Package:", eventRow.eventId);
   }
 
-  EVENT_ID = eventRow.eventId;
+  EVENT_ID = "b4a00c2f-216d-4c9f-9078-3246ebb8b9b1";
 
   const existingExams = await exam.findAll({
     where: { eventId: EVENT_ID },

@@ -36,9 +36,7 @@ const upload = multer({
 
 router.post(
   "/upload/:id",
-  validateToken,
   upload.single("file"),
-  checkPermission("UPLOAD_RESULTS"),
   uploadGrades
 );
 

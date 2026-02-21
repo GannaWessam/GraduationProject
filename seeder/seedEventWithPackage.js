@@ -4,7 +4,7 @@
  */
 const { sequelize, event } = require('../src/models');
 
-const PACKAGE_ID = 'f94bb3dd-1321-4df2-95c8-c4ea8df11f0f';
+const PACKAGE_ID = "f522b1bc-5802-49c0-9fb1-98cca28f0bb6";
 
 async function seedEventWithPackage() {
   try {

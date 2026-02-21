@@ -34,6 +34,7 @@ class ApiFeature {
       "search",
       "searchFields",
     ];
+  
     excluded.forEach((el) => delete queryObj[el]);
   
     const opMap = {
@@ -46,6 +47,7 @@ class ApiFeature {
       eq: Op.eq,
       ne: Op.ne,
       contains: Op.iLike,
+      date: "date",
     };
   
     const where = {};
@@ -57,8 +59,14 @@ class ApiFeature {
         const field = match[1];
         const op = match[2];
         let value = queryObj[key];
-  
         const sequelizeField = field.includes(".") ? `$${field}$` : field;
+        if (op === "date") {
+          where[sequelizeField] = sequelize.where(
+            sequelize.fn("DATE", sequelize.col(field)),
+            value
+          );
+          continue;
+        }
   
         if (!where[sequelizeField]) where[sequelizeField] = {};
   
@@ -66,14 +74,15 @@ class ApiFeature {
           if (op === "in" || op === "nin") {
             if (typeof value === "string") value = value.split(",");
             where[sequelizeField][opMap[op]] = value;
-          }
+          } 
           else if (op === "contains") {
             where[sequelizeField][opMap[op]] = `%${value}%`;
-          }
+          } 
           else {
             where[sequelizeField][opMap[op]] = value;
           }
         }
+  
       } else {
         where[key] = queryObj[key];
       }
@@ -110,9 +119,12 @@ class ApiFeature {
 
   search() {
     if (this.searchQuery.search) {
+
       const searchFields = this.searchQuery.searchFields
         ? this.searchQuery.searchFields.split(",")
         : [];
+        console.log(searchFields);
+        
 
       if (searchFields.length > 0) {
         const orConditions = searchFields.map((field) => {

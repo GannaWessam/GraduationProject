@@ -57,6 +57,8 @@ const getAllReservationsByEvent = async (eventId, features) => {
       "Reservations fetched successfully by event",
     );
   } catch (error) {
+    // console.log(error);
+    
     throw new Error("failed_to_fetch_reservations_by_event");
   }
 };

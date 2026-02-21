@@ -169,12 +169,13 @@ async function processOneStudent(
   let examsUpdated = 0;
   // Per-student set of event courses not yet seen in this row (do not mutate shared courseTitleToExam)
   const remainingInEvent = new Set(courseTitleToExam.keys());
-
   for (const quiz of quizzes) {
     // Match exactly: use courseTitle as provided from Excel (Prompt A)
     const examInfo = courseTitleToExam.get(quiz.courseTitle);
     if (!examInfo) {
-      throw new Error("no_exam_found_for_course_and_student");
+      const err =new Error("no_exam_found_for_course_and_student");
+      err.nationalId = quiz.courseTitle;
+      throw err;
     }
     remainingInEvent.delete(quiz.courseTitle);
 
@@ -279,7 +280,6 @@ async function uploadFromExcel(parsedData, eventId) {
   if (!eventId) {
     throw new Error("eventId is required");
   }
-
   // Resolve event and build courseTitle -> exam map once (read-only, no transaction)
   const { courseTitleToExam } = await getEventExamsWithCourses(eventId);
 

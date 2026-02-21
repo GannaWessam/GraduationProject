@@ -105,6 +105,8 @@ router.get(
   catchError(usersController.getAllUserss)
 );
 
+router.get('/user/:userId', catchError(usersController.getUserExamsController));
+
 router.post(
   "/:id/permissions",
   validateToken,

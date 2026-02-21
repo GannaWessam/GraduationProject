@@ -187,8 +187,8 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
     }
 
     paymentData.status = body.transaction.status;
-    if (body.transaction.netAmount !== undefined) {
-      paymentData.actualAmount = body.transaction.netAmount;
+    if (body.transaction.grossAmount !== undefined) {
+      paymentData.actualAmount = body.transaction.grossAmount;
     }
     await paymentData.save({ transaction: t });
 

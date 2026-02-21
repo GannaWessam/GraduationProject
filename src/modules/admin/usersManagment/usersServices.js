@@ -623,6 +623,36 @@ const assignPermissionsToUser = async (userId, permissionNames = []) => {
   });
 };
 
+const getUserExams = async (userId) => {
+  try {
+    const reservations = await examReservation.findAll({
+      where: { userId },
+      attributes: ['examId'],
+    });
+
+    const examIds = reservations.map(r => r.examId).filter(id => id !== null);
+
+    if (examIds.length === 0) return [];
+
+    
+    const exams = await exam.findAll({
+      where: { examId: { [Op.in]: examIds } },
+      include: [
+        {
+          model: course,
+          attributes: ['courseId', 'name'],
+        }
+      ]
+    });
+
+    return exams;
+  } catch (error) {
+    console.error('Erorr', error);
+    throw error;
+  }
+};
+
+
 
 module.exports = {
   getAllUsers,
@@ -637,5 +667,6 @@ module.exports = {
   getStudentById,
   getUsersByTrainingId,
   getUsersByExamId,
-  assignPermissionsToUser
+  assignPermissionsToUser,
+  getUserExams
 };

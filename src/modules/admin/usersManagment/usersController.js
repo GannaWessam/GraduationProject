@@ -165,6 +165,23 @@ const assignPermissionsToUserController = async (req, res, next) => {
   }
 };
 
+const getUserExamsController = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'userId required' });
+    }
+
+    const exams = await userServices.getUserExams(userId);
+
+    res.status(200).json({ success: true, count: exams.length, data: exams });
+  } catch (error) {
+    console.error('Erorr', error);
+    res.status(500).json({ success: false, message: 'Erorr', error: error.message });
+  }
+};
+
 
 module.exports = {
     getAllUsers,
@@ -179,5 +196,6 @@ module.exports = {
     getStudentByIdController,
     getUsersByTrainingIdController,
     getUsersByExamIdController,
-    assignPermissionsToUserController
+    assignPermissionsToUserController,
+    getUserExamsController
 }

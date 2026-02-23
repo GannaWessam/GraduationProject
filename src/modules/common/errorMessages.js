@@ -482,6 +482,11 @@ const errorMessages = {
     msg: "Bad request - Invalid payload format",
   },
 
+  "Conflict - Webhook already processed": {
+    code: 409,
+    msg: "Conflict - Webhook already processed",
+  },
+
   /** Fallback for any error not in this map (centralized error handler uses this for audit) */
   internal_server_error: {
     code: 500,

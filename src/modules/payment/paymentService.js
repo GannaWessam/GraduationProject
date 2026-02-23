@@ -3,7 +3,7 @@ const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
 const secretKey = process.env.WEBHOOK_SECRET;
-const { verifySignature } = require("./helper/Webhook");
+const { verifySignature , validateWebhookTimestamp } = require("./helper/Webhook");
 
 
 
@@ -168,11 +168,14 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
       throw error;
     }
 
+    validateWebhookTimestamp(timestamp);
+
     // التحقق من idempotency
     const existing = await webhook.findOne({ where: { webhookId }, transaction: t });
     if (existing) {
-      await t.commit();
-      return true;
+      const error = new Error("Conflict - Webhook already processed");
+      error.statusCode = 409;
+      throw error;
     }
 
     // تخزين webhook

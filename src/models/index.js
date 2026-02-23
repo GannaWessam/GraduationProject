@@ -44,6 +44,7 @@ const Profile = require("./Profile")(sequelize);
 const ProfilePermission = require("./ProfilePermission")(sequelize);
 const Container = require("./Container")(sequelize);
 const Service = require("./Service")(sequelize);
+const examReservationArchive = require("./ExamReservationArchive")(sequelize);
 
 Student.hasMany(Payment, {
   foreignKey: "userId",
@@ -464,7 +465,17 @@ Student.hasMany(efada, {
   as: 'efadas'
 });
 
+examReservationArchive.belongsTo(exam, {
+  foreignKey: "examId",
+  as: "exam",
+  constraints: false,
+});
 
+examReservationArchive.belongsTo(Student, {
+  foreignKey: "userId",
+  as: "Student",
+  constraints: false,
+});
 
 
 module.exports = {
@@ -511,5 +522,6 @@ module.exports = {
   currency,
   efada,
   Service,
-  webhook
+  webhook,
+  examReservationArchive,
 };

@@ -452,6 +452,7 @@ const {
   reservation,
   Student,
   examReservation,
+  examReservationArchive,
 } = require("../../../../models");
 
 //bfkr a3ml 3leha endpoint?
@@ -728,4 +729,33 @@ async function handleCreateGroupChatForEvent(
   );
 }
 
-module.exports = { getAvailableEventsForUser, handleCreateGroupChatForEvent };
+const archiveReservation = async (reservation, t) => {
+  await examReservationArchive.create(
+    {
+      originalExamReservationId: reservation.examReservationId,
+      reservationId: reservation.reservationId,
+      userId: reservation.userId,
+      examId: reservation.examId,
+      type: reservation.type,
+      attempts: reservation.attempts,
+      result: reservation.result,
+      reservationStatus: reservation.reservationStatus,
+    },
+    { transaction: t },
+  );
+};
+const FIVE_YEARS = 5 * 365 * 24 * 60 * 60 * 1000;
+
+const canRetakeAfterFiveYears = (reservation) => {
+  const lastDate = new Date(reservation.createdAt).getTime();
+  const now = Date.now();
+
+  return now - lastDate >= FIVE_YEARS;
+};
+
+module.exports = {
+  getAvailableEventsForUser,
+  handleCreateGroupChatForEvent,
+  archiveReservation,
+  canRetakeAfterFiveYears,
+};

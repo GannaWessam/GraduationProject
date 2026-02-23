@@ -465,7 +465,10 @@ const errorMessages = {
     code: 409,
     msg: "Container already exists | الحاوية موجودة مسبقاً",
   },
-  "exam_count_mismatch": { code: 400, msg: "Exam count mismatch, student has not taken all required exams for this event | عدد الامتحانات غير متطابق" },
+  exam_count_mismatch: {
+    code: 400,
+    msg: "Exam count mismatch, student has not taken all required exams for this event | عدد الامتحانات غير متطابق",
+  },
   profile_exists: {
     code: 409,
     msg: "Profile already exists | البروفايل موجود مسبقاً",
@@ -487,6 +490,23 @@ const errorMessages = {
   "Failed login attempt": {
     code: 401,
     msg: "Failed login attempt | محاولة تسجيل دخول فاشلة",
+  },
+  "No exams found for this event or package.": {
+    code: 400,
+    msg: "No exams found for this event or package.",
+  },
+  "You cannot register because you already passed all previous exams.":
+    {
+      code: 400,
+      msg: "You cannot register for a new event because you already passed all your previous exams.",
+    },
+  "Can not register for this event": {
+    code: 400,
+    msg: "Can not register for this event",
+  },
+  "You already reserved this event before.": {
+    code: 400,
+    msg: "You already reserved this event before.",
   },
 };
 

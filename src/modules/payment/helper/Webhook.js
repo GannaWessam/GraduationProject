@@ -8,7 +8,7 @@ const verifySignature = (rawBody, signatureHeader, secretKey) => {
     .update(rawBody, "utf8")
     .digest("base64");
 
-
+console.log(expectedSignature)
   const expectedBuffer = Buffer.from(expectedSignature, "base64");
   const receivedBuffer = Buffer.from(signatureHeader, "base64");
 

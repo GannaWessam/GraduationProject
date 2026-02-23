@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 require('dotenv').config();
+
 module.exports = (sequelize) => {
   const Student = sequelize.define(
     "Student",
@@ -9,22 +10,14 @@ module.exports = (sequelize) => {
         primaryKey: true,
         allowNull: false,
         unique: true,
-        primaryKey: true, 
       },
       fullName: { type: DataTypes.STRING(200), allowNull: false },
       NameEn: { type: DataTypes.STRING(200), allowNull: false },
       Mobile: { type: DataTypes.STRING(200), allowNull: false },
       StudyLan: { type: DataTypes.STRING(200), allowNull: false },
       nationality: { type: DataTypes.STRING(100), allowNull: true },
-      QRdata: {
-        type: DataTypes.STRING(200),
-        allowNull: true,
-      },
-      nationalId: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-        unique: true,
-      },
+      QRdata: { type: DataTypes.STRING(200), allowNull: true },
+      nationalId: { type: DataTypes.STRING(50), allowNull: false, unique: true },
       nationalIdImage: {
         type: DataTypes.STRING(300),
         allowNull: true,
@@ -37,20 +30,18 @@ module.exports = (sequelize) => {
       college: { type: DataTypes.STRING(150), allowNull: true },
       department: { type: DataTypes.STRING(150), allowNull: true },
       type: { type: DataTypes.ENUM("1", "2", "3", "4"), allowNull: true },
-      status: { type: DataTypes.STRING(200), allowNull: false }, // allowed values: approved | pending
+      status: { type: DataTypes.STRING(200), allowNull: false },
       profilePhoto: { type: DataTypes.STRING(10000), allowNull: true },
-      productId:{
-        type: DataTypes.UUID,
-        allowNull: true,
-      }
+      productId: { type: DataTypes.UUID, allowNull: true },
     },
     {
       tableName: "students",
-      // indexes: [
-      //   { unique: true, fields: ['user_id'] },
-      //   { unique: true, fields: ['national_id'] },
-      //   { fields: ['course_type'] },
-      // ],
+      indexes: [
+        { unique: true, fields: ['userId'] },
+        { unique: true, fields: ['nationalId'] },
+        { fields: ['university'] },
+        { fields: ['college'] },
+      ],
     }
   );
 

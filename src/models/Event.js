@@ -23,50 +23,46 @@ module.exports = (sequelize) => {
       type: DataTypes.DATE,       
       allowNull: false
     },
-      endDate:{
+    endDate:{
       type: DataTypes.DATE,
       allowNull: false    
     },
     startDateRes:{
-    type: DataTypes.DATE,       
-    allowNull: false
+      type: DataTypes.DATE,       
+      allowNull: false
     },
     endDateRes:{
-    type: DataTypes.DATE,
-    allowNull: false    
+      type: DataTypes.DATE,
+      allowNull: false    
     },
     capacity: {
         type: DataTypes.INTEGER,     
         allowNull: false,
-        validate: {
-            min: 1                     
-        }
+        validate: { min: 1 }
     },
-
     numberOfRegistered: {
         type: DataTypes.INTEGER,     
         allowNull: false,
         defaultValue: 0,             
-        validate: {
-        min: 0
-        }
+        validate: { min: 0 }
     },
-    // opend or closed only
-    status: { type: DataTypes.STRING(200), allowNull: false },
-
-    //either exam or training
-    type: {type: DataTypes.STRING(200), allowNull: false },
-
-    // Language of the event (e.g., "AR", "EN") - matches Student.StudyLan
+    status: { type: DataTypes.STRING(200), allowNull: false }, // opend or closed only
+    type: { type: DataTypes.STRING(200), allowNull: false },  // either exam or training
     language: { 
       type: DataTypes.STRING(200), 
       allowNull: true,
-      defaultValue: 'AR'  // so existing rows get a value when column is added (sync/alter)
+      defaultValue: 'AR'  // existing rows get a value on sync/alter
     }
-
-    
   }, {
     tableName: 'event',
+    indexes: [
+      { fields: ['packageId'] },
+      { fields: ['productId'] },
+      { fields: ['startDate'] },
+      { fields: ['endDate'] },
+      { fields: ['status'] },
+      { fields: ['type'] }
+    ],
   });
 
   return event;

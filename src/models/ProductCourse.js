@@ -1,34 +1,27 @@
 const { DataTypes, UUIDV4 } = require('sequelize');
 
 module.exports = (sequelize) => {
-  const productCourse = sequelize.define('productCourse', {
-
-
-    id: {
-        type: DataTypes.UUID,
-        primaryKey: true,
-        defaultValue: UUIDV4,
-    },
-
-    courseId: { 
+  const packageProduct = sequelize.define('packageProduct', {
+    Id: { 
         type: DataTypes.UUID, 
-        allowNull: false,
-        
+        primaryKey: true, 
+        defaultValue: UUIDV4 
     },
-
+    packageId: { 
+        type: DataTypes.UUID, 
+        allowNull: false 
+    },
     productId: { 
         type: DataTypes.UUID, 
-        allowNull: false,
+        allowNull: false 
     },
-
-    // true => mandatory
-    // false => optional
-    status: { type: DataTypes.STRING(200), allowNull: true },
-
-    
   }, {
-    tableName: 'productCourse',
+    tableName: 'packageProduct',
+    indexes: [
+      { fields: ['packageId'] },
+      { fields: ['productId'] }
+    ],
   });
 
-  return productCourse;
+  return packageProduct;
 };

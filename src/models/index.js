@@ -453,6 +453,15 @@ currency.hasMany(Product, { foreignKey: 'currencyId' });
 Service.belongsTo(currency, { foreignKey: "currencyId" });
 currency.hasMany(Service, { foreignKey: "currencyId" });
 
+Payment.belongsTo(currency, { foreignKey: "currencyId" });
+currency.hasMany(Payment, { foreignKey: "currencyId" });
+
+Payment.belongsTo(Service, { foreignKey: "serviceId" });
+Service.hasMany(Payment, { foreignKey: "serviceId" });
+
+efada.belongsTo(Payment, { foreignKey: "paymentId" });
+Payment.hasMany(efada, { foreignKey: "paymentId" });
+
 efada.belongsTo(Student, {
   foreignKey: 'userId',
   onDelete: 'SET NULL'

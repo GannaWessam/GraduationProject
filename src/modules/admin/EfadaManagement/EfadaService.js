@@ -40,7 +40,7 @@
 //   await browser.close();
 //   return pdf;
 // };
-const { efada, Student} = require('../../../models/index');
+const { efada, Student ,Service ,Payment ,currency ,sequelize} = require('../../../models/index');
 
 
 const efadaService = {
@@ -49,29 +49,102 @@ const efadaService = {
       include: [
         {
           model: Student,
-          attributes: ['userId', 'fullName', 'nationalId'] 
+          attributes: ['userId', 'fullName', 'nationalId']
+        },
+        {
+          model: Payment,
+          attributes: ['paymentId', 'status', 'amount'],
+          where: { status: 'PAID' },
+          required: true 
         }
       ],
-      order: [['date', 'DESC']] 
+      order: [['date', 'DESC']]
     });
+  
     return records;
   },
 
   add: async (userId, req) => {
-    const newEfada = await efada.create({
-      userId: userId,
-      date: new Date(),
-    });
-    
-    if (req && req.audit) {
-      req.audit.affectedUser = {
-        _id: userId,
-      };
-      req.audit.message =
-        "Efada record created successfully | تم إنشاء إفادة جديدة بنجاح";
-    }
 
-    return newEfada;
+    const t = await sequelize.transaction();
+  
+    try {
+  
+      const student = await Student.findByPk(userId, { transaction: t });
+      if (!student) {
+        throw new Error("Student not found");
+      }
+  
+      const currencyCode =
+        student.nationality === "Egypt" || student.nationality === "مصري"
+          ? "EGP"
+          : "USD";
+  
+      const Currency = await currency.findOne({
+        where: { code: currencyCode },
+        transaction: t
+      });
+  
+      if (!Currency) {
+        throw new Error("Currency not found");
+      }
+  
+      let serviceName;
+  
+      if (["1", "2", "3"].includes(student.type)) {
+        serviceName = "افادة-درسات عليا";
+      } else if (student.type === "4") {
+        serviceName = "افادة-اعضاء هيئة تدريس";
+      } else {
+        throw new Error("Invalid student type");
+      }
+  
+      const service = await Service.findOne({
+        where: { name: serviceName },
+        transaction: t
+      });
+  
+      if (!service) {
+        throw new Error("Service not found");
+      }
+  
+      const amount =
+        currencyCode === "EGP"
+          ? service.priceEgyptian
+          : service.priceOther;
+  
+      const payment = await Payment.create({
+        userId: userId,
+        serviceId: service.serviceId,
+        receiptId: service.receiptId,
+        currencyId: Currency.currencyId,
+        amount: amount,
+        status: "PENDING"
+      }, { transaction: t });
+  
+
+      const newEfada = await efada.create({
+        userId: userId,
+        paymentId: payment.paymentId,
+        date: new Date(),
+      }, { transaction: t });
+  
+      await t.commit();
+  
+      if (req && req.audit) {
+        req.audit.affectedUser = { _id: userId };
+        req.audit.message =
+          "Efada created with payment & currency successfully | تم إنشاء إفادة وربطها بعملية دفع وعملة بنجاح";
+      }
+  
+      return newEfada;
+  
+    } catch (error) {
+
+      await t.rollback();
+  
+      throw error;
+    }
   }
 };
 

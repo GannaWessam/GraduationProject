@@ -27,6 +27,7 @@ module.exports = (sequelize) => {
         defaultValue: 0,
       },
       receiptId: { type: DataTypes.INTEGER, allowNull: true },
+      receiptIdOthers: { type: DataTypes.INTEGER, allowNull: true },
 
       currencyId: {
         type: DataTypes.UUID,

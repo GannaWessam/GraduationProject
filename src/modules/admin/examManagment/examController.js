@@ -71,6 +71,27 @@ const getUpcomingExams = async (req, res) => {
   res.status(200).json(ApiResponse.success(result));
 };
 
+const ReexamController = async (req, res) => {
+try {
+  const userId = req.userData.id;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'Date is required' });
+    }
+
+    const newExam = await examService.ReexamService(userId,req.params.courseId,req);
+
+    res.status(201).json({
+      success: true,
+      data: newExam
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating efada record'
+    });
+  }};
+
 module.exports = {
   createExam,
   getExamById,
@@ -78,5 +99,6 @@ module.exports = {
   updateExam,
   deleteExam,
   getUpcomingExams,
-  getExamReservations
+  getExamReservations,
+  ReexamController
 };

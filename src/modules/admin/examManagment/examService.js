@@ -8,6 +8,10 @@ const {
   sequelize,
   Student,
   supervisor,
+  currency,
+  Service,
+  Reexam,
+  Payment
 } = require("../../../models/index.js");
 const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
@@ -418,6 +422,106 @@ const getExamReservations = async (examId, features) => {
   );
 };
 
+
+const ReexamService = async (userId,courseId ,req) => {
+  const t = await sequelize.transaction();
+
+  try {
+
+    const student = await Student.findByPk(userId, { transaction: t });
+    if (!student) {
+      throw new Error("Student not found");
+    }
+
+    // 2️⃣ Determine service name based on student type
+    const serviceName = "اعادة الامتحات";
+
+    // 3️⃣ Get service
+    const service = await Service.findOne({
+      where: { name: serviceName },
+      transaction: t,
+    });
+
+    if (!service) {
+      throw new Error("Service not found");
+    }
+
+    // 4️⃣ Determine nationality
+    const isEgyptian =
+      student.nationality === "Egyptian" ||
+      student.nationality === "مصري";
+
+    let receiptId;
+    let currencyId;
+    let amount;
+
+    if (isEgyptian) {
+      receiptId = service.receiptId;
+      amount = service.priceEgyptian;
+
+      const egpCurrency = await currency.findOne({
+        where: { code: "EGP" },
+        transaction: t,
+      });
+
+      if (!egpCurrency) {
+        throw new Error("EGP currency not found");
+      }
+
+      currencyId = egpCurrency.currencyId;
+
+    } else {
+      
+      receiptId = service.receiptIdOthers;
+      amount = service.priceOther;
+
+      if (!service.currencyId) {
+        throw new Error("Service currencyId not defined for others");
+      }
+
+      currencyId = service.currencyId;
+    }
+
+    // 5️⃣ Create payment
+    const payment = await Payment.create(
+      {
+        userId: userId,
+        serviceId: service.serviceId,
+        receiptId: receiptId,
+        currencyId: currencyId,
+        amount: amount,
+        status: "PENDING",
+      },
+      { transaction: t }
+    );
+
+    // 6️⃣ Create Reexam Request
+    const newReexam = await Reexam.create(
+      {
+        userId: userId,
+        paymentId: payment.paymentId,
+        courseId,
+        date: new Date(),
+      },
+      { transaction: t }
+    );
+
+    await t.commit();
+
+    // 7️⃣ Audit log (optional)
+    if (req && req.audit) {
+      req.audit.affectedUser = { _id: userId };
+      req.audit.message =
+        "Reexam created with payment & currency successfully | تم إنشاء طلب إعادة امتحان وربطه بعملية دفع وعملة بنجاح";
+    }
+
+    return newReexam;
+
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
+};
 module.exports = {
   createExam,
   getExamById,
@@ -426,4 +530,5 @@ module.exports = {
   deleteExam,
   getUpcomingExams,
   getExamReservations,
+  ReexamService,
 };

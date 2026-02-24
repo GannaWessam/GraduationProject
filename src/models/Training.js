@@ -8,21 +8,24 @@ module.exports = (sequelize) => {
       defaultValue: UUIDV4 
     },
     courseId: { 
-      type:DataTypes.UUID, 
+      type: DataTypes.UUID, 
       allowNull: true 
     },
     trainerId: { 
-      type:DataTypes.UUID, 
+      type: DataTypes.UUID, 
       allowNull: true 
     },
-    eventId:{
-      type:DataTypes.UUID, 
+    eventId: {
+      type: DataTypes.UUID, 
       allowNull: false  
     }
-
-    
   }, {
     tableName: 'training',
+    indexes: [
+      { fields: ['eventId'] },  
+      { fields: ['courseId'] },
+      { fields: ['trainerId'] },
+    ],
   });
 
   return training;

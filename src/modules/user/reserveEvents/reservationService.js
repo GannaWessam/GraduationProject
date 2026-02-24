@@ -10,16 +10,10 @@ const {
   training,
   trainingReservation,
   Student,
-  examReservationArchive
 } = require("../../../models");
+// const Student = require("../../../models/Student");
 const { Op } = require("sequelize");
-const {
-  handleCreateGroupChatForEvent,
-  archiveReservation,
-  canRetakeAfterFiveYears,
-} = require("./helpers/helper");
-
-const checkStudentEligibility = require("./helpers/checkStudentEligibility");  
+const { handleCreateGroupChatForEvent } = require("./helpers/helper");
 
 
 const registerForExam = async (userId, eventId, req) => {
@@ -27,112 +21,156 @@ const registerForExam = async (userId, eventId, req) => {
     const eventData = await event.findOne({
       where: { eventId },
       transaction: t,
-      lock: t.LOCK.UPDATE,
     });
+
     if (!eventData) throw new Error("Event not found");
     if (eventData.capacity <= eventData.numberOfRegistered) {
       eventData.status = "closed";
-      await eventData.save({ transaction: t });
-      throw new Error("Cannot register for this event");
+      await eventData.save();
+      throw new Error("Can not register for this event");
     }
 
-    const existingReservation = await reservation.findOne({ where: { userId, eventId }, transaction: t });
-    if (existingReservation) throw new Error("You already reserved this event before.");
+    let examsToReserve = [];
 
-    const eligible = await checkStudentEligibility(userId, t);
-    if (!eligible) throw new Error("You cannot register because you already passed all previous exams.");
+    const eventExams = await exam.findAll({
+      where: { eventId },
+      transaction: t,
+    });
 
-    const examsToReserve = await exam.findAll({ where: { eventId }, transaction: t });
-    if (examsToReserve.length === 0) throw new Error("No exams found for this event.");
+    if (eventExams && eventExams.length > 0) {
+      examsToReserve.push(...eventExams);
+    } else if (eventData.packageId) {
+      const packageCourses = await packageCourse.findAll({
+        where: { packageId: eventData.packageId },
+        include: [{ model: course }],
+        transaction: t,
+      });
 
-    const newReservation = await reservation.create({ userId, eventId }, { transaction: t });
-    const examReservations = [];
+      if (packageCourses.length > 0) {
+        const courseIds = packageCourses.map((pc) => pc.courseId);
 
-for (const ex of examsToReserve) {
-  const courseId = ex.courseId;
+        const packageExams = await exam.findAll({
+          where: { courseId: courseIds },
+          transaction: t,
+        });
 
-  const previousAttempts = await examReservation.findAll({
-    where: { userId },
-    include: [
-      {
-        model: exam,
-        as: "exam",
-        where: { courseId },
-        attributes: ["examId", "courseId"],
-      },
-    ],
-    order: [["attempts", "DESC"]],
-    transaction: t,
-  });
+        examsToReserve = packageExams;
+      }
+    } else if (eventData.productId) {
+      const productExams = await exam.findAll({
+        where: {
+          courseId: sequelize.literal(
+            `course."productId" = '${eventData.productId}'`
+          ),
+        },
+        transaction: t,
+      });
 
-  let attemptNumber = 1;
-
-  if (previousAttempts.length > 0) {
-    const lastAttempt = previousAttempts[0];
-
-    if (lastAttempt.result !== null && lastAttempt.result >= 65) {
-      const allowed = canRetakeAfterFiveYears(lastAttempt);
-      if (!allowed) throw new Error("You cannot retake exams in this course before 5 years.");
+      examsToReserve = productExams;
     }
 
-   
-    for (const prev of previousAttempts) {
-      if ( prev.result < 65 || prev.reservationStatus === "failed") {
-        await examReservationArchive.create({
-          originalExamReservationId: prev.examReservationId,
-          reservationId: prev.reservationId,
-          userId: prev.userId,
-          examId: prev.examId,
-          type: prev.type,
-          attempts: prev.attempts,
-          result: prev.result,
-          reservationStatus: prev.reservationStatus,
-        }, { transaction: t });
+    if (examsToReserve.length === 0)
+      throw new Error("No exams found for this event or package.");
 
-        await prev.destroy({ transaction: t });
-        attemptNumber = Math.max(attemptNumber, prev.attempts + 1);
+    const examIds = examsToReserve.map((ex) => ex.examId);
+
+    const previousReservations = await examReservation.findAll({
+      where: { userId, examId: examIds },
+      transaction: t,
+    });
+
+    if (previousReservations.length > 0) {
+      const hasNonFailResult = previousReservations.some(
+        (r) => r.reservationStatus  !== "failed"
+      );
+
+      if (hasNonFailResult) {
+        throw new Error(
+          "You cannot reserve this event again until all your previous exam results are 'fail'."
+        );
       }
     }
-  }
 
-  const newExamReservation = await examReservation.create({
-    reservationId: newReservation.reservationId,
-    userId,
-    examId: ex.examId,
-    type: "exam",
-    reservationStatus: "reserved",
-    attempts: attemptNumber,
-    result: null,
-  }, { transaction: t });
+    const userReservations = await reservation.findAll({
+      where: { userId },
+      include: [
+        {
+          model: event,
+          as: "reservationEvent",
+          attributes: ["eventId", "startDate", "endDate", "type"],
+        },
+      ],
+      transaction: t,
+    });
 
-  examReservations.push(newExamReservation);
-}
+    for (let res of userReservations) {
+      const existingEvent = res.reservationEvent;
+      if (!existingEvent) continue;
 
-    const student = await Student.findOne({ where: { userId }, transaction: t });
+      const overlap =
+        eventData.startDate < existingEvent.endDate &&
+        existingEvent.startDate < eventData.endDate;
+
+      if (overlap) {
+        throw new Error("reservation_overlaps_with_event");
+      }
+    }
+
+    const newReservation = await reservation.create(
+      { userId, eventId },
+      { transaction: t }
+    );
+    const student = await Student.findOne({ where: { userId } });
+    const examReservations = examsToReserve.map((ex) => ({
+      reservationId: newReservation.reservationId,
+      userId,
+      examId: ex.examId,
+      type: "exam",
+      reservationStatus: "reserved",
+    }));
+   
     if (student) {
       student.status = "reserved Exam";
       await student.save({ transaction: t });
     }
 
+    await examReservation.bulkCreate(examReservations, { transaction: t });
     eventData.numberOfRegistered++;
+    await eventData.save();
+
     if (eventData.capacity <= eventData.numberOfRegistered) {
       eventData.status = "closed";
-      await handleCreateGroupChatForEvent(eventData.eventId, eventData.eventName, eventData.type, t);
+      await eventData.save();
+      await handleCreateGroupChatForEvent(
+        eventData.eventId,
+        eventData.eventName,
+        eventData.type,
+        t
+      );
     }
-    await eventData.save({ transaction: t });
 
-    if (req?.audit) {
-      req.audit.affectedUser = { _id: userId };
-      req.audit.affectedThing = { _id: eventData.eventId, name: eventData.eventName };
-      req.audit.message = "Exam event reserved successfully | تم حجز حدث الامتحان بنجاح";
+    if (req && req.audit) {
+      req.audit.affectedUser = {
+        _id: userId,
+      };
+      req.audit.affectedThing = {
+        _id: eventData.eventId,
+        name: eventData.eventName,
+      };
+      req.audit.message =
+        "Exam event reserved successfully | تم حجز حدث الامتحان بنجاح";
     }
 
     return {
       message: `Reserved event successfully with ${examReservations.length} exam(s).`,
-      data: { reservation: newReservation, examReservations },
+      data: {
+        reservation: newReservation,
+        examReservations,
+      },
     };
   });
 };
+
 const registerForTraining = async (userId, eventId, req) => {
   return sequelize.transaction(async (t) => {
     const eventData = await event.findOne({
@@ -163,12 +201,12 @@ const registerForTraining = async (userId, eventId, req) => {
 
     if (previousReservations.length > 0) {
       const hasNonFinished = previousReservations.some(
-        (r) => r.trainigStatus?.toLowerCase() !== "finshed",
+        (r) => r.trainigStatus?.toLowerCase() !== "finshed"
       );
 
       if (hasNonFinished) {
         throw new Error(
-          "You cannot reserve this training again until previous sessions are finished.",
+          "You cannot reserve this training again until previous sessions are finished."
         );
       }
     }
@@ -199,7 +237,7 @@ const registerForTraining = async (userId, eventId, req) => {
 
     const newReservation = await reservation.create(
       { userId, eventId },
-      { transaction: t },
+      { transaction: t }
     );
 
     const student = await Student.findOne({ where: { userId } });
@@ -229,7 +267,7 @@ const registerForTraining = async (userId, eventId, req) => {
         eventData.eventId,
         eventData.eventName,
         "training",
-        t,
+        t
       );
     }
 

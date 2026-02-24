@@ -91,30 +91,30 @@ const registerForExam = async (userId, eventId, req) => {
       }
     }
 
-    const userReservations = await reservation.findAll({
-      where: { userId },
-      include: [
-        {
-          model: event,
-          as: "reservationEvent",
-          attributes: ["eventId", "startDate", "endDate", "type"],
-        },
-      ],
-      transaction: t,
-    });
+    // const userReservations = await reservation.findAll({
+    //   where: { userId },
+    //   include: [
+    //     {
+    //       model: event,
+    //       as: "reservationEvent",
+    //       attributes: ["eventId", "startDate", "endDate", "type"],
+    //     },
+    //   ],
+    //   transaction: t,
+    // });
 
-    for (let res of userReservations) {
-      const existingEvent = res.reservationEvent;
-      if (!existingEvent) continue;
+    // for (let res of userReservations) {
+    //   const existingEvent = res.reservationEvent;
+    //   if (!existingEvent) continue;
 
-      const overlap =
-        eventData.startDate < existingEvent.endDate &&
-        existingEvent.startDate < eventData.endDate;
+    //   const overlap =
+    //     eventData.startDate < existingEvent.endDate &&
+    //     existingEvent.startDate < eventData.endDate;
 
-      if (overlap) {
-        throw new Error("reservation_overlaps_with_event");
-      }
-    }
+    //   if (overlap) {
+    //     throw new Error("reservation_overlaps_with_event");
+    //   }
+    // }
 
     const newReservation = await reservation.create(
       { userId, eventId },

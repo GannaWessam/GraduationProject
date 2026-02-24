@@ -12,14 +12,42 @@ const {
   course,
   examReservation,
   studentCourse,
+  Product,
 } = require("../../../models");
 const { error } = require("../../../Util/ApiResponse");
 
-/** Number of required exams that must be passed (grade >= 65) to set student.status = succeeded */
-const REQUIRED_EXAMS_PASSED = 7;
-
 /** Pass threshold: grade >= this value → status = succeeded */
 const PASS_GRADE = 65.0;
+
+/**
+ * Resolve how many exams must be passed for this event, based on its product.requirdCourses.
+ * Falls back to 7 if no product/setting is found.
+ *
+ * @param {string} eventId
+ * @returns {Promise<number>}
+ */
+async function getRequiredExamsPassedForEvent(eventId) {
+  const ev = await event.findByPk(eventId, {
+    include: [
+      {
+        model: Product,
+        attributes: ["requirdCourses"],
+        required: false,
+      },
+    ],
+  });
+
+  const fromProduct = ev?.Product?.requirdCourses;
+  if (
+    typeof fromProduct === "number" &&
+    Number.isInteger(fromProduct) &&
+    fromProduct > 0
+  ) {
+    return fromProduct;
+  }
+  // Default fallback when not configured
+  return 7;
+}
 
 /**
  * Status for exam reservation based on grade and dates.
@@ -154,6 +182,7 @@ async function processOneStudent(
   quizzes, //for each student, we have an array of quizzes (courseTitle and grade)
   eventId,
   courseTitleToExam,// map from our db
+  requiredExamsPassed,
   t
 ) {
     console.log("/n/n/n/n method processOneStudent /n/n/n/n")
@@ -235,7 +264,7 @@ async function processOneStudent(
   // Student final status: succeeded only if all 7 required exams (for this event) have grade >= 65
   //courseTitleToExam gets the examId and examDate for each course in *specific event*
   const allExamIds = [...courseTitleToExam.values()].map((e) => e.examId);
-  const requiredCount = Math.min(REQUIRED_EXAMS_PASSED, allExamIds.length);
+  const requiredCount = Math.min(requiredExamsPassed, allExamIds.length);
   const passedCount = await (async () => {
     if (allExamIds.length === 0) return 0;
     const reservations = await examReservation.findAll({
@@ -251,15 +280,16 @@ async function processOneStudent(
   })();
 
   const studentSucceeded =
-    requiredCount === REQUIRED_EXAMS_PASSED && passedCount >= REQUIRED_EXAMS_PASSED;
+    requiredCount === requiredExamsPassed && passedCount >= requiredExamsPassed;
+  const studentFailed =
+    requiredCount === requiredExamsPassed && passedCount < requiredExamsPassed;
   if (studentSucceeded) {
-    await studentRecord.update(
-      { status: "succeeded" },
-      { transaction: t }
-    );
+    await studentRecord.update({ status: "succeeded" }, { transaction: t });
+  } else if (studentFailed) {
+    await studentRecord.update({ status: "failed" }, { transaction: t });
   }
 
-  return { examsUpdated, studentSucceeded };
+  return { examsUpdated, studentSucceeded, studentFailed };
 }
 
 /**
@@ -296,6 +326,8 @@ async function uploadFromExcel(parsedData, eventId) {
   }
   // Resolve event and build courseTitle -> exam map once (read-only, no transaction)
   const { courseTitleToExam } = await getEventExamsWithCourses(eventId);
+  // Resolve how many exams must be passed for this event (product.requirdCourses or fallback)
+  const requiredExamsPassed = await getRequiredExamsPassedForEvent(eventId);
 
   let studentsProcessed = 0;
   let examsUpdated = 0;
@@ -304,12 +336,13 @@ async function uploadFromExcel(parsedData, eventId) {
   for (const row of parsedData) { //for each student in the excel file
     try {
       await sequelize.transaction(async (t) => {
-        const { examsUpdated: n, studentSucceeded } = await processOneStudent( 
+        const { examsUpdated: n, studentSucceeded } = await processOneStudent(
           row.nationalId,
           row.uploadDate,
           row.quizzes,
           eventId,
           courseTitleToExam,
+          requiredExamsPassed,
           t
         );
         studentsProcessed += 1;
@@ -334,6 +367,5 @@ module.exports = {
   getEventExamsWithCourses,
   processOneStudent,
   computeReservationStatus,
-  REQUIRED_EXAMS_PASSED,
   PASS_GRADE,
 };

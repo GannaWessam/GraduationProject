@@ -553,13 +553,17 @@ async function getAllOpenEvents(productId, query, language = null) {
     .pagination()
     .sort()
     .selectedFields();
-const today = new Date().toISOString().split("T")[0];
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
   apiFeature.options.where = {
     ...apiFeature.options.where,
     status: "opend",
     productId,
-    startDateRes: { [Op.lte]:today },
-    endDateRes: { [Op.gte]:today },
+    startDateRes: { [Op.lte]: endOfToday },
+    endDateRes: { [Op.gte]: startOfToday },
   };
 
   if (language) {

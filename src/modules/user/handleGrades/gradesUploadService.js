@@ -13,6 +13,7 @@ const {
   examReservation,
   studentCourse,
   Product,
+  User,
 } = require("../../../models");
 const { error } = require("../../../Util/ApiResponse");
 
@@ -142,6 +143,27 @@ async function handleFailedExam(courseTitle, userId) {
     throw new Error("failed_to_update_student_course");
   }
 }
+async function handleSucessExam(courseTitle, userId) {
+  console.log("/n/n/n/n method handleFailedExam /n/n/n/n");
+  const courseRecord = await course.findOne({
+    where: { title: courseTitle },
+  });
+  if (!courseRecord) {
+    throw new Error("course_not_found_by_title");
+  }
+  try {
+    await studentCourse.update(
+      {
+        examStatus: "sucess",
+      },
+      {
+        where: { courseId: courseRecord.courseId, userId: userId },
+      }
+    );
+  } catch (error) {
+    throw new Error("failed_to_update_student_course");
+  }
+}
 
 async function handleAbsentExam(courseTitle, userId) {
   console.log("/n/n/n/n method handleAbsentExam /n/n/n/n");
@@ -222,6 +244,10 @@ async function processOneStudent(
     else if(status === "absent"){
       await handleAbsentExam(quiz.courseTitle,userId);
     }
+    else if(status === "succeeded"){
+      await handleSucessExam(quiz.courseTitle,userId);
+    }
+    
     const resultValue =
       quiz.grade !== null && quiz.grade !== undefined
         ? String(quiz.grade)
@@ -285,8 +311,10 @@ async function processOneStudent(
     requiredCount === requiredExamsPassed && passedCount < requiredExamsPassed;
   if (studentSucceeded) {
     await studentRecord.update({ status: "succeeded" }, { transaction: t });
+    await User.increment("tokenVersion", { where: { userId: userId } });
   } else if (studentFailed) {
     await studentRecord.update({ status: "failed" }, { transaction: t });
+    await User.increment("tokenVersion", { where: { userId: userId } });
   }
 
   return { examsUpdated, studentSucceeded, studentFailed };

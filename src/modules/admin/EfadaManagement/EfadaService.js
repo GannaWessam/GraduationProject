@@ -92,9 +92,9 @@ const efadaService = {
       let serviceName;
   
       if (["1", "2", "3"].includes(student.type)) {
-        serviceName = "افادة-درسات عليا";
+        serviceName = "Statement request | طلب افادة دراسات عليا";
       } else if (student.type === "4") {
-        serviceName = "افادة-اعضاء هيئة تدريس";
+        serviceName = "Statement request | طلب افادة اعضاء هيئة تدريس";
       } else {
         throw new Error("Invalid student type");
       }
@@ -119,7 +119,8 @@ const efadaService = {
         receiptId: service.receiptId,
         currencyId: Currency.currencyId,
         amount: amount,
-        status: "PENDING"
+        status: "PENDING",
+        productId:null,
       }, { transaction: t });
   
 

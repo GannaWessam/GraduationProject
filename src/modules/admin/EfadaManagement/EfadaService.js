@@ -54,7 +54,7 @@ const efadaService = {
       include: [
         {
           model: Student,
-          attributes: ["userId", "fullName", "nationalId"],
+          attributes: ["userId", "fullName", "nationalId","NameEn","type"],
         },
         {
           model: Payment,

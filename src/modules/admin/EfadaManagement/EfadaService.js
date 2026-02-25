@@ -46,11 +46,8 @@ const PaginatedResponse = require("../../../Util/PaginatedResponse");
 
 const efadaService = {
   getAll: async (features) => {
-    const where = { ...(features.options?.where || {}) };
-  
     const { count, rows } = await efada.findAndCountAll({
       ...features.options,
-      where,
       include: [
         {
           model: Student,
@@ -65,10 +62,6 @@ const efadaService = {
       ],
       order: [["date", "DESC"]],
     });
-  
-    if (!rows || rows.length === 0) {
-      throw new Error("no_efadas_found");
-    }
   
     return PaginatedResponse.fromApiFeature(
       features,

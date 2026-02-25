@@ -1,4 +1,4 @@
-const {Payment , Student ,Product ,webhook ,sequelize} = require("../../models");
+const {Payment , Student ,Product ,webhook ,sequelize, Service} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
@@ -80,9 +80,14 @@ const createPayment = async ({
   };
 };
 
-const getPaymentsByUserId = async (userId) => {
-  return await Payment.findAll({
+const getPaymentsByUserId = async (userId,features) => {
+  const page = features.page * 1 || 1;
+    const limit = features.limit * 1 || 10;
+    const offset = (page - 1) * limit;
+  const {rows,count}= await Payment.findAndCountAll({
     where: { userId },
+    limit,
+    offset,
     attributes: [
       "paymentId",
       "userId",
@@ -90,16 +95,27 @@ const getPaymentsByUserId = async (userId) => {
       "amount",
       "status",
       "timestamp",
-      "receiptId"
+      "receiptId",
+      "serviceId"
     ],
     include: [
       {
         model: Product,
         attributes: ["courseName"]
+      },
+      {
+        model:Service,
+        attributes:["name"]
       }
     ],
     order: [["timestamp", "DESC"]],
   });
+  return PaginatedResponse.fromApiFeature(
+    features,
+    count,
+    rows,
+    "Fees fetched successfully"
+  );
 };
 
 
@@ -125,6 +141,10 @@ const getAllPayments = async (features) => {
         {
           model: Product,
           attributes: ["courseName"]
+        },
+        {
+          model:Service,
+          attributes:["name"]
         }
       ],
       where: opts.where || {},

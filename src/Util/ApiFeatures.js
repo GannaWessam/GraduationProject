@@ -61,10 +61,16 @@ class ApiFeature {
         let value = queryObj[key];
         const sequelizeField = field.includes(".") ? `$${field}$` : field;
         if (op === "date") {
-          where[sequelizeField] = sequelize.where(
-            sequelize.fn("DATE", sequelize.col(field)),
-            value
-          );
+          const start = new Date(value);
+          start.setHours(0, 0, 0, 0);
+        
+          const end = new Date(value);
+          end.setHours(23, 59, 59, 999);
+        
+          where[sequelizeField] = {
+            [Op.between]: [start, end],
+          };
+        
           continue;
         }
   

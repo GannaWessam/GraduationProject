@@ -81,85 +81,111 @@ const efadaService = {
   add: async (userId, req) => {
 
     const t = await sequelize.transaction();
-  
-    try {
-  
-      const student = await Student.findByPk(userId, { transaction: t });
-      if (!student) {
-        throw new Error("Student not found");
-      }
-  
-      const currencyCode =
-        student.nationality === "Egypt" || student.nationality === "مصري"
-          ? "EGP"
-          : "USD";
-  
-      const Currency = await currency.findOne({
-        where: { code: currencyCode },
-        transaction: t
+
+  try {
+    // 1️⃣ Get student
+    const student = await Student.findByPk(userId, { transaction: t });
+    if (!student) {
+      throw new Error("Student not found");
+    }
+
+    // 2️⃣ Determine service name based on student type
+    let serviceName;
+
+    if (["1", "2", "3"].includes(student.type)) {
+      serviceName = "Statement request | طلب افادة دراسات عليا";
+    } else if (student.type === "4") {
+      serviceName = "Statement request | طلب افادة اعضاء هيئة تدريس";
+    } else {
+      throw new Error("Invalid student type");
+    }
+
+    // 3️⃣ Get service
+    const service = await Service.findOne({
+      where: { name: serviceName },
+      transaction: t,
+    });
+
+    if (!service) {
+      throw new Error("Service not found");
+    }
+
+    // 4️⃣ Determine nationality (نفس Reexam)
+    const isEgyptian =
+      student.nationality === "Egyptian" ||
+      student.nationality === "مصري";
+
+    let receiptId;
+    let currencyId;
+    let amount;
+
+    if (isEgyptian) {
+      // ✅ مصري
+      receiptId = service.receiptId;
+      amount = service.priceEgyptian;
+
+      const egpCurrency = await currency.findOne({
+        where: { code: "EGP" },
+        transaction: t,
       });
-  
-      if (!Currency) {
-        throw new Error("Currency not found");
+
+      if (!egpCurrency) {
+        throw new Error("EGP currency not found");
       }
-  
-      let serviceName;
-  
-      if (["1", "2", "3"].includes(student.type)) {
-        serviceName = "Statement request | طلب افادة دراسات عليا";
-      } else if (student.type === "4") {
-        serviceName = "Statement request | طلب افادة اعضاء هيئة تدريس";
-      } else {
-        throw new Error("Invalid student type");
+
+      currencyId = egpCurrency.currencyId;
+
+    } else {
+      // ✅ غير مصري
+      receiptId = service.receiptIdOthers;
+      amount = service.priceOther;
+
+      if (!service.currencyId) {
+        throw new Error("Service currencyId not defined for others");
       }
-  
-      const service = await Service.findOne({
-        where: { name: serviceName },
-        transaction: t
-      });
-  
-      if (!service) {
-        throw new Error("Service not found");
-      }
-  
-      const amount =
-        currencyCode === "EGP"
-          ? service.priceEgyptian
-          : service.priceOther;
-  
-      const payment = await Payment.create({
+
+      currencyId = service.currencyId;
+    }
+
+    // 5️⃣ Create payment
+    const payment = await Payment.create(
+      {
         userId: userId,
         serviceId: service.serviceId,
-        receiptId: service.receiptId,
-        currencyId: Currency.currencyId,
+        receiptId: receiptId,
+        currencyId: currencyId,
         amount: amount,
         status: "PENDING",
-        productId:null,
-      }, { transaction: t });
-  
+        productId: null,
+      },
+      { transaction: t }
+    );
 
-      const newEfada = await efada.create({
+    // 6️⃣ Create Efada
+    const newEfada = await efada.create(
+      {
         userId: userId,
         paymentId: payment.paymentId,
         date: new Date(),
-      }, { transaction: t });
-  
-      await t.commit();
-  
-      if (req && req.audit) {
-        req.audit.affectedUser = { _id: userId };
-        req.audit.message =
-          "Efada created with payment & currency successfully | تم إنشاء إفادة وربطها بعملية دفع وعملة بنجاح";
-      }
-  
-      return newEfada;
-  
-    } catch (error) {
+      },
+      { transaction: t }
+    );
 
-      await t.rollback();
-  
-      throw error;
+    await t.commit();
+
+    // 7️⃣ Audit
+    if (req && req.audit) {
+      req.audit.affectedUser = { _id: userId };
+      req.audit.message =
+        "Efada created with payment & currency successfully | تم إنشاء إفادة وربطها بعملية دفع وعملة بنجاح";
     }
+
+    return newEfada;
+
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
   }
 };
 

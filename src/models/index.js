@@ -47,6 +47,7 @@ const Service = require("./Service")(sequelize);
 const examReservationArchive = require("./ExamReservationArchive")(sequelize);
 const Reexam = require("./ReexamRequest")(sequelize);
 const Register = require("./RegisterRequest")(sequelize);
+const systemdata = require("./SystemData")(sequelize);
 
 Student.hasMany(Payment, {
   foreignKey: "userId",
@@ -559,4 +560,5 @@ module.exports = {
   examReservationArchive,
   Reexam,
   Register,
+  systemdata
 };

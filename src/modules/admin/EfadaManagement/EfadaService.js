@@ -8,6 +8,7 @@ const {
   Payment,
   currency,
   sequelize,
+  systemdata,
 } = require("../../../models/index");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 
@@ -150,28 +151,45 @@ const efadaService = {
       throw error;
     }
   },
-  createEfadaPDF: async ({ name, nationalId, date, picturePath }) => {
+  createEfadaPDF: async ({ nationalId, date, picturePath }) => {
+    // Get student by nationalId
+    const student = await Student.findOne({ where: { nationalId } });
+    if (!student) throw new Error("student_not_found");
+
+    // Get system data (signatures)
+    const sd = await systemdata.findOne();
+
+    // Choose HTML template based on type
+    let templateFile = "index.html"; // default
+    if (["1", "2", "3"].includes(student.type)) {
+      templateFile = "efada2.html";
+    }
+
+    const htmlPath = path.join(__dirname, templateFile);
+    let html = fs.readFileSync(htmlPath, "utf8");
+
+    // Read image as Base64
+    const pictureBuffer = fs.readFileSync(picturePath);
+    const pictureBase64 = `data:image/png;base64,${pictureBuffer.toString("base64")}`;
+
+    // Replace placeholders dynamically
+    html = html
+      .replace(/{{name}}/g, student.fullName)
+      .replace(/{{nationalId}}/g, student.nationalId)
+      .replace(/{{date}}/g, date)
+      .replace(/{{Picture1\.png}}/g, pictureBase64)
+      .replace(/{{collegename}}/g, student.college || "")
+      .replace(/{{titlePersonInefada1}}/g, sd.titlePersonInefada1)
+      .replace(/{{nameOfPersonInefada1}}/g, sd.nameOfPersonInefada1)
+      .replace(/{{titlePersonInefada2}}/g, sd.titlePersonInefada2)
+      .replace(/{{nameOfPersonInefada2}}/g, sd.nameOfPersonInefada2);
+
     const browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
-
-    // اقرأ ملف الـ HTML
-    let html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
-
-    // اقرأ الصورة كـ Buffer وحولها Base64
-    const pictureBuffer = fs.readFileSync(picturePath);
-    const pictureBase64 = `data:image/png;base64,${pictureBuffer.toString("base64")}`;
-
-    // استبدل المتغيرات الديناميكية
-    html = html
-      .replace("{{name}}", name)
-      .replace("{{nationalId}}", nationalId)
-      .replace("{{date}}", date)
-      .replace("{{Picture1.png}}", pictureBase64);
-
     await page.setContent(html, { waitUntil: "networkidle0" });
 
     const pdf = await page.pdf({

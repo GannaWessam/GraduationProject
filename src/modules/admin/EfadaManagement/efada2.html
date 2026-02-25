@@ -10,29 +10,89 @@
         margin: 2.2cm 2.2cm 2.2cm 2.5cm;
       }
       body {
-        font-family: Arial, "Traditional Arabic", Tahoma, serif;
         font-size: 14pt;
         line-height: 1.5;
         color: #000;
-        margin: -17px;
+        margin: 2px;
         padding: 0;
         direction: rtl;
         text-align: right;
         background: #fff;
+        font-family: "Amiri", Arial, Tahoma, serif;
       }
-      .container { width: 100%; max-width: 21cm; min-height: 15cm; margin: -17px auto; padding: 0; box-sizing: border-box; background: white; }
-      .header { position: relative; height: 2.5cm; margin-bottom: 0.5cm; }
-      .image1 { position: absolute; top: 0.3cm; right: 0; width: 100px; height: auto; }
-      .project-info { position: absolute; top: 0.6cm; right: 2.5cm; left: 1cm; text-align: center; font-size: 18pt; font-weight: bold; line-height: 1.3; }
-      hr.separator { border: none; border-top: 1.5px solid #000; margin: 0.1cm 0 0.1cm 0; }
-      .main-content { text-align: right; }
-      .addressee { font-size: 15pt; font-weight: bold; line-height: 1.1; white-space: pre-line; }
-      .content-block { text-align: justify; margin-bottom: 0.5cm; }
-      .closing { font-weight: bold; margin-top: 0.2cm; }
-      .signatures { display: flex; justify-content: space-between; font-size: 14pt; margin-top: 1cm; }
-      .sig-block { width: 48%; text-align: center; }
-      .sig-title { font-weight: bold; margin-bottom: 0.6cm; }
-      .date { font-size: 14pt; margin-top: 0.5cm; }
+      .container {
+        width: 100%;
+        max-width: 100%;
+        min-height: 15cm;
+        margin: 2px auto;
+        padding: 0;
+        box-sizing: border-box;
+        background: white;
+      }
+      .header {
+        position: relative;
+        height: 2.5cm;
+        margin-bottom: 0.5cm;
+      }
+      .image1 {
+        position: absolute;
+        top: 0.3cm;
+        right: 0;
+        width: 100px;
+        height: auto;
+      }
+      .project-info {
+        position: absolute;
+        top: 0.6cm;
+        right: 2.5cm;
+        left: 1cm;
+        text-align: center;
+        font-size: 18pt;
+        font-weight: bold;
+        line-height: 1.3;
+      }
+      hr.separator {
+        border: none;
+        border-top: 1.5px solid #000;
+        margin: 0.1cm 0 0.1cm 0;
+      }
+      .main-content {
+        text-align: right;
+      }
+      .addressee {
+        font-size: 15pt;
+        font-weight: bold;
+        line-height: 1.1;
+        white-space: pre-line;
+      }
+
+      .content-block {
+        text-align: justify;
+        margin-bottom: 0.5cm;
+        unicode-bidi: embed; /* helps with proper Arabic shaping */
+      }
+      .closing {
+        font-weight: bold;
+        margin-top: 0.2cm;
+      }
+      .signatures {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14pt;
+        margin-top: 1cm;
+      }
+      .sig-block {
+        width: 48%;
+        text-align: center;
+      }
+      .sig-title {
+        font-weight: bold;
+        margin-bottom: 0.6cm;
+      }
+      .date {
+        font-size: 14pt;
+        margin-top: 0.5cm;
+      }
     </style>
   </head>
   <body>
@@ -40,7 +100,8 @@
       <div class="header">
         <img src="{{Picture1.png}}" alt="" class="image1" />
         <div class="project-info">
-          مشروع التدريب على تكنولوجيا المعلومات – جامعة العاصمة (حلوان سابقاً)<br />
+          مشروع التدريب على تكنولوجيا المعلومات – جامعة العاصمة (حلوان
+          سابقاً)<br />
           دورات شهادة أساسيات التحول الرقمي (FDTC)
         </div>
       </div>
@@ -52,25 +113,37 @@
         </div>
 
         <div class="content-block">تحية طيبة وبعد ،،،</div>
-        <div class="content-block">نهدي لسيادتكم وافر التحية والتقدير والاحترام.</div>
-
         <div class="content-block">
-          في إطار العمل على تنفيذ قرارات الجامعة والمجلس الأعلى للجامعات نحو تفعيل دورات شهادة أساسيات التحول الرقمي والتي تعد شرطاً لمنح شهادات الدراسات العليا.
+          نهدي لسيادتكم وافر التحية والتقدير والاحترام.
         </div>
 
         <div class="content-block">
-          نتشرف بأن نفيد سيادتكم علماً بأن / {{name}} رقم قومي/جواز سفر: {{nationalId}} قد تم الإنتهاء والاجتياز بنجاح لاختبارات دورة شهادة أساسيات التحول الرقمي المطلوبة لمنح شهادات الدراسات العليا.
+          في إطار العمل على تنفيذ قرارات الجامعة والمجلس الأعلى للجامعات نحو
+          تفعيل دورات شهادة أساسيات التحول الرقمي والتي تعد شرطاً لمنح شهادات
+          الدراسات العليا.
         </div>
 
         <div class="content-block">
-          وقد تم التحقق ومراجعة حالة اجتياز الاختبارات على نظام المجلس الأعلى للجامعات من خلال السيد الدكتور/ مدير مشروع التدريب على تكنولوجيا المعلومات – جامعة العاصمة (حلوان سابقاً).
+          نتشرف بأن نفيد سيادتكم علماً بأن / {{name}} رقم قومي/جواز سفر:
+          {{nationalId}} قد تم الإنتهاء والاجتياز بنجاح لاختبارات دورة شهادة
+          أساسيات التحول الرقمي المطلوبة لمنح شهادات الدراسات العليا.
         </div>
 
         <div class="content-block">
-          وهذا للعلم والإحاطة ولحين صدور الشهادة الأصلية من المجلس الأعلى للجامعات ودون أدنى مسئولية على مشروع التدريب على تكنولوجيا المعلومات – جامعة العاصمة (حلوان سابقاً).
+          وقد تم التحقق ومراجعة حالة اجتياز الاختبارات على نظام المجلس الأعلى
+          للجامعات من خلال السيد الدكتور/ مدير مشروع التدريب على تكنولوجيا
+          المعلومات – جامعة العاصمة (حلوان سابقاً).
         </div>
 
-        <div class="closing">وتفضلوا سيادتكم بقبول فائق الإحترام والتقدير،،،</div>
+        <div class="content-block">
+          وهذا للعلم والإحاطة ولحين صدور الشهادة الأصلية من المجلس الأعلى
+          للجامعات ودون أدنى مسئولية على مشروع التدريب على تكنولوجيا المعلومات –
+          جامعة العاصمة (حلوان سابقاً).
+        </div>
+
+        <div class="closing">
+          وتفضلوا سيادتكم بقبول فائق الإحترام والتقدير،،،
+        </div>
 
         <div class="signatures">
           <div class="sig-block">

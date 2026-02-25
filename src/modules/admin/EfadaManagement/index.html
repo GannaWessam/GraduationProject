@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>خطاب إفادة أعضاء هيئة التدريس</title>
+    <style>
+      @page {
+        size: A4 portrait;
+        margin: 2.2cm 2.2cm 2.2cm 2.5cm;
+      }
+
+      body {
+        font-family: Arial, "Traditional Arabic", Tahoma, serif;
+        font-size: 14pt;
+        line-height: 1.5;
+        color: #000;
+        margin: -17px;
+        padding: 0;
+        direction: rtl;
+        text-align: right;
+        background: #fff;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 21cm;
+        min-height: 15cm;
+        margin: -17px auto;
+        padding: 0;
+        box-sizing: border-box;
+        background: white;
+      }
+
+      .header {
+        position: relative;
+        height: 2.5cm; /* رفعنا الهيدر قليلًا لاستيعاب النص الكبير */
+        margin-bottom: 0.5cm;
+      }
+
+      .image1 {
+        position: absolute;
+        top: 0.3cm; /* رفع الصورة أقرب لأعلى الهيدر */
+        right: 0;
+        width: 100px; /* زيادة حجم الصورة من 80px إلى 120px */
+        height: auto;
+      }
+
+      .project-info {
+        position: absolute;
+        top: 0.6cm; /* ضبط موضع النص ليتناسب مع الارتفاع الجديد */
+        right: 2.5cm;
+        left: 1cm;
+        text-align: center;
+        font-size: 18pt; /* الحفاظ على حجم الخط المطلوب */
+        font-weight: bold;
+        line-height: 1.3;
+      }
+
+      hr.separator {
+        border: none;
+        border-top: 1.5px solid #000;
+        margin: 0.1cm 0 0.1cm 0;
+      }
+
+      .main-content {
+        text-align: right;
+      }
+
+      .addressee {
+        font-size: 15pt;
+        font-weight: bold;
+        line-height: 1.1;
+        white-space: pre-line;
+      }
+
+      .addressee2 {
+        text-align: center;
+        font-size: 15pt;
+        font-weight: bold;
+      }
+
+      .greeting1 {
+        text-align: right;
+        padding-right: 1cm;
+        font-weight: bold;
+      }
+      .greeting2 {
+        text-align: right;
+      }
+
+      .content-block {
+        text-align: justify;
+      }
+
+      .closing {
+        margin: 0.1cm 0 0.3cm 0;
+        font-weight: bold;
+      }
+
+      .signatures {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14pt;
+      }
+
+      .sig-block {
+        width: 48%;
+        text-align: center;
+      }
+
+      .sig-title {
+        font-weight: bold;
+        margin-bottom: 0.6cm;
+      }
+
+      .date {
+        font-size: 14pt;
+      }
+
+      @media print {
+        body {
+          margin: 0;
+        }
+        .container {
+          margin: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="{{Picture1.png}}" alt="" class="image1" />
+
+        <div class="project-info">
+          مشروع التدريب على تكنولوجيا المعلومات – جامعة العاصمة (حلوان
+          سابقاً)<br />
+          دورات شهادة أساسيات التحول الرقمي (FDTC)
+        </div>
+      </div>
+      <hr class="separator" />
+      <div class="main-content">
+        <div class="addressee">السيد الأستاذ الفاضل/</div>
+        <div class="addressee2">
+          مدير إدارة شئون أعضاء هيئة التدريس بجامعة العاصمة (حلوان سابقاً)
+        </div>
+        <div class="greeting1 content-block">تحية طيبة وبعد ،،،</div>
+
+        <div class="greeting2 content-block">
+          نهدي لكم وافر التحية والتقدير والاحترام.
+        </div>
+
+        <div class="content-block">
+          في إطار العمل على تنفيذ قرار مجلس جامعة العاصمة (حلوان سابقاً) بجلسته
+          رقم (523) المنعقد بتاريخ 26/4/2022م نحو تفعيل دورات شهادة أساسيات
+          التحول الرقمي لترقيات السادة أعضاء هيئة التدريس ومعاونيهم طبقاً
+          لقرارات المجلس الأعلى للجامعات "باعتبار شهادة أساسيات التحول الرقمي
+          ضمن دورات الترقي الاختيارية المطلوبة بالجامعة للسادة أعضاء هيئة
+          التدريس المتقدمين للترقية لدرجة أستاذ مساعد أو أستاذ، بحد أدنى دورة
+          واحدة وبحد أقصى دورتين من الدورات الاختيارية لشهادة FDTC على أن تحتسب
+          كل واحدة منها بدورة من دورات الترقي المطلوبة". وأيضاً أن "يتم احتساب
+          شهادة أساسيات التحول الرقمي الذي يحصل عليها المعيد أو المدرس المساعد
+          بعدد 2 دورة من الدورات المطلوبة بالجامعة".
+        </div>
+
+        <div class="content-block">
+          نتشرف بأن نفيد سيادتكم علماً بأن سيادة: {{name}} رقم قومي:
+          {{nationalId}} قد تم الإنتهاء والاجتياز بنجاح لاختبار دورة من الدورات
+          الاختيارية لشهادة FDTC وهي دورة: تطبيقات المحمول.
+        </div>
+
+        <div class="content-block">
+          وقد تم التحقق ومراجعة حالة اجتياز الاختبار على نظام المجلس الأعلى
+          للجامعات من خلال السيد الدكتور/ مدير مشروع التدريب على تكنولوجيا
+          المعلومات – جامعة العاصمة (حلوان سابقاً).
+        </div>
+
+        <div class="content-block">
+          وهذا للعلم والإحاطة ولحين صدور الشهادة الأصلية من المجلس الأعلى
+          للجامعات ودون أدنى مسئولية على مشروع التدريب على تكنولوجيا المعلومات –
+          جامعة العاصمة (حلوان سابقاً).
+        </div>
+
+        <div class="closing content-block">
+          وتفضلوا سيادتكم بقبول فائق الإحترام والتقدير،،،
+        </div>
+
+        <div class="signatures">
+          <div class="sig-block">
+            <div class="sig-title">
+              مدير مشروع التدريب على تكنولوجيا المعلومات
+            </div>
+            أ.م.د/ أحمد مصطفى السيد سليمان
+          </div>
+
+          <div class="sig-block">
+            <div class="sig-title">المدير التنفيذي للمعلومات</div>
+            أ.د/ عمرو السيد محمود
+          </div>
+        </div>
+
+        <div class="date">تحريراً في: {{date}}</div>
+      </div>
+    </div>
+  </body>
+</html>

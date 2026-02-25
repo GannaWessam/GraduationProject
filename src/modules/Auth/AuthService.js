@@ -12,6 +12,7 @@ const {
   generateQr,
   getUser,
   getUserFees,
+  RegisterService,
 } = require("./helpers/userHelper");
 
 const {
@@ -58,26 +59,19 @@ async function registerUser(payload, idImage, req) {
     role = "STUDENT",
   } = payload;
 
-  // ✅ Step 1: Validation
   validateRequiredFields(payload);
   validateName(name_ar);
   validatePassword(password, confirmPassword);
-  // validateNationalId(nationality, national_id);
 
-  // ✅ Step 2: Generate QR
   const qrResult = await generateQr(name_ar, national_id);
 
-  // ✅ Step 3: Determine student status
   const status = OCR === "true" ? "approved" : "pending";
 
-  // ✅ Step 4: Fetch product and validate allowed type
   const product = await findProductById(ProductId, type);
 
-  // ✅ Step 5: Determine product price
   const productPrice =
     nationality === "Egypt" ? product.priceEgyptian : product.priceOther;
 
-  // ✅ Step 6: Perform all DB actions in a transaction
   return sequelize.transaction(async (t) => {
     await checkEmailExists(email, t);
     await checkNationalIdExists(national_id, t);
@@ -90,18 +84,6 @@ async function registerUser(payload, idImage, req) {
       { transaction: t },
     );
 
-    // ✅ Create Payment
-    await Payment.create(
-      {
-        userId: user.userId,
-        productId: product.productId,
-        status: "PENDING",
-        amount: productPrice,
-      },
-      { transaction: t },
-    );
-
-    // ✅ Create Student
     const student = await Student.create(
       {
         userId: user.userId,
@@ -134,8 +116,8 @@ async function registerUser(payload, idImage, req) {
       const studentCourses = productCourses.map((pc) => ({
         userId: user.userId,
         courseId: pc.courseId,
-        examStatus: "pending",
-        trainingStatus: "pending",
+        examStatus: "registing",
+        trainingStatus: "registing",
       }));
 
       const createdCourses = await studentCourse.bulkCreate(studentCourses, {
@@ -144,6 +126,7 @@ async function registerUser(payload, idImage, req) {
       assignedCourses = createdCourses.map((c) => c.courseId);
     }
 
+    await RegisterService(user.userId,product.productId,req ,t);
     // ✅ Set audit log context
     if (req && req.audit) {
       req.audit.user = {
@@ -180,7 +163,6 @@ async function loginUser(email, password, rememberMe = false, req) {
       req.audit.user = {
         email: email,
       };
-
     }
 
     throw new Error("Failed login attempt");

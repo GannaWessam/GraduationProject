@@ -1,7 +1,14 @@
-const { Model } = require("sequelize");///////////??
-const { User, Student, Product ,ProductAllowedUserType,Payment } = require("../../../models");
+const { Model } = require("sequelize"); ///////////??
+const {
+  User,
+  Student,
+  Product,
+  ProductAllowedUserType,
+  Payment,
+  Service,
+  currency, sequelize , Register
+} = require("../../../models");
 const QRCode = require("qrcode");
-
 
 const findUserByEmail = async (email, t = null) =>
   User.findOne({ where: { email }, transaction: t });
@@ -46,9 +53,8 @@ const findProductById = async (productId, studentType) => {
     throw new Error("Product not found");
   }
 
- 
   const isAllowed = product.allowedUserTypes.some(
-    (p) => p.userType === studentType
+    (p) => p.userType === studentType,
   );
 
   if (!isAllowed) {
@@ -61,9 +67,9 @@ const findProductById = async (productId, studentType) => {
 const getUser = async (email) => {
   const user = await User.findOne({
     where: { email },
-    include: [{ model: Student }] 
+    include: [{ model: Student }],
   });
-  
+
   if (!user) throw new Error("invalid_email");
 
   return user;
@@ -72,9 +78,9 @@ const getUser = async (email) => {
 const getUserFees = async (userId) => {
   const user = await Payment.findAll({
     where: { userId },
-    include: [{ model: Product  }] 
+    include: [{ model: Product }],
   });
-  
+
   if (!user) throw new Error("invalid_email");
 
   return user;
@@ -94,16 +100,98 @@ const checkNationalIdExists = async (national_id, t) => {
 const generateQr = async (name, national_id) => {
   const qrData = `الاسم: ${name}\nالرقم القومي: ${national_id}`;
 
-  const qrImage = await QRCode.toDataURL(qrData, { //بيرجع الصورة على شكل string يبدأ بـ data:image/png;base64
+  const qrImage = await QRCode.toDataURL(qrData, {
+    //بيرجع الصورة على شكل string يبدأ بـ data:image/png;base64
     errorCorrectionLevel: "H",
     width: 400,
     color: {
       dark: "#000000",
-      light: "#ffffff"
-    }
+      light: "#ffffff",
+    },
   });
 
-  return qrImage; 
+  return qrImage;
+};
+
+const RegisterService = async (userId, productId, req, t) => {
+
+  const student = await Student.findByPk(userId, { transaction: t });
+  if (!student) {
+    throw new Error("Student not found");
+  }
+
+  const product = await Product.findByPk(productId, { transaction: t });
+  if (!product) {
+    throw new Error("Product not found");
+  }
+
+  const existing = await Register.findOne({
+    where: { userId, ProductId: productId },
+    transaction: t,
+  });
+
+  if (existing) {
+    throw new Error("You already registered this course");
+  }
+
+  const isEgyptian =
+    student.nationality === "Egyptian" || student.nationality === "مصري";
+
+  let receiptId;
+  let currencyId;
+  let amount;
+
+  if (isEgyptian) {
+    receiptId = product.receiptId;
+    amount = product.priceEgyptian;
+
+    const egpCurrency = await currency.findOne({
+      where: { code: "EGP" },
+      transaction: t,
+    });
+
+    if (!egpCurrency) throw new Error("EGP currency not found");
+
+    currencyId = egpCurrency.currencyId;
+  } else {
+    receiptId = product.receiptIdOthers;
+    amount = product.priceOther;
+
+    if (!product.currencyId)
+      throw new Error("Product currency not defined for foreign students");
+
+    currencyId = product.currencyId;
+  }
+
+  const payment = await Payment.create(
+    {
+      userId,
+      productId: product.productId,
+      receiptId,
+      currencyId,
+      amount,
+      status: "PENDING",
+    },
+    { transaction: t }
+  );
+
+  const newRegister = await Register.create(
+    {
+      userId,
+      ProductId: product.productId,
+      paymentId: payment.paymentId,
+      date: new Date(),
+    },
+    { transaction: t }
+  );
+
+  if (req && req.audit) {
+    req.audit.affectedUser = { _id: userId };
+    req.audit.message =
+      "Course register request created with payment successfully | تم إنشاء طلب تسجيل الكورس وربطه بعملية دفع بنجاح";
+  }
+
+  return newRegister;
 };
 module.exports = {
   findUserByEmail,
@@ -114,5 +202,6 @@ module.exports = {
   generateQr,
   getUser,
   getUserFees,
-  findProductById
+  findProductById,
+  RegisterService,
 };

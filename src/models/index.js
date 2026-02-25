@@ -45,6 +45,8 @@ const ProfilePermission = require("./ProfilePermission")(sequelize);
 const Container = require("./Container")(sequelize);
 const Service = require("./Service")(sequelize);
 const examReservationArchive = require("./ExamReservationArchive")(sequelize);
+const Reexam = require("./ReexamRequest")(sequelize);
+
 
 Student.hasMany(Payment, {
   foreignKey: "userId",
@@ -463,6 +465,12 @@ Service.hasMany(Payment, { foreignKey: "serviceId" });
 efada.belongsTo(Payment, { foreignKey: "paymentId" });
 Payment.hasMany(efada, { foreignKey: "paymentId" });
 
+Reexam.belongsTo(Payment, { foreignKey: "paymentId" });
+Payment.hasMany(Reexam, { foreignKey: "paymentId" });
+
+Reexam.belongsTo(course, { foreignKey: "courseId" });
+course.hasMany(Reexam, { foreignKey: "courseId" });
+
 efada.belongsTo(Student, {
   foreignKey: 'userId',
   onDelete: 'SET NULL'
@@ -472,6 +480,16 @@ efada.belongsTo(Student, {
 Student.hasMany(efada, {
   foreignKey: 'userId',
   as: 'efadas'
+});
+
+Reexam.belongsTo(Student, {
+  foreignKey: 'userId',
+  onDelete: 'SET NULL'
+});
+
+
+Student.hasMany(Reexam, {
+  foreignKey: 'userId',
 });
 
 examReservationArchive.belongsTo(exam, {
@@ -533,4 +551,5 @@ module.exports = {
   Service,
   webhook,
   examReservationArchive,
+  Reexam
 };

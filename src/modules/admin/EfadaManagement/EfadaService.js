@@ -60,7 +60,6 @@ const efadaService = {
       ],
       order: [['date', 'DESC']]
     });
-  
     return records;
   },
 

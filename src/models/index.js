@@ -46,7 +46,8 @@ const Container = require("./Container")(sequelize);
 const Service = require("./Service")(sequelize);
 const examReservationArchive = require("./ExamReservationArchive")(sequelize);
 const Reexam = require("./ReexamRequest")(sequelize);
-
+const Register = require("./RegisterRequest")(sequelize);
+const systemdata = require("./SystemData")(sequelize);
 
 Student.hasMany(Payment, {
   foreignKey: "userId",
@@ -116,10 +117,9 @@ Admin.belongsTo(User, { foreignKey: "userId" });
 //==============================================================
 
 Product.belongsTo(course, {
-  foreignKey: 'productId',
-  as: 'product',
+  foreignKey: "productId",
+  as: "product",
 });
-
 
 User.hasMany(Payment, {
   foreignKey: { name: "userId", allowNull: false },
@@ -433,25 +433,21 @@ session.hasMany(SessionMaterial, { foreignKey: "sessionId", as: "materials" });
 SessionMaterial.belongsTo(session, { foreignKey: "sessionId" });
 //==============================================
 
-
 //====session => attendance===============
-session.hasMany(attendance, { foreignKey: "sessionId"});
+session.hasMany(attendance, { foreignKey: "sessionId" });
 attendance.belongsTo(session, { foreignKey: "sessionId" });
 //==============================================
 
-
 //====session => attendance===============
-Student.hasMany(attendance, { foreignKey: "userId"});
+Student.hasMany(attendance, { foreignKey: "userId" });
 attendance.belongsTo(Student, { foreignKey: "userId" });
 //==============================================
 
+course.belongsTo(currency, { foreignKey: "currencyId" });
+currency.hasMany(course, { foreignKey: "currencyId" });
 
-course.belongsTo(currency, { foreignKey: 'currencyId' });
-currency.hasMany(course, { foreignKey: 'currencyId' });
-
-
-Product.belongsTo(currency, { foreignKey: 'currencyId' });
-currency.hasMany(Product, { foreignKey: 'currencyId' });
+Product.belongsTo(currency, { foreignKey: "currencyId" });
+currency.hasMany(Product, { foreignKey: "currencyId" });
 
 Service.belongsTo(currency, { foreignKey: "currencyId" });
 currency.hasMany(Service, { foreignKey: "currencyId" });
@@ -472,24 +468,22 @@ Reexam.belongsTo(course, { foreignKey: "courseId" });
 course.hasMany(Reexam, { foreignKey: "courseId" });
 
 efada.belongsTo(Student, {
-  foreignKey: 'userId',
-  onDelete: 'SET NULL'
+  foreignKey: "userId",
+  onDelete: "SET NULL",
 });
 
-
 Student.hasMany(efada, {
-  foreignKey: 'userId',
-  as: 'efadas'
+  foreignKey: "userId",
+  as: "efadas",
 });
 
 Reexam.belongsTo(Student, {
-  foreignKey: 'userId',
-  onDelete: 'SET NULL'
+  foreignKey: "userId",
+  onDelete: "SET NULL",
 });
 
-
 Student.hasMany(Reexam, {
-  foreignKey: 'userId',
+  foreignKey: "userId",
 });
 
 examReservationArchive.belongsTo(exam, {
@@ -504,7 +498,20 @@ examReservationArchive.belongsTo(Student, {
   constraints: false,
 });
 
+Register.belongsTo(Student, {
+  foreignKey: "userId",
+  onDelete: "SET NULL",
+});
 
+Student.hasMany(Register, {
+  foreignKey: "userId",
+});
+
+Register.belongsTo(Payment, { foreignKey: "paymentId" });
+Payment.hasMany(Register, { foreignKey: "paymentId" });
+
+Reexam.belongsTo(Product, { foreignKey: "ProductId" });
+Product.hasMany(Reexam, { foreignKey: "ProductId" });
 module.exports = {
   sequelize,
   User,
@@ -551,5 +558,7 @@ module.exports = {
   Service,
   webhook,
   examReservationArchive,
-  Reexam
+  Reexam,
+  Register,
+  systemdata
 };

@@ -1,54 +1,58 @@
-const { DataTypes, UUIDV4 } = require('sequelize');
+const { DataTypes, UUIDV4 } = require("sequelize");
 
 module.exports = (sequelize) => {
-  const Product = sequelize.define('Product', {
-    productId: { 
-      type: DataTypes.UUID, 
-      primaryKey: true, 
-      defaultValue: UUIDV4 
-    },
+  const Product = sequelize.define(
+    "Product",
+    {
+      productId: {
+        type: DataTypes.UUID,
+        primaryKey: true,
+        defaultValue: UUIDV4,
+      },
 
-    courseName: { 
-      type: DataTypes.STRING(200), 
-      allowNull: false 
-    },
+      courseName: {
+        type: DataTypes.STRING(200),
+        allowNull: false,
+      },
 
-    priceEgyptian: { 
-      type: DataTypes.DECIMAL(12, 2), 
-      allowNull: false, 
-      defaultValue: 0 
-    },
+      priceEgyptian: {
+        type: DataTypes.DECIMAL(12, 2),
+        allowNull: false,
+        defaultValue: 0,
+      },
 
-    priceOther: { 
-      type: DataTypes.DECIMAL(12, 2), 
-      allowNull: false, 
-      defaultValue: 0 
-    },
-    
-    currencyId: { 
-      type: DataTypes.UUID,       
-      allowNull: true
-    },
+      priceOther: {
+        type: DataTypes.DECIMAL(12, 2),
+        allowNull: false,
+        defaultValue: 0,
+      },
 
+      currencyId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+      },
 
-    examStatus: { 
-      type: DataTypes.BOOLEAN, 
-      allowNull: true, 
-      defaultValue: true, 
+      examStatus: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: true,
+      },
+      trainingStatus: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: true,
+      },
+      requirdCourses: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      receiptId: { type: DataTypes.INTEGER, allowNull: true },
+      receiptIdOthers: { type: DataTypes.INTEGER, allowNull: true },
     },
-    trainingStatus: { 
-      type: DataTypes.BOOLEAN, 
-      allowNull: true, 
-      defaultValue: true, 
+    {
+      tableName: "products",
     },
-    requirdCourses: { 
-      type: DataTypes.INTEGER, 
-      allowNull: true,  
-    },
-
-  }, {
-    tableName: 'products',
-  });
+  );
 
   return Product;
 };

@@ -474,7 +474,12 @@ async function getAvailableEventsForUser(userId, productId, query) {
     throw new Error("Student not found");
   }
 
-  const events = await getAllOpenEvents(productId, query, student.StudyLan);
+  const events = await getAllOpenEvents(
+    productId,
+    query,
+    student.StudyLan,
+    userId,
+  );
 
   return filterEligibleEvents(
     events,
@@ -515,8 +520,9 @@ async function getStudentCourseStatus(userId) {
   const studentCourses = await studentCourse.findAll({
     where: { userId },
     attributes: ["courseId", "trainingStatus", "examStatus"],
+    lock: false,
+    raw: true,
   });
-
   const doneCourses = [];
   const allowedForTraining = [];
   const allowedForExam = [];
@@ -528,6 +534,8 @@ async function getStudentCourseStatus(userId) {
 
     if (trainingStatus === "done" && examStatus === "done") {
       doneCourses.push(courseId);
+      console.log("\n\n\n\n\n\n\n\n\n\n\nTest\n\n\n\n\n\n\n\n\n");
+
       continue;
     }
 
@@ -547,7 +555,7 @@ async function getStudentCourseStatus(userId) {
 
 const ApiFeature = require("../../../../Util/ApiFeatures");
 
-async function getAllOpenEvents(productId, query, language = null) {
+async function getAllOpenEvents(productId, query, language = null, userId) {
   const apiFeature = new ApiFeature(query)
     .filter()
     .pagination()
@@ -573,6 +581,23 @@ async function getAllOpenEvents(productId, query, language = null) {
   return event.findAll({
     ...apiFeature.options,
     include: [
+      {
+        model: reservation,
+        required: false,
+        where: { userId },
+        include: [
+          {
+            model: examReservation,
+            required: false,
+            attributes: [
+              "reservationStatus",
+              "result",
+              "attempts",
+              "createdAt",
+            ],
+          },
+        ],
+      },
       {
         model: Package,
         required: false,
@@ -618,6 +643,32 @@ function filterEligibleEvents(
   const filtered = [];
 
   for (const ev of events) {
+    const userReservations = ev.reservations || [];
+
+    if (userReservations.length > 0) {
+      const latestReservation = userReservations.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+      )[0];
+
+      if (ev.type === "training") {
+        continue;
+      }
+
+      if (ev.type === "exam") {
+        const examRes = latestReservation.examReservations?.[0];
+
+        if (!examRes) continue;
+
+        if (
+          examRes.reservationStatus !== "failed" &&
+          examRes.reservationStatus !== "succeeded"
+        )
+          continue;
+
+        if (Number(examRes.result) >= 65) continue;
+
+      }
+    }
     const packageCourseIds =
       ev.package?.packageCourses?.map((pc) => pc.courseId) || [];
 

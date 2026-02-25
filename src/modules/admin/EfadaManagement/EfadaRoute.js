@@ -13,5 +13,6 @@ const efadaController = require('./EfadaController');
 // GET all efadas
 router.get('/', efadaController.getAllEfadas);
 router.post('/',validateToken,efadaController.addEfada);
+router.post("/efada", efadaController.generateEfada);
 
 module.exports = router;

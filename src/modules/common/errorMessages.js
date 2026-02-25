@@ -513,6 +513,10 @@ const errorMessages = {
     code: 400,
     msg: "You already reserved this event before.",
   },
+  "You cannot reserve exams for these courses anymore (attempts >= 4)": {
+    code: 400,
+    msg: "You cannot reserve exams for these courses anymore (attempts >= 4)",
+  },
 };
 
 function getErrorPayload(errorKey) {

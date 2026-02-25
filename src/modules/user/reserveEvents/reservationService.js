@@ -10,11 +10,11 @@ const {
   training,
   trainingReservation,
   Student,
+  studentCourse
 } = require("../../../models");
 // const Student = require("../../../models/Student");
 const { Op } = require("sequelize");
 const { handleCreateGroupChatForEvent } = require("./helpers/helper");
-
 
 const registerForExam = async (userId, eventId, req) => {
   return sequelize.transaction(async (t) => {
@@ -60,7 +60,7 @@ const registerForExam = async (userId, eventId, req) => {
       const productExams = await exam.findAll({
         where: {
           courseId: sequelize.literal(
-            `course."productId" = '${eventData.productId}'`
+            `course."productId" = '${eventData.productId}'`,
           ),
         },
         transaction: t,
@@ -71,7 +71,21 @@ const registerForExam = async (userId, eventId, req) => {
 
     if (examsToReserve.length === 0)
       throw new Error("No exams found for this event or package.");
+    const courseIds = examsToReserve.map((ex) => ex.courseId);
+    const studentCourses = await studentCourse.findAll({
+      where: { userId, courseId: courseIds },
+      transaction: t,
+    });
 
+    const exceededCourses = studentCourses
+      .filter((sc) => sc.attempts >= 4)
+      .map((sc) => sc.courseId);
+
+    if (exceededCourses.length > 0) {
+      throw new Error(
+        `You cannot reserve exams for these courses anymore (attempts >= 4)`,
+      );
+    }
     const examIds = examsToReserve.map((ex) => ex.examId);
 
     const previousReservations = await examReservation.findAll({
@@ -81,12 +95,12 @@ const registerForExam = async (userId, eventId, req) => {
 
     if (previousReservations.length > 0) {
       const hasNonFailResult = previousReservations.some(
-        (r) => r.reservationStatus  !== "failed"
+        (r) => r.reservationStatus !== "failed",
       );
 
       if (hasNonFailResult) {
         throw new Error(
-          "You cannot reserve this event again until all your previous exam results are 'fail'."
+          "You cannot reserve this event again until all your previous exam results are 'fail'.",
         );
       }
     }
@@ -118,7 +132,7 @@ const registerForExam = async (userId, eventId, req) => {
 
     const newReservation = await reservation.create(
       { userId, eventId },
-      { transaction: t }
+      { transaction: t },
     );
     const student = await Student.findOne({ where: { userId } });
     const examReservations = examsToReserve.map((ex) => ({
@@ -128,13 +142,29 @@ const registerForExam = async (userId, eventId, req) => {
       type: "exam",
       reservationStatus: "reserved",
     }));
-   
+
     if (student) {
       student.status = "reserved Exam";
       await student.save({ transaction: t });
     }
 
     await examReservation.bulkCreate(examReservations, { transaction: t });
+    for (const ex of examsToReserve) {
+      const sc = studentCourses.find((sc) => sc.courseId === ex.courseId);
+      if (sc) {
+        sc.attempts += 1;
+        await sc.save({ transaction: t });
+      } else {
+        await studentCourse.create(
+          {
+            userId,
+            courseId: ex.courseId,
+            attempts: 1,
+          },
+          { transaction: t },
+        );
+      }
+    }
     eventData.numberOfRegistered++;
     await eventData.save();
 
@@ -145,7 +175,7 @@ const registerForExam = async (userId, eventId, req) => {
         eventData.eventId,
         eventData.eventName,
         eventData.type,
-        t
+        t,
       );
     }
 
@@ -201,12 +231,12 @@ const registerForTraining = async (userId, eventId, req) => {
 
     if (previousReservations.length > 0) {
       const hasNonFinished = previousReservations.some(
-        (r) => r.trainigStatus?.toLowerCase() !== "finshed"
+        (r) => r.trainigStatus?.toLowerCase() !== "finshed",
       );
 
       if (hasNonFinished) {
         throw new Error(
-          "You cannot reserve this training again until previous sessions are finished."
+          "You cannot reserve this training again until previous sessions are finished.",
         );
       }
     }
@@ -237,7 +267,7 @@ const registerForTraining = async (userId, eventId, req) => {
 
     const newReservation = await reservation.create(
       { userId, eventId },
-      { transaction: t }
+      { transaction: t },
     );
 
     const student = await Student.findOne({ where: { userId } });
@@ -267,7 +297,7 @@ const registerForTraining = async (userId, eventId, req) => {
         eventData.eventId,
         eventData.eventName,
         "training",
-        t
+        t,
       );
     }
 

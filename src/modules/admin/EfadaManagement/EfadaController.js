@@ -27,22 +27,21 @@
 //   }
 // };
 const efadaService = require('./EfadaService');
+const ApiFeature = require("../../../Util/ApiFeatures");
+const ApiResponse = require("../../../Util/ApiResponse");
 
 const efadaController = {
   getAllEfadas: async (req, res) => {
-    try {
-      const efadas = await efadaService.getAll();
-      res.status(200).json({
-        success: true,
-        data: efadas
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching efada records'
-      });
-    }
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
+  
+    const result = await efadaService.getAll(features);
+  
+    res.status(200).json(ApiResponse.success(result));
   },
 
   addEfada: async (req, res) => {

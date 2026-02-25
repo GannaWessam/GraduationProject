@@ -13,6 +13,11 @@ router.post(
   checkPermission("ADD_EVENT"),
   catchError(examController.createExam)
 );
+router.post(
+  "/Reexam/:courseId",
+  validateToken,
+  catchError(examController.ReexamController)
+);
 router.get(
   "/",
   validateToken,

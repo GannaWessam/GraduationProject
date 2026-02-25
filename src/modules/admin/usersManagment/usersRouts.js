@@ -46,13 +46,11 @@ router.get(
 router.get(
   "/Training/:trainingId/Students",
   validateToken,
-  checkPermission("VIEW_USER"),
   catchError(usersController.getUsersByTrainingIdController)
 );
 router.get(
   "/Exam/:examId/Students",
   validateToken,
-  checkPermission("VIEW_USER"),
   catchError(usersController.getUsersByExamIdController)
 );
 

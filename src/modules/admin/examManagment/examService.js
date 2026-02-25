@@ -434,7 +434,7 @@ const ReexamService = async (userId,courseId ,req) => {
     }
 
     // 2️⃣ Determine service name based on student type
-    const serviceName = "اعادة الامتحات";
+    const serviceName = "Re Exam | اعادة امتحان";
 
     // 3️⃣ Get service
     const service = await Service.findOne({

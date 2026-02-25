@@ -41,27 +41,41 @@
 //   return pdf;
 // };
 const { efada, Student ,Service ,Payment ,currency ,sequelize} = require('../../../models/index');
+const PaginatedResponse = require("../../../Util/PaginatedResponse");
 
 
 const efadaService = {
-  getAll: async () => {
-    const records = await efada.findAll({
+  getAll: async (features) => {
+    const where = { ...(features.options?.where || {}) };
+  
+    const { count, rows } = await efada.findAndCountAll({
+      ...features.options,
+      where,
       include: [
         {
           model: Student,
-          attributes: ['userId', 'fullName', 'nationalId']
+          attributes: ["userId", "fullName", "nationalId"],
         },
         {
           model: Payment,
-          attributes: ['paymentId', 'status', 'amount'],
-          where: { status: 'PAID' },
-          required: true 
-        }
+          attributes: ["paymentId", "status", "amount"],
+          where: { status: "PAID" }, 
+          required: true,
+        },
       ],
-      order: [['date', 'DESC']]
+      order: [["date", "DESC"]],
     });
   
-    return records;
+    if (!rows || rows.length === 0) {
+      throw new Error("no_efadas_found");
+    }
+  
+    return PaginatedResponse.fromApiFeature(
+      features,
+      count,
+      rows,
+      "Efadas fetched successfully"
+    );
   },
 
   add: async (userId, req) => {

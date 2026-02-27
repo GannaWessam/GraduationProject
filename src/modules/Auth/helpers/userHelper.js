@@ -135,7 +135,7 @@ const RegisterService = async (userId, productId, req, t) => {
   }
 
   const isEgyptian =
-    student.nationality === "Egyptian" || student.nationality === "مصري";
+    student.nationality === "Egyptian | مصري" || student.nationality === "مصري";
 
   let receiptId;
   let currencyId;

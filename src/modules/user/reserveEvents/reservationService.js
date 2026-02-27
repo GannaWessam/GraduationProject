@@ -222,6 +222,8 @@ const registerForTraining = async (userId, eventId, req) => {
     if (!trainings.length)
       throw new Error("No training sessions found for this event");
 
+    const courseIds = trainings.map((tr) => tr.courseId);
+
     const trainingIds = trainings.map((tr) => tr.trainingId);
 
     const previousReservations = await trainingReservation.findAll({
@@ -241,29 +243,30 @@ const registerForTraining = async (userId, eventId, req) => {
       }
     }
 
-    const userReservations = await reservation.findAll({
-      include: [
-        {
-          model: event,
-          as: "reservationEvent",
-          attributes: ["eventId", "startDate", "endDate", "type"],
-        },
-      ],
-      where: { userId },
-      transaction: t,
-    });
+    // const userReservations = await reservation.findAll({
+    //   include: [
+    //     {
+    //       model: event,
+    //       as: "reservationEvent",
+    //       attributes: ["eventId", "startDate", "endDate", "type"],
+    //     },
+    //   ],
+    //   where: { userId },
+    //   transaction: t,
+    // });
 
-    for (let res of userReservations) {
-      const ev = res.reservationEvent;
-      if (!ev) continue;
+    // for (let res of userReservations) {
+    //   const ev = res.reservationEvent;
+    //   if (!ev) continue;
 
-      const overlap =
-        eventData.startDate < ev.endDate && ev.startDate < eventData.endDate;
+    //   const overlap =
+    //     eventData.startDate < ev.endDate && ev.startDate < eventData.endDate;
 
-      if (overlap) {
-        throw new Error("reservation_overlaps_with_event");
-      }
-    }
+    //   if (overlap) {
+    //     throw new Error("reservation_overlaps_with_event");
+    //   }
+    // }
+    
 
     const newReservation = await reservation.create(
       { userId, eventId },
@@ -300,7 +303,16 @@ const registerForTraining = async (userId, eventId, req) => {
         t,
       );
     }
-
+    await studentCourse.update(
+      { trainingStatus: "done" },
+      {
+        where: {
+          userId,
+          courseId: courseIds,
+        },
+        transaction: t,
+      }
+    );
     await eventData.save({ transaction: t });
 
     if (req && req.audit) {

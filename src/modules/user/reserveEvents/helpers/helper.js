@@ -467,7 +467,7 @@ async function getAvailableEventsForUser(userId, productId, query) {
   // Get student's StudyLan to filter events by language
   const student = await Student.findOne({
     where: { userId },
-    attributes: ["StudyLan"],
+    attributes: ["StudyLan"], 
   });
 
   if (!student) {
@@ -710,9 +710,10 @@ function shouldSkipEvent(
 
   if (
     ev.type === "training" &&
-    !courseIds.some((id) => allowedForTraining.includes(id))
-  )
+    !courseIds.every((id) => allowedForTraining.includes(id))
+  ) {
     return true;
+  }
 
   if (
     ev.type === "exam" &&

@@ -1,4 +1,4 @@
-const {Payment , Student ,Product ,webhook ,sequelize, Service} = require("../../models");
+const {Payment , Student ,Product ,webhook ,sequelize, Service, currency} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
@@ -106,6 +106,10 @@ const getPaymentsByUserId = async (userId,features) => {
       {
         model:Service,
         attributes:["name"]
+      },
+      {
+        model:currency,
+        attributes:["code"]
       }
     ],
     order: [["timestamp", "DESC"]],

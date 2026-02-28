@@ -11,6 +11,7 @@ const {
   systemdata,
 } = require("../../../models/index");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
+const { splitLang } = require("../../../Helpers/langHelper");
 
 const efadaService = {
   getAll: async (features) => {
@@ -154,7 +155,7 @@ const efadaService = {
 
     // Choose HTML template based on type
     let templateFile = "index.html"; // default
-    if (["1", "2", "3"].includes(student.type)) {
+    if (["4", "2", "3"].includes(student.type)) {
       templateFile = "efada2.html";
     }
 
@@ -171,7 +172,7 @@ const efadaService = {
       .replace(/{{nationalId}}/g, student.nationalId)
       .replace(/{{date}}/g, date)
       .replace(/{{Picture1\.png}}/g, pictureBase64)
-      .replace(/{{collegename}}/g, student.college || "")
+      .replace(/{{collegename}}/g,  splitLang(student.college).ar?? student.college ?? "")
       .replace(/{{titlePersonInefada1}}/g, sd.titlePersonInefada1)
       .replace(/{{nameOfPersonInefada1}}/g, sd.nameOfPersonInefada1)
       .replace(/{{titlePersonInefada2}}/g, sd.titlePersonInefada2)

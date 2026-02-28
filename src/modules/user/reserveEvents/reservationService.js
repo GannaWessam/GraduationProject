@@ -96,21 +96,29 @@ const registerForExam = async (userId, eventId, req) => {
           where: {
             courseId: courseIds,
           },
-          attributes: ["examId", "courseId"],
+          attributes: ["courseId"],
         },
       ],
+      order: [["createdAt", "DESC"]],
       transaction: t,
     });
-    if (previousReservations.length > 0) {
-      const hasNonFailResult = previousReservations.some(
-        (r) => r.reservationStatus !== "failed",
-      );
+    const latestReservationsByCourse = {};
 
-      if (hasNonFailResult) {
-        throw new Error(
-          "You cannot reserve this event again until all your previous exam results are 'fail'.",
-        );
+    for (const r of previousReservations) {
+      const courseId = r.exam.courseId;
+
+      if (!latestReservationsByCourse[courseId]) {
+        latestReservationsByCourse[courseId] = r;
       }
+    }
+    const hasNonFailLatest = Object.values(latestReservationsByCourse).some(
+      (r) => r.reservationStatus !== "failed",
+    );
+
+    if (hasNonFailLatest) {
+      throw new Error(
+        "You cannot reserve this event again until your latest exam result is 'failed'.",
+      );
     }
 
     // const userReservations = await reservation.findAll({

@@ -24,7 +24,6 @@ const updateSystemDataById = async (systemDataId, updateInfo) => {
     if (!systemData) {
       throw new Error("system_data_not_found");
     }
-  
     await systemData.update(updateInfo);
     return systemData;
   };

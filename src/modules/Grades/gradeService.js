@@ -5,7 +5,8 @@ const {
   User,
   Student,
   Reexam,
-  Payment
+  Payment,
+  efada
 } = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 
@@ -127,6 +128,13 @@ const getReservationsByUserId = async (userId, features) => {
     paidExamSet = new Set(paidReexams.map((r) => r.examId));
   }
 
+  const userEfada = await efada.findOne({
+    where: { userId },
+    attributes: ["efadaId"],
+  });
+  
+  const hasEfada = !!userEfada;
+
   
   const formattedRows = rows.map((row) => {
     const data = row.toJSON();
@@ -137,10 +145,12 @@ const getReservationsByUserId = async (userId, features) => {
     };
   });
 
+  const data = {formattedRows , hasEfada : hasEfada}
+
   return PaginatedResponse.fromApiFeature(
     features,
     count,
-    formattedRows,
+    data,
     "grades fetched successfully"
   );
 };

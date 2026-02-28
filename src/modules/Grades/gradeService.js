@@ -118,9 +118,6 @@ const getReservationsByUserId = async (userId, features) => {
         {
           model: Payment,
           required: true,
-          where: {
-            status: ["PENDING", "PAID"],
-          },
           attributes: [],
         },
       ],

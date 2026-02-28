@@ -135,6 +135,6 @@ const service = new FinishStudentProgramService();
 
 module.exports = {
   name: "FinishStudentProgramService",
-  init: () => service.init(),
-  stop: () => service.stop(),
+  // init: () => service.init(),
+  // stop: () => service.stop(),
 };

@@ -673,7 +673,9 @@ function filterEligibleEvents(
       ev.package?.packageCourses?.map((pc) => pc.courseId) || [];
 
     const eventCourseIds =
-      ev.packageId == null && ev.courseId ? [ev.courseId] : packageCourseIds;
+      ev.packageId == null && ev.exams[0].courseId ? [ev.exams[0].courseId] : packageCourseIds;
+      
+      
 
     if (
       shouldSkipEvent(
@@ -715,11 +717,15 @@ function shouldSkipEvent(
     return true;
   }
 
+  console.log(allowedForExam);
+  console.log(courseIds);
+  
   if (
     ev.type === "exam" &&
     !courseIds.every((id) => allowedForExam.includes(id))
   )
     return true;
+    
 
   const totalAfter = new Set([...doneCourses, ...courseIds]).size;
   if (totalAfter > requiredTotal) return true;

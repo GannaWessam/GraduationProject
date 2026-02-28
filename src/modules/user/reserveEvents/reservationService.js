@@ -178,6 +178,16 @@ const registerForExam = async (userId, eventId, req) => {
         t,
       );
     }
+    await studentCourse.update(
+      { examStatus: "done" },
+      {
+        where: {
+          userId,
+          courseId: courseIds,
+        },
+        transaction: t,
+      }
+    );
 
     if (req && req.audit) {
       req.audit.affectedUser = {

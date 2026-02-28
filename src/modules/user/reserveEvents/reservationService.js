@@ -89,10 +89,18 @@ const registerForExam = async (userId, eventId, req) => {
     const examIds = examsToReserve.map((ex) => ex.examId);
 
     const previousReservations = await examReservation.findAll({
-      where: { userId, examId: examIds },
+      where: { userId },
+      include: [
+        {
+          model: exam,
+          where: {
+            courseId: courseIds,
+          },
+          attributes: ["examId", "courseId"],
+        },
+      ],
       transaction: t,
     });
-
     if (previousReservations.length > 0) {
       const hasNonFailResult = previousReservations.some(
         (r) => r.reservationStatus !== "failed",

@@ -1,4 +1,4 @@
-const {Payment , Student ,Product ,webhook ,sequelize, Service, currency} = require("../../models");
+const {Payment , Student ,Product ,webhook ,sequelize, Service, currency , studentCourse ,Reexam , exam} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
@@ -218,6 +218,72 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
       paymentData.actualAmount = body.transaction.grossAmount;
     }
     await paymentData.save({ transaction: t });
+
+    if (
+      body.transaction.previousStatus !== "PAID" &&
+      body.transaction.status === "PAID" &&
+      paymentData.productId
+    ) {
+
+      const product = await Product.findByPk(paymentData.productId, {
+        transaction: t
+      });
+
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      await studentCourse.update(
+        {
+          examStatus: product.examStatus ? "pending" : null,
+          trainingStatus: product.trainingStatus ? "pending" : null
+        },
+        {
+          where: { userId: paymentData.userId },
+          transaction: t
+        }
+      );
+    }
+
+    if (
+      body.transaction.previousStatus !== "PAID" &&
+      body.transaction.status === "PAID" &&
+      !paymentData.productId &&
+      paymentData.serviceId
+    ) {
+    
+      
+      const reexamRequest = await Reexam.findOne({
+        where: { paymentId: paymentData.paymentId },
+        transaction: t
+      });
+    
+  
+      if (reexamRequest) {
+    
+        const examData = await exam.findByPk(reexamRequest.examId, {
+          transaction: t
+        });
+    
+        if (!examData) {
+          throw new Error("Exam not found");
+        }
+    
+
+        await studentCourse.update(
+          {
+            examStatus: "pending"
+          },
+          {
+            where: {
+              userId: reexamRequest.userId,
+              courseId: examData.courseId
+            },
+            transaction: t
+          }
+        );
+      }
+    }
 
     await t.commit();
     return true;

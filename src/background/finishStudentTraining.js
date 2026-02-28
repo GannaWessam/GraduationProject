@@ -5,6 +5,7 @@ const {
   training,
   trainingReservation,
   event,
+  User,
 } = require("../models");
 
 const { Op } = require("sequelize");
@@ -14,7 +15,6 @@ class FinishStudentTrainingService {
     this.cronJob = null;
     this.isRunning = false;
   }
-
 
   init() {
     this.cronJob = cron.schedule(
@@ -32,7 +32,6 @@ class FinishStudentTrainingService {
       "🎓 Finish Student Training Service initialized - Running daily at 04:00 AM Egypt time",
     );
   }
-
 
   async processStudents() {
     if (this.isRunning) {
@@ -72,7 +71,6 @@ class FinishStudentTrainingService {
     }
   }
 
-  
   async checkStudent(student) {
     console.log(`\nChecking student: ${student.fullName}`);
 
@@ -191,6 +189,7 @@ class FinishStudentTrainingService {
     );
 
     console.log(`🎉 Student graduated automatically: ${student.fullName}`);
+    await User.increment("tokenVersion", { where: { userId: student.userId } });
   }
 
   stop() {

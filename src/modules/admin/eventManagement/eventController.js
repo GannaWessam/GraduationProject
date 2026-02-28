@@ -4,22 +4,26 @@ const ApiResponse = require("../../../Util/ApiResponse");
 
 // Get all events (both training and exam events) with filtering, searching, and pagination
 const getAllEvents = async (req, res) => {
-    const features = new ApiFeature(req.query)
-      .filter()
-      .search()
-      .sort()
-      .pagination()
-      .selectedFields();
-    
-    const result = await eventService.getAllEvents(features);
-    res.status(200).json(ApiResponse.success(result, "Events retrieved successfully"));
+  const features = new ApiFeature(req.query)
+    .filter()
+    .search()
+    .sort()
+    .pagination()
+    .selectedFields();
+
+  const result = await eventService.getAllEvents(features);
+  res
+    .status(200)
+    .json(ApiResponse.success(result, "Events retrieved successfully"));
 };
 
 // Get event by ID
 const getEventById = async (req, res) => {
-    const { id } = req.params;
-    const result = await eventService.getEventById(id);
-    res.status(200).json(ApiResponse.success(result, "Event retrieved successfully"));
+  const { id } = req.params;
+  const result = await eventService.getEventById(id);
+  res
+    .status(200)
+    .json(ApiResponse.success(result, "Event retrieved successfully"));
 };
 
 const closeEventById = async (req, res) => {
@@ -31,16 +35,29 @@ const closeEventById = async (req, res) => {
 const updateEvent = async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
-  
+
   const result = await eventService.updateEvent(id, updateData);
-  res.status(200).json(ApiResponse.success(result, "Exam and linked event updated successfully"));
+  res
+    .status(200)
+    .json(
+      ApiResponse.success(result, "Exam and linked event updated successfully"),
+    );
 };
 
+const deleteEventById = async (req, res) => {
+  const { id } = req.params;
 
+  const result = await eventService.deleteEventById(id);
+
+  res
+    .status(200)
+    .json(ApiResponse.success(result, "Event deleted successfully"));
+};
 
 module.exports = {
   getAllEvents,
   getEventById,
   closeEventById,
-  updateEvent
+  updateEvent,
+  deleteEventById,
 };

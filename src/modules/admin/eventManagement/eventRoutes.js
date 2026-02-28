@@ -10,26 +10,31 @@ router.get(
   "/",
   validateToken,
   checkPermission("VIEW_EVENT"),
-  catchError(eventController.getAllEvents)
+  catchError(eventController.getAllEvents),
 );
 router.get(
   "/:id",
   validateToken,
   checkPermission("VIEW_EVENT"),
-  catchError(eventController.getEventById)
+  catchError(eventController.getEventById),
 );
 router.put(
   "/close/:eventId",
   validateToken,
   checkPermission("CLOSE_EVENT"),
-  catchError(eventController.closeEventById)
+  catchError(eventController.closeEventById),
 );
 router.put(
   "/:id",
   validateToken,
   checkPermission("EDIT_EVENT"),
-  catchError(eventController.updateEvent)
+  catchError(eventController.updateEvent),
 );
-
+router.delete(
+  "/:id",
+  validateToken,
+  // checkPermission("DELETE_EVENT"),
+  catchError(eventController.deleteEventById),
+);
 
 module.exports = router;

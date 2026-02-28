@@ -216,11 +216,19 @@ course.belongsToMany(User, {
   foreignKey: "courseId",
 });
 
-event.hasMany(training, { foreignKey: "eventId", as: "trainings" });
-training.belongsTo(event, { foreignKey: "eventId", as: "event" });
+event.hasMany(training, {
+  foreignKey: "eventId",
+  as: "trainings",
+  onDelete: "CASCADE",
+});
+training.belongsTo(event, {
+  foreignKey: "eventId",
+  as: "event",
+  onDelete: "CASCADE",
+});
 
-event.hasMany(exam, { foreignKey: "eventId" });
-exam.belongsTo(event, { foreignKey: "eventId" });
+event.hasMany(exam, { foreignKey: "eventId", onDelete: "CASCADE" });
+exam.belongsTo(event, { foreignKey: "eventId", onDelete: "CASCADE" });
 
 // User ↔ ExamReservation
 Student.hasMany(examReservation, { foreignKey: "userId" });
@@ -303,6 +311,7 @@ event.hasMany(reservation, {
 reservation.belongsTo(event, {
   foreignKey: "eventId",
   as: "reservationEvent",
+  onDelete: "CASCADE",
 });
 //  Reservation -> ExamReservation
 reservation.hasMany(examReservation, {
@@ -360,11 +369,12 @@ Message.belongsTo(User, {
 event.hasMany(Conversation, {
   foreignKey: "eventId",
   as: "conversations",
-  onDelete: "SET NULL",
+  onDelete: "CASCADE",
 });
 Conversation.belongsTo(event, {
   foreignKey: "eventId",
   as: "event",
+  onDelete: "CASCADE",
 });
 
 // ConversationUser relationships
@@ -560,5 +570,5 @@ module.exports = {
   examReservationArchive,
   Reexam,
   Register,
-  systemdata
+  systemdata,
 };

@@ -7,8 +7,7 @@ const checkPermission = require("../../middlewares/checkPermission");
 
 router.post(
   "/",
-  validateToken,
-  checkPermission("ADD_PRODUCT"),
+ 
   catchError(ProductController.addProduct)
 );
 router.get(

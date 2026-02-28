@@ -65,12 +65,16 @@ async function chooseCoursesService(
 
 async function addCourse(courseInfo, req) {
   const { name, title, priceEgyptian, priceOther, currencyId } = courseInfo;
+
   if (!name || !priceEgyptian || !priceOther || !currencyId || !title)
     throw new Error("missing_required");
+
   const Currency = await currency.findByPk(currencyId);
   if (!Currency) {
     throw new Error("currency_not_found");
   }
+
+  // 1️⃣ Create course
   const newCourse = await course.create({
     name,
     title,
@@ -79,6 +83,24 @@ async function addCourse(courseInfo, req) {
     currencyId,
   });
 
+  // 2️⃣ Get all products
+  const allProducts = await Product.findAll({
+    attributes: ["productId"],
+  });
+
+  // 3️⃣ Prepare bulk insert for productCourse
+  const productCoursesData = allProducts.map((product) => ({
+    productId: product.productId,
+    courseId: newCourse.courseId,
+    status: "active", 
+  }));
+
+  // 4️⃣ Bulk create relations
+  if (productCoursesData.length > 0) {
+    await productCourse.bulkCreate(productCoursesData);
+  }
+
+  // Audit
   if (req && req.audit) {
     req.audit.affectedThing = {
       _id: newCourse.courseId,

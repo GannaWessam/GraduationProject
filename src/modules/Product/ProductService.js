@@ -1,4 +1,4 @@
-const { Product, ProductAllowedUserType, currency } = require("../../models");
+const { Product, ProductAllowedUserType, currency , course ,productCourse} = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const { Op } = require("sequelize");
 const { concatLang } = require("../../Helpers/langHelper");
@@ -78,9 +78,10 @@ async function addProduct(productInfo, req) {
     throw new Error("currency_not_found");
   }
 
+  // ✅ 1- Create Product
   const newProduct = await Product.create(
     {
-      courseName: concatLang(courseNameEn, courseNameAr), // ✅ concat before saving
+      courseName: concatLang(courseNameEn, courseNameAr),
       priceEgyptian,
       priceOther,
       currencyId,
@@ -92,13 +93,32 @@ async function addProduct(productInfo, req) {
     },
   );
 
+  // ✅ 2- Get all courses
+  const allCourses = await course.findAll({
+    attributes: ["courseId"],
+  });
+
+  // ✅ 3- Prepare relations
+  const productCoursesData = allCourses.map((c) => ({
+    productId: newProduct.productId,
+    courseId: c.courseId,
+    status: "active",
+  }));
+
+  // ✅ 4- Bulk insert in productCourse
+  if (productCoursesData.length > 0) {
+    await productCourse.bulkCreate(productCoursesData);
+  }
+
+  // Audit
   req.audit.affectedThing = {
-    _id: newProduct.dataValues.productId,
-    name: newProduct.dataValues.courseName,
+    _id: newProduct.productId,
+    name: newProduct.courseName,
   };
 
   req.audit.message =
     "Product added successfully | تم إضافة المنتج بنجاح";
+
   return formatProduct(newProduct);
 }
 

@@ -290,25 +290,24 @@ async function processOneStudent(
   // Student final status: succeeded only if all 7 required exams (for this event) have grade >= 65
   //courseTitleToExam gets the examId and examDate for each course in *specific event*
   const allExamIds = [...courseTitleToExam.values()].map((e) => e.examId);
-  const requiredCount = Math.min(requiredExamsPassed, allExamIds.length);
+  
   const passedCount = await (async () => {
     if (allExamIds.length === 0) return 0;
-    const reservations = await examReservation.findAll({
-      where: { userId, examId: allExamIds },
-      attributes: ["examId", "result", "reservationStatus"],
+  
+    const passedCourses = await studentCourse.findAll({
+      where: { userId },
+      attributes: ["examStatus"],
       transaction: t,
       raw: true,
     });
-    return reservations.filter((r) => 
-    r.reservationStatus === "succeeded" ||
-    (r.result != null && Number(r.result) >= PASS_GRADE)
-).length;
+  
+    return passedCourses
+      .filter((r) => r.examStatus === "sucess")
+      .length;
   })();
 
-  const studentSucceeded =
-    requiredCount === requiredExamsPassed && passedCount >= requiredExamsPassed;
-  const studentFailed =
-    requiredCount === requiredExamsPassed && passedCount < requiredExamsPassed;
+  const studentSucceeded = passedCount >= requiredExamsPassed;
+  const studentFailed = passedCount < requiredExamsPassed;
   if (studentSucceeded) {
     await studentRecord.update({ status: "succeeded" }, { transaction: t });
     await User.increment("tokenVersion", { where: { userId: userId } });

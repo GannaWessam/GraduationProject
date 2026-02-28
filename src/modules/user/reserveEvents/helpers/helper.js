@@ -453,6 +453,7 @@ const {
   Student,
   examReservation,
   examReservationArchive,
+  course,
 } = require("../../../../models");
 
 //bfkr a3ml 3leha endpoint?
@@ -544,7 +545,7 @@ async function getStudentCourseStatus(userId) {
       continue;
     }
 
-    if (trainingStatus === "done" && examStatus === "pending") {
+    if ((trainingStatus === "done" || trainingStatus === null) && examStatus === "pending") {
       allowedForExam.push(courseId);
       continue;
     }
@@ -613,6 +614,10 @@ async function getAllOpenEvents(productId, query, language = null, userId) {
             as: "trainer",
             attributes: ["Name"],
           },
+          {
+            model:course,
+            attributes:["name"]
+          }
         ],
       },
       {
@@ -624,6 +629,10 @@ async function getAllOpenEvents(productId, query, language = null, userId) {
             as: "supervisor",
             attributes: ["Name"],
           },
+          {
+            model:course,
+            attributes:["name"]
+          }
         ],
       },
     ],
@@ -716,9 +725,6 @@ function shouldSkipEvent(
   ) {
     return true;
   }
-
-  console.log(allowedForExam);
-  console.log(courseIds);
   
   if (
     ev.type === "exam" &&

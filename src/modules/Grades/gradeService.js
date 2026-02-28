@@ -4,6 +4,8 @@ const {
   course,
   User,
   Student,
+  Reexam,
+  Payment
 } = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 
@@ -63,11 +65,13 @@ const getAllReservationsByEvent = async (eventId, features) => {
   }
 };
 
-const getReservationsByUserId = async (userId,features) => {
-    const page = features.page * 1 || 1;
-    const limit = features.limit * 1 || 10;
-    const offset = (page - 1) * limit;
-    const {count,rows} =await examReservation.findAndCountAll({
+const getReservationsByUserId = async (userId, features) => {
+  const page = features.page * 1 || 1;
+  const limit = features.limit * 1 || 10;
+  const offset = (page - 1) * limit;
+
+  // 1️⃣ نفس الكويري بالظبط
+  const { count, rows } = await examReservation.findAndCountAll({
     attributes: {
       exclude: [
         "createdAt",
@@ -96,10 +100,50 @@ const getReservationsByUserId = async (userId,features) => {
     ],
     order: [["createdAt", "DESC"]],
   });
+
+  // 2️⃣ نجيب examIds من الصفحة
+  const examIds = rows.map((row) => row.exam?.examId).filter(Boolean);
+
+  let paidExamSet = new Set();
+
+  if (examIds.length > 0) {
+    // 3️⃣ نعمل Query واحدة بس على ReexamRequest + Payment
+    const paidReexams = await Reexam.findAll({
+      attributes: ["examId"],
+      where: {
+        userId,
+        examId: examIds,
+      },
+      include: [
+        {
+          model: Payment,
+          required: true,
+          where: {
+            status: ["PENDING", "PAID"],
+          },
+          attributes: [],
+        },
+      ],
+      raw: true,
+    });
+
+    paidExamSet = new Set(paidReexams.map((r) => r.examId));
+  }
+
+  
+  const formattedRows = rows.map((row) => {
+    const data = row.toJSON();
+
+    return {
+      ...data,
+      hasPaidReexam: paidExamSet.has(data.exam.examId),
+    };
+  });
+
   return PaginatedResponse.fromApiFeature(
     features,
     count,
-    rows,
+    formattedRows,
     "grades fetched successfully"
   );
 };

@@ -423,7 +423,7 @@ const getExamReservations = async (examId, features) => {
 };
 
 
-const ReexamService = async (userId,courseId ,req) => {
+const ReexamService = async (userId,examId ,req) => {
   const t = await sequelize.transaction();
 
   try {
@@ -500,7 +500,7 @@ const ReexamService = async (userId,courseId ,req) => {
       {
         userId: userId,
         paymentId: payment.paymentId,
-        courseId,
+        examId,
         date: new Date(),
       },
       { transaction: t }

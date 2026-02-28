@@ -464,8 +464,8 @@ Payment.hasMany(efada, { foreignKey: "paymentId" });
 Reexam.belongsTo(Payment, { foreignKey: "paymentId" });
 Payment.hasMany(Reexam, { foreignKey: "paymentId" });
 
-Reexam.belongsTo(course, { foreignKey: "courseId" });
-course.hasMany(Reexam, { foreignKey: "courseId" });
+Reexam.belongsTo(exam, { foreignKey: "examId" });
+exam.hasMany(Reexam, { foreignKey: "examId" });
 
 efada.belongsTo(Student, {
   foreignKey: "userId",

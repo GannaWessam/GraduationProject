@@ -10,7 +10,7 @@ const {
   training,
   trainingReservation,
   Student,
-  studentCourse
+  studentCourse,
 } = require("../../../models");
 // const Student = require("../../../models/Student");
 const { Op } = require("sequelize");
@@ -144,7 +144,19 @@ const registerForExam = async (userId, eventId, req) => {
     }));
 
     if (student) {
-      student.status = "reserved Exam";
+      if (student) {
+        const hasFailedBefore = previousReservations.some(
+          (r) => r.reservationStatus === "failed",
+        );
+
+        if (hasFailedBefore) {
+          student.status = "reserved Reexam";
+        } else {
+          student.status = "reserved Exam";
+        }
+
+        await student.save({ transaction: t });
+      }
       await student.save({ transaction: t });
     }
 
@@ -186,7 +198,7 @@ const registerForExam = async (userId, eventId, req) => {
           courseId: courseIds,
         },
         transaction: t,
-      }
+      },
     );
 
     if (req && req.audit) {
@@ -276,7 +288,6 @@ const registerForTraining = async (userId, eventId, req) => {
     //     throw new Error("reservation_overlaps_with_event");
     //   }
     // }
-    
 
     const newReservation = await reservation.create(
       { userId, eventId },
@@ -321,7 +332,7 @@ const registerForTraining = async (userId, eventId, req) => {
           courseId: courseIds,
         },
         transaction: t,
-      }
+      },
     );
     await eventData.save({ transaction: t });
 

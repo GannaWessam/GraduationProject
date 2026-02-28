@@ -7,7 +7,7 @@ const checkPermission = require("../../middlewares/checkPermission");
 router.get(
   "/event/:eventId",
   validateToken,
-//   checkPermission("VIEW_RESULTS"),
+  checkPermission("VIEW_RESULTS"),
   controller.getAllReservations,
 );
 

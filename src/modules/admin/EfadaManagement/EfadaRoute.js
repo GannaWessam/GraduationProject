@@ -9,10 +9,11 @@ const express = require('express');
 const { validateToken } = require("../../../middlewares/token");
 const router = express.Router();
 const efadaController = require('./EfadaController');
+const checkPermission = require('../../../middlewares/checkPermission');
 
 // GET all efadas
-router.get('/', efadaController.getAllEfadas);
+router.get('/',validateToken,checkPermission("VIEW_STATEMENTS") ,efadaController.getAllEfadas);
 router.post('/',validateToken,efadaController.addEfada);
-router.post("/efada", efadaController.generateEfada);
+router.post("/efada",validateToken,checkPermission("GENERATE_STATEMENTS") ,efadaController.generateEfada);
 
 module.exports = router;

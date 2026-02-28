@@ -8,25 +8,25 @@ const checkPermission = require("../../middlewares/checkPermission");
 router.post(
   "/",
   validateToken,
-//   checkPermission("ADD_SERVICE"),
+  checkPermission("ADD_SERVICE"),
   catchError(ServiceController.addService),
 );
 
-router.get("/", validateToken, catchError(ServiceController.getAllServices));
+router.get("/", validateToken, checkPermission("VIEW_SERVICES"),catchError(ServiceController.getAllServices));
 
-router.get("/:id", validateToken, catchError(ServiceController.getServiceById));
+router.get("/:id", validateToken,checkPermission("VIEW_SERVICES") ,catchError(ServiceController.getServiceById));
 
 router.put(
   "/:id",
   validateToken,
-//   checkPermission("EDIT_SERVICE"),
+  checkPermission("EDIT_SERVICE"),
   catchError(ServiceController.updateService),
 );
 
 router.delete(
   "/:id",
   validateToken,
-//   checkPermission("DELETE_SERVICE"),
+  checkPermission("DELETE_SERVICE"),
   catchError(ServiceController.deleteService),
 );
 

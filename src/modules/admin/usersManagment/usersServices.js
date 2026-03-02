@@ -368,103 +368,10 @@ async function updateStudentNationalId(userId, nationalId) {
   const student = await Student.findOne({
     where: { userId },
     include: [
-      // ===== User Info =====
       {
-        model: User,
-        attributes: ["email", "role"],
-      },
-
-      // ===== Payments =====
-      {
-        model: Payment,
-        attributes: ["amount", "status", "timestamp"],
-        include: [
-          {
-            model: Product,
-            attributes: ["courseName"],
-          },
-        ],
-      },
-
-      // ===== Courses Taken =====
-      {
-        model: studentCourse,
-        attributes: ["examStatus", "trainingStatus"],
-        include: [
-          {
-            model: course,
-            attributes: ["name", "courseId"],
-          },
-        ],
-      },
-
-      // ===== Exam Reservations =====
-      {
-        model: examReservation,
-        attributes: [
-          "examReservationId",
-          "reservationStatus",
-          "type",
-          "result",
-          "attempts",
-        ],
-        include: [
-          {
-            model: exam,
-            attributes: ["examId"],
-            include: [
-              {
-                model: event,
-                as: "event",
-                attributes: ["eventId", "eventName", "startDate", "endDate"],
-              },
-            ],
-          },
-        ],
-      },
-
-      // ===== Training Reservations =====
-      {
-        model: trainingReservation,
-        attributes: [
-          "trainingReservationId",
-          "reservationStatus",
-          "trainigStatus",
-          "type",
-        ],
-        include: [
-          {
-            model: training,
-            attributes: ["trainingId"],
-            include: [
-              {
-                model: event,
-                as: "event",
-                attributes: ["eventId", "eventName", "startDate", "endDate"],
-              },
-            ],
-          },
-        ],
-      },
-
-      // ===== General Reservations =====
-      {
-        model: reservation,
-        attributes: ["reservationId"],
-        include: [
-          {
-            model: event,
-            as: "reservationEvent",
-            attributes: [
-              "eventId",
-              "eventName",
-              "type",
-              "startDate",
-              "endDate",
-            ],
-          },
-        ],
-      },
+        model : Product,
+        attributes:["courseName"]
+      }
     ],
   });
 

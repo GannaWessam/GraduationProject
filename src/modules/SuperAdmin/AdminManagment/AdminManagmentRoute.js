@@ -14,7 +14,6 @@ router.get(
 router.get(
   "/:id",
   validateToken,
-  checkPermission("VIEW_ADMIN"),
 
   catchError(AdminController.getById),
 );

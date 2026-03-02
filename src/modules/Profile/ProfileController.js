@@ -2,7 +2,7 @@ const ProfileService = require("./ProfileService");
 const ApiResponse = require("../../Util/ApiResponse");
 
 async function addProfile(req, res) {
-  const result = await ProfileService.addProfile(req.body);
+  const result = await ProfileService.addProfile(req.body,req);
   return res.status(201).json(ApiResponse.created(result));
 }
 
@@ -21,12 +21,12 @@ async function getProfileById(req, res) {
 }
 
 async function updateProfile(req, res) {
-  const result = await ProfileService.updateProfile(req.params.id, req.body);
+  const result = await ProfileService.updateProfile(req.params.id, req.body,req);
   return res.status(200).json(ApiResponse.success(result));
 }
 
 async function deleteProfile(req, res) {
-  const result = await ProfileService.deleteProfile(req.params.id);
+  const result = await ProfileService.deleteProfile(req.params.id,req);
   return res.status(200).json(ApiResponse.success(result));
 }
 

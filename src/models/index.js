@@ -64,6 +64,13 @@ Product.hasMany(Payment, {
   as: "payments",
 });
 
+Student.belongsTo(Product,{
+  foreignKey:"productId"
+})
+Product.hasMany(Student,{
+  foreignKey:"productId"
+})
+
 // Associations
 
 //USERS

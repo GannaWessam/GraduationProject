@@ -46,7 +46,7 @@ class FinishStudentTrainingService {
       const students = await Student.findAll({
         where: {
           productId: { [Op.ne]: null },
-          status: { [Op.ne]: "finished_training" },
+          status: "reserved Training",
         },
         attributes: ["userId", "fullName", "productId", "status"],
       });
@@ -186,6 +186,19 @@ class FinishStudentTrainingService {
     await Student.update(
       { status: "finished_training" },
       { where: { userId: student.userId } },
+    );
+
+    await studentCourse.update(
+      { trainingStatus: "done" },
+      {
+        where: {
+          userId: student.userId,
+          courseId: {
+            [Op.in]: Array.from(completedCourses),
+          },
+        },
+        transaction: t,
+      }
     );
 
     console.log(`🎉 Student graduated automatically: ${student.fullName}`);

@@ -340,16 +340,16 @@ const registerForTraining = async (userId, eventId, req) => {
         t,
       );
     }
-    await studentCourse.update(
-      { trainingStatus: "done" },
-      {
-        where: {
-          userId,
-          courseId: courseIds,
-        },
-        transaction: t,
-      },
-    );
+    // await studentCourse.update(
+    //   { trainingStatus: "done" },
+    //   {
+    //     where: {
+    //       userId,
+    //       courseId: courseIds,
+    //     },
+    //     transaction: t,
+    //   },
+    // );
     await eventData.save({ transaction: t });
 
     if (req && req.audit) {

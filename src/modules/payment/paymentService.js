@@ -49,7 +49,7 @@ const createPayment = async ({
     studentReferenceId,
     paymentMechanism: "NOT_SET",
     description: "string",
-    redirectUrl: "https://attendance.capu.edu.eg/",
+    redirectUrl: "https://lms4.capu.edu.eg/pay-fees",
   };
 
   const response = await axios.post(

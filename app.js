@@ -19,16 +19,6 @@ const backgroundServices = require("./src/background");
 
 const rateLimit = require("express-rate-limit");
 
-const limiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 150,
-  message: "Too many requests from this IP, please try again later.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-app.use(limiter);
-
 backgroundServices.loadServices();
 backgroundServices.startAll();
 
@@ -43,6 +33,16 @@ app.use(
     credentials: true, 
   })
 );
+
+const limiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 150,
+  message: "Too many requests from this IP, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 app.use(express.json()); 
 app.use("/uploads", express.static("uploads"));

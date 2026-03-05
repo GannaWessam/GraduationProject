@@ -43,6 +43,7 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+app.set('trust proxy', 'loopback');
 
 app.use(express.json()); 
 app.use("/uploads", express.static("uploads"));

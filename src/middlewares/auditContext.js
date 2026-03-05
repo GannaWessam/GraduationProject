@@ -52,8 +52,8 @@ module.exports = (req, res, next) => {
 
         await logger.log({
           ip:
+            req.ip?.split(':')[0] ||
             req.headers['x-forwarded-for']?.split(',')[0] ||
-            req.ip ||
             req.socket.remoteAddress,
 
           userAgent: req.headers["user-agent"],

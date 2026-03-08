@@ -57,6 +57,8 @@ async function addTrainer(TrainerInfo,req) {
 async function getAllTrainers(features) {
   const { count, rows: trainers } = await trainer.findAndCountAll({
     ...features.options,
+    subQuery: false, 
+    distinct: true,
     include: [
       {
         model: User,

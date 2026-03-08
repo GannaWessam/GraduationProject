@@ -59,6 +59,8 @@ async function addSupervisor(SupervisorInfo, req) {
 async function getAllSupervisors(features) {
   const { count, rows: supervisors } = await supervisor.findAndCountAll({
     ...features.options,
+    subQuery: false, 
+    distinct: true,
     include: [
       {
         model: User,

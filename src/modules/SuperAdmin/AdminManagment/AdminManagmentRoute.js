@@ -7,8 +7,7 @@ const checkPermission = require("../../../middlewares/checkPermission");
 
 router.get(
   "/",
-  validateToken,
-  checkPermission("VIEW_ADMIN"),
+  
   catchError(AdminController.getAll),
 );
 router.get(

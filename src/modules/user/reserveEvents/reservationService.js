@@ -11,6 +11,7 @@ const {
   trainingReservation,
   Student,
   studentCourse,
+  Product,
 } = require("../../../models");
 // const Student = require("../../../models/Student");
 const { Op } = require("sequelize");
@@ -18,6 +19,17 @@ const { handleCreateGroupChatForEvent } = require("./helpers/helper");
 
 const registerForExam = async (userId, eventId, req) => {
   return sequelize.transaction(async (t) => {
+
+    const doneCoursesBefore = await studentCourse.count({
+      where: {
+        userId,
+        examStatus: {
+          [Op.ne]: "pending",
+        },
+      },
+      transaction: t,
+    });
+
     const eventData = await event.findOne({
       where: { eventId },
       transaction: t,
@@ -151,6 +163,17 @@ const registerForExam = async (userId, eventId, req) => {
       { transaction: t },
     );
     const student = await Student.findOne({ where: { userId } });
+
+    const productData = await Product.findOne({
+      where: { productId: student.productId },
+      attributes: ["requirdCourses"],
+      transaction: t,
+    });
+    
+    if (!productData) throw new Error("Product not found");
+    
+    const requiredCourses = productData.requirdCourses;
+
     const examReservations = examsToReserve.map((ex) => ({
       reservationId: newReservation.reservationId,
       userId,
@@ -216,6 +239,22 @@ const registerForExam = async (userId, eventId, req) => {
         transaction: t,
       },
     );
+
+    const doneNow = courseIds.length;
+
+    const totalDone = doneCoursesBefore + doneNow;
+    if (totalDone >= requiredCourses) {
+      await studentCourse.update(
+        { examStatus: "unavailable" },
+        {
+          where: {
+            userId,
+            examStatus: "pending",
+          },
+          transaction: t,
+        },
+      );
+    }
 
     if (req && req.audit) {
       req.audit.affectedUser = {

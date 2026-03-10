@@ -1,4 +1,4 @@
-const { Product, ProductAllowedUserType, currency , course ,productCourse} = require("../../models");
+const { Product, ProductAllowedUserType, currency , course ,productCourse, Receipts} = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const { Op } = require("sequelize");
 const { concatLang } = require("../../Helpers/langHelper");
@@ -61,6 +61,8 @@ async function addProduct(productInfo, req) {
     currencyId,
     requirdCourses,
     allowedUserTypes = [],
+    receiptId,
+    receiptIdOthers
   } = productInfo;
 
   if (
@@ -68,7 +70,9 @@ async function addProduct(productInfo, req) {
     !courseNameAr ||
     !priceEgyptian ||
     !priceOther ||
-    !currencyId
+    !currencyId || 
+    !receiptId ||
+    !receiptIdOthers
   ) {
     throw new Error("missing_required");
   }
@@ -87,6 +91,8 @@ async function addProduct(productInfo, req) {
       currencyId,
       requirdCourses,
       allowedUserTypes: allowedUserTypes.map((type) => ({ userType: type })),
+      receiptId,
+      receiptIdOthers
     },
     {
       include: [{ model: ProductAllowedUserType, as: "allowedUserTypes" }],
@@ -148,6 +154,8 @@ async function updateProduct(id, updateInfo,req) {
     allowedUserTypes,
     requirdCourses,
     currencyId,
+    receiptId,
+    receiptIdOthers
   } = updateInfo;
 
   const product = await Product.findByPk(id, {
@@ -167,6 +175,20 @@ async function updateProduct(id, updateInfo,req) {
       throw new Error("currency_not_found");
     }
     product.currencyId = currencyId;
+  }
+  if(receiptId){
+    const receipt=await Receipts.findByPk(receiptId)
+    if(!receipt)
+      throw new Error("receipt_not_found")
+    product.receiptId = receiptId
+    product.priceEgyptian=receipt.totalAmount
+  }
+  if(receiptIdOthers) {
+    const receipt=await Receipts.findByPk(receiptIdOthers)
+    if(!receipt)
+      throw new Error("receipt_not_found")
+    product.receiptIdOthers = receiptIdOthers
+    product.priceOther=receipt.totalAmount
   }
 
   await product.save();

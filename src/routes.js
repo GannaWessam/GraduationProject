@@ -24,6 +24,7 @@ const logsRoutes = require("./modules/Log/LogRoutes");
 const payment = require("./modules/payment/paymentRoute");
 const gradesManagmentRoutes = require("./modules/Grades/gradeRoute");
 const serviceRoutes = require("./modules/ServiceManagement/ServiceRoutes");
+const ReceiptsRoutes=require("./modules/SuperAdmin/ReceiptsManagment/ReceiptsRoutes")
 
 const { validateToken } = require("./middlewares/token");
 const reportRoutes = require("./modules/Report/ReportRoute");
@@ -46,6 +47,7 @@ router.use("/api/reports", reportRoutes);
 router.use("/api/SuperAdmin/Supervisor", SupervisorManagmentRoute);
 router.use("/api/SuperAdmin/SuperAdmin", SuperAdminManagmentRoute);
 router.use("/api/SuperAdmin/Admin", AdminManagmentRoute);
+router.use("/api/SuperAdmin/Receipts", ReceiptsRoutes);
 router.use("/api/SuperAdmin", TrainerManagmentRoute);
 router.use("/api/Attendance", AttendanceManagmentRoute);
 router.use("/api/Permission", permissionRoute);

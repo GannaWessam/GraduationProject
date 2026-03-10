@@ -1,4 +1,4 @@
-const { Service, currency } = require("../../models");
+const { Service, currency,Receipts } = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const { formatService } = require("./helpers/responseHelper");
@@ -33,9 +33,9 @@ async function getAllServicesService(reqQuery = {}) {
 
 // ================= ADD =================
 async function addService(serviceInfo, req) {
-  const { name, priceEgyptian, priceOther, currencyId } = serviceInfo;
+  const { name, priceEgyptian, priceOther, currencyId, receiptId,receiptIdOthers } = serviceInfo;
 
-  if (!name || !priceEgyptian || !priceOther || !currencyId) {
+  if (!name || !priceEgyptian || !priceOther || !currencyId || !receiptId || !receiptIdOthers) {
     throw new Error("missing_required");
   }
 
@@ -47,6 +47,8 @@ async function addService(serviceInfo, req) {
     priceEgyptian,
     priceOther,
     currencyId,
+    receiptId,
+    receiptIdOthers
   });
 
   req.audit.affectedThing = {
@@ -72,7 +74,7 @@ async function getServiceById(id) {
 
 // ================= UPDATE =================
 async function updateService(id, updateInfo, req) {
-  const { name, priceEgyptian, priceOther, currencyId } = updateInfo;
+  const { name, priceEgyptian, priceOther, currencyId,receiptId,receiptIdOthers } = updateInfo;
 
   const service = await Service.findByPk(id);
   if (!service) throw new Error("not_found");
@@ -85,6 +87,20 @@ async function updateService(id, updateInfo, req) {
     const Currency = await currency.findByPk(currencyId);
     if (!Currency) throw new Error("currency_not_found");
     service.currencyId = currencyId;
+  }
+  if(receiptId){
+    const receipt=await Receipts.findByPk(receiptId)
+    if(!receipt)
+      throw new Error("receipt_not_found")
+    service.receiptId = receiptId
+    service.priceEgyptian=receipt.totalAmount
+  }
+  if(receiptIdOthers) {
+    const receipt=await Receipts.findByPk(receiptIdOthers)
+    if(!receipt)
+      throw new Error("receipt_not_found")
+    service.receiptIdOthers = receiptIdOthers
+    service.priceOther=receipt.totalAmount
   }
 
   await service.save();

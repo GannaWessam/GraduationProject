@@ -1,4 +1,4 @@
-const { Service, currency,Receipts } = require("../../models");
+const { Service, currency,Receipts, currency } = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const { formatService } = require("./helpers/responseHelper");
@@ -99,7 +99,13 @@ async function updateService(id, updateInfo, req) {
     const receipt=await Receipts.findByPk(receiptIdOthers)
     if(!receipt)
       throw new Error("receipt_not_found")
+    const currencyCode = await currency.findOne({
+      where :{code:receipt.currency}
+    })
+    if(!currencyCode)
+      throw new Error("currency_not_found");
     service.receiptIdOthers = receiptIdOthers
+    service.currencyId=currencyCode.currencyId
     service.priceOther=receipt.totalAmount
   }
 

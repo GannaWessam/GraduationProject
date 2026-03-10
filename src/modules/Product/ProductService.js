@@ -187,6 +187,12 @@ async function updateProduct(id, updateInfo,req) {
     const receipt=await Receipts.findByPk(receiptIdOthers)
     if(!receipt)
       throw new Error("receipt_not_found")
+    const currencyCode = await currency.findOne({
+      where :{code:receipt.currency}
+    })
+    if(!currencyCode)
+      throw new Error("currency_not_found");
+    product.currencyId=currencyCode.currencyId
     product.receiptIdOthers = receiptIdOthers
     product.priceOther=receipt.totalAmount
   }

@@ -33,7 +33,6 @@ app.use(
     credentials: true, 
   })
 );
-
 const limiter = rateLimit({
   windowMs: 5 * 60 * 1000,
   max: 150,
@@ -43,10 +42,12 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-app.set('trust proxy', 'loopback');
+
 
 app.use(express.json()); 
 app.use("/uploads", express.static("uploads"));
+
+
 
 app.use(auditContext); 
 

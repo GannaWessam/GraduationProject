@@ -6,6 +6,9 @@ const {
   trainingReservation,
   event,
   User,
+  Product,
+  studentCourse,
+  sequelize,
 } = require("../models");
 
 const { Op } = require("sequelize");
@@ -18,7 +21,7 @@ class FinishStudentTrainingService {
 
   init() {
     this.cronJob = cron.schedule(
-      "0 2 * * *", // 04:00 AM Egypt time (runs after closeExpiredEvents)
+      "0 2 * * *",
       async () => {
         await this.processStudents();
       },
@@ -29,7 +32,7 @@ class FinishStudentTrainingService {
     );
 
     console.log(
-      "🎓 Finish Student Training Service initialized - Running daily at 04:00 AM Egypt time",
+      "🎓 Finish Student Training Service initialized - Running daily at 02:00 AM Egypt time",
     );
   }
 
@@ -72,6 +75,7 @@ class FinishStudentTrainingService {
   }
 
   async checkStudent(student) {
+    const t =await sequelize.transaction()
     console.log(`\nChecking student: ${student.fullName}`);
 
     // --------------------------------------------------------
@@ -86,9 +90,11 @@ class FinishStudentTrainingService {
       console.log("No required courses for this product");
       return;
     }
-
-    const requiredCourseIds = requiredCourses.map((c) => c.courseId);
-
+    const requiredCoursesNumber=await Product.findOne({
+      where:{productId : student.productId},
+      attributes:["requirdCourses"]
+    })
+    
     // --------------------------------------------------------
     // GET STUDENT TRAINING RESERVATIONS
     // --------------------------------------------------------
@@ -124,16 +130,7 @@ class FinishStudentTrainingService {
     // --------------------------------------------------------
     //  COMPARE COURSES
     // --------------------------------------------------------
-    const allCompleted = requiredCourseIds.every((courseId) =>
-      completedCourses.has(courseId),
-    );
-
-    if (!allCompleted) {
-      console.log("Student did not finish all required courses");
-      return;
-    }
-
-    console.log("All required courses completed ✔");
+    const allCompleted = completedCourses.size >= requiredCoursesNumber.requirdCourses
 
     // --------------------------------------------------------
     //  GET RELATED EVENTS
@@ -180,15 +177,20 @@ class FinishStudentTrainingService {
       return;
     }
 
+    
     // --------------------------------------------------------
     // UPDATE STUDENT STATUS
     // --------------------------------------------------------
-    await Student.update(
-      { status: "finished_training" },
-      { where: { userId: student.userId } },
-    );
+    if(allCompleted)
+    {
+      await Student.update(
+        { status: "Finish Training" },
+        { where: { userId: student.userId } },
+      );
+      await User.increment("tokenVersion", { where: { userId: student.userId } });
+    }
 
-    await studentCourse.update(
+    const[affectedRows] =await studentCourse.update(
       { trainingStatus: "done" },
       {
         where: {
@@ -200,9 +202,10 @@ class FinishStudentTrainingService {
         transaction: t,
       }
     );
+    console.log("Updated rows:", affectedRows);
+    await t.commit();
 
-    console.log(`🎉 Student graduated automatically: ${student.fullName}`);
-    await User.increment("tokenVersion", { where: { userId: student.userId } });
+    console.log(`🎉 Student graduated automatically: ${student.fullName}`)
   }
 
   stop() {

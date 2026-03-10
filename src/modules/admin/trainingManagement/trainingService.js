@@ -187,6 +187,10 @@ const getAllTrainings = async (features) => {
           "status",
         ],
       },
+      {
+        model:course,
+        attributes:["name"]
+      }
     ],
   });
 

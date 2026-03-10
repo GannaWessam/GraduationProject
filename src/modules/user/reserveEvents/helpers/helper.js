@@ -533,7 +533,7 @@ async function getStudentCourseStatus(userId) {
 
     if (trainingStatus === "none" && examStatus === "none") continue;
 
-    if (trainingStatus === "done" && examStatus === "done") {
+    if ((trainingStatus === "done" || trainingStatus === null) && examStatus === "done") {
       doneCourses.push(courseId);
       console.log("\n\n\n\n\n\n\n\n\n\n\nTest\n\n\n\n\n\n\n\n\n");
 
@@ -659,10 +659,6 @@ function filterEligibleEvents(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
       )[0];
 
-      if (ev.type === "training") {
-        continue;
-      }
-
       if (ev.type === "exam") {
         const examRes = latestReservation.examReservations?.[0];
 
@@ -681,8 +677,14 @@ function filterEligibleEvents(
     const packageCourseIds =
       ev.package?.packageCourses?.map((pc) => pc.courseId) || [];
 
-    const eventCourseIds =
-      ev.packageId == null && ev.exams[0].courseId ? [ev.exams[0].courseId] : packageCourseIds;
+      const eventCourseIds =
+      ev.packageId == null
+        ? ev.type === "training"
+          ? [ev.trainings?.[0]?.courseId]
+          : ev.type === "exam"
+          ? [ev.exams?.[0]?.courseId]
+          : []
+        : packageCourseIds;
       
       
 
@@ -734,6 +736,7 @@ function shouldSkipEvent(
     
 
   const totalAfter = new Set([...doneCourses, ...courseIds]).size;
+
   if (totalAfter > requiredTotal) return true;
 
   const doneOptionalCount = doneCourses.filter((id) =>

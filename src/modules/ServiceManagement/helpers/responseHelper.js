@@ -8,6 +8,8 @@ function formatService(service) {
     currencyId: service.currencyId,
     createdAt: service.createdAt,
     updatedAt: service.updatedAt,
+    receiptId:service.receiptId,
+    receiptIdOthers:service.receiptIdOthers
   };
 }
 

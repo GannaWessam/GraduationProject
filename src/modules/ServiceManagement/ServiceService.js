@@ -1,4 +1,4 @@
-const { Service, currency,Receipts, currency } = require("../../models");
+const { Service, currency,Receipts } = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const { formatService } = require("./helpers/responseHelper");
@@ -11,7 +11,6 @@ async function getAllServicesService(reqQuery = {}) {
     .sort()
     .selectedFields()
     .search();
-
   apiFeature.options.include = [
     {
       model: currency,

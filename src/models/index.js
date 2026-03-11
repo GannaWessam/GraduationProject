@@ -1,4 +1,5 @@
 const sequelize = require("../connections/db");
+const Receipts = require("./Receipts")(sequelize);
 
 const Nationality = require("./Nationality")(sequelize);
 const User = require("./User")(sequelize);
@@ -524,6 +525,47 @@ Payment.hasMany(Register, { foreignKey: "paymentId" });
 
 Reexam.belongsTo(Product, { foreignKey: "ProductId" });
 Product.hasMany(Reexam, { foreignKey: "ProductId" });
+
+Product.belongsTo(Receipts, {
+  foreignKey: "receiptId",
+});
+
+// Product -> Receipt (Others)
+Product.belongsTo(Receipts, {
+  foreignKey: "receiptIdOthers",
+});
+
+
+// Reverse relation
+Receipts.hasMany(Product, {
+  foreignKey: "receiptId",
+});
+
+Receipts.hasMany(Product, {
+  foreignKey: "receiptIdOthers",
+});
+
+// Service -> Receipt (Egypt)
+Service.belongsTo(Receipts, {
+  foreignKey: "receiptId",
+});
+
+// Service -> Receipt (Others)
+Service.belongsTo(Receipts, {
+  foreignKey: "receiptIdOthers",
+});
+
+
+// Reverse relation
+Receipts.hasMany(Service, {
+  foreignKey: "receiptId",
+});
+
+Receipts.hasMany(Service, {
+  foreignKey: "receiptIdOthers",
+});
+
+
 module.exports = {
   sequelize,
   User,
@@ -573,4 +615,5 @@ module.exports = {
   Reexam,
   Register,
   systemdata,
+  Receipts
 };

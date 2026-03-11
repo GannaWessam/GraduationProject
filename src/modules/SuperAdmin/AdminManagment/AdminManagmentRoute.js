@@ -7,7 +7,6 @@ const checkPermission = require("../../../middlewares/checkPermission");
 
 router.get(
   "/",
-  
   catchError(AdminController.getAll),
 );
 router.get(

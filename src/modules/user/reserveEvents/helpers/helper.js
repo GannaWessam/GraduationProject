@@ -533,7 +533,7 @@ async function getStudentCourseStatus(userId) {
 
     if (trainingStatus === "none" && examStatus === "none") continue;
 
-    if ((trainingStatus === "done" || trainingStatus === null) && examStatus === "done") {
+    if ((trainingStatus === "done" || trainingStatus === null) && (examStatus === "done" || examStatus === "sucess")) {
       doneCourses.push(courseId);
       console.log("\n\n\n\n\n\n\n\n\n\n\nTest\n\n\n\n\n\n\n\n\n");
 

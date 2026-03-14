@@ -317,6 +317,10 @@ const sessionService = {
 
     const session = await Session.findByPk(sessionId);
 
+    if (!session) {
+      throw new Error("Session not found");
+    }
+
     const token = generateSessionToken(session.sessionId, session.name, session.trainingId);
 
     const url = `${process.env.HOST}/Attendance?token=${token}`;

@@ -33,6 +33,7 @@ const registerForExam = async (userId, eventId, req) => {
     const eventData = await event.findOne({
       where: { eventId },
       transaction: t,
+      lock: t.LOCK.UPDATE,
     });
 
     if (!eventData) throw new Error("Event not found");
@@ -98,8 +99,7 @@ const registerForExam = async (userId, eventId, req) => {
         `You cannot reserve exams for these courses anymore (attempts >= 4)`,
       );
     }
-    const examIds = examsToReserve.map((ex) => ex.examId);
-
+    
     const previousReservations = await examReservation.findAll({
       where: { userId },
       include: [
@@ -182,7 +182,6 @@ const registerForExam = async (userId, eventId, req) => {
       reservationStatus: "reserved",
     }));
 
-    if (student) {
       if (student) {
         const hasFailedBefore = previousReservations.some(
           (r) => r.reservationStatus === "failed",
@@ -196,8 +195,7 @@ const registerForExam = async (userId, eventId, req) => {
 
         await student.save({ transaction: t });
       }
-      await student.save({ transaction: t });
-    }
+
 
     await examReservation.bulkCreate(examReservations, { transaction: t });
     for (const ex of examsToReserve) {
@@ -283,6 +281,7 @@ const registerForTraining = async (userId, eventId, req) => {
     const eventData = await event.findOne({
       where: { eventId, type: "training" },
       transaction: t,
+      lock: t.LOCK.UPDATE
     });
 
     if (!eventData) throw new Error("Training event not found");

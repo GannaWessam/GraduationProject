@@ -14,7 +14,11 @@ const {
   training,
   reservation,
   event,
-  sequelize
+  sequelize,
+  package,
+  packageCourse,
+  trainer,
+  supervisor
 } = require("../../../models");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
@@ -567,6 +571,57 @@ const getUserExams = async (userId,fetaures) => {
   }
 };
 
+const getUserReservations=async(userId) => {
+  const data = await reservation.findAll({
+    where :{userId},
+    include:[
+      {
+        model:event,
+        as:"reservationEvent",
+        attributes:["eventName","startDate","endDate","startDateRes","endDateRes","status","type"],
+        include:[
+          {
+            model: package,
+            required: false,
+          },
+          {
+            model: training,
+            as: "trainings",
+            required: false,
+            include: [
+              {
+                model: trainer,
+                as: "trainer",
+                attributes: ["Name"],
+              },
+              {
+                model:course,
+                attributes:["name"]
+              }
+            ],
+          },
+          {
+            model: exam,
+            required: false,
+            include: [
+              {
+                model: supervisor,
+                as: "supervisor",
+                attributes: ["Name"],
+              },
+              {
+                model:course,
+                attributes:["name"]
+              }
+            ],
+          },
+        ]
+      },
+    ]
+  })
+  return data
+}
+
 
 
 module.exports = {
@@ -583,5 +638,6 @@ module.exports = {
   getUsersByTrainingId,
   getUsersByExamId,
   assignPermissionsToUser,
-  getUserExams
+  getUserExams,
+  getUserReservations
 };

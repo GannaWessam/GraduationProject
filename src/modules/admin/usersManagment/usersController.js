@@ -187,6 +187,16 @@ const getUserExamsController = async (req, res) => {
     res.status(500).json({ success: false, message: 'Erorr', error: error.message });
   }
 };
+const getAllReservationsForUser=async(req,res,next) => {
+  const userId=req.userData.id
+  try {
+    const result = await userServices.getUserReservations(userId)
+    res.status(200).json(ApiResponse.success(result,"Reservations fetched sucessfully"))
+  } catch (error) {
+    return next(error)
+  }
+
+}
 
 
 module.exports = {
@@ -203,5 +213,6 @@ module.exports = {
     getUsersByTrainingIdController,
     getUsersByExamIdController,
     assignPermissionsToUserController,
-    getUserExamsController
+    getUserExamsController,
+    getAllReservationsForUser
 }

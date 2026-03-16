@@ -24,7 +24,7 @@ const fileUpload = ({
 
     // ✔️ check mime OR extension
     if (
-      allowedTypes.includes(mimeMainType) ||
+      allowedTypes.includes(mimeMainType) &&
       allowedExtensions.includes(ext)
     ) {
       cb(null, true);

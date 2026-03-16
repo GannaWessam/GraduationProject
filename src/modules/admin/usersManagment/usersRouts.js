@@ -10,28 +10,28 @@ const checkPermission = require("../../../middlewares/checkPermission");
 router.get(
   "/getUsers",
   validateToken,
-  checkPermission("VIEW_USER"),
+  // checkPermission("VIEW_USER"),
   catchError(usersController.getAllUserss)
 );
 
 router.post(
   "/addAdmin",
   validateToken,
-  checkPermission("ADD_ADMIN"),
+  // checkPermission("ADD_ADMIN"),
   catchError(usersController.addAdmin)
 );
 
 router.put(
   "/updateNationalId/:id",
   validateToken,
-  checkPermission("EDIT_USER"),
+  // checkPermission("EDIT_USER"),
   catchError(usersController.updateStudentNationalIdController)
 );
 
 router.post(
   "/addUser",
   validateToken,
-  checkPermission("ADD_USER"),
+  // checkPermission("ADD_USER"),
   uploadSingleFile("nationalIdImage"),
   catchError(authController.register)
 );
@@ -39,7 +39,7 @@ router.post(
 router.get(
   "/byStatus/:status",
   validateToken,
-  checkPermission("VIEW_USER"),
+  // checkPermission("VIEW_USER"),
   catchError(usersController.getAllUsersByStatus)
 );  
 
@@ -63,28 +63,28 @@ router.get(
 router.get(
   "/:id",
   validateToken,
-  checkPermission("VIEW_USER"),
+  // checkPermission("VIEW_USER"),
   catchError(usersController.getUserById)
 );
 
 router.get(
   "/",
   validateToken,
-  checkPermission("VIEW_USER"),
+  // checkPermission("VIEW_USER"),
   catchError(usersController.getAllUsers)
 );
 
 router.delete(
   "/delete/:id",
   validateToken,
-  checkPermission("DELETE_USER"),
+  // checkPermission("DELETE_USER"),
   catchError(usersController.deleteUserById)
 );
 
 router.put(
   "/:id",
   validateToken,
-  checkPermission("ACCEPT_USER"),
+  // checkPermission("ACCEPT_USER"),
   uploadSingleFile("nationalIdImage"),
   catchError(usersController.updateUser)
 );
@@ -92,14 +92,14 @@ router.put(
 router.put(
   "/approve/:id", 
   validateToken,
-  checkPermission("ACCEPT_USER"),
+  // checkPermission("ACCEPT_USER"),
   catchError(usersController.approveStudentByUserId)
 );
 
 router.get(
   "/get",
   validateToken,
-  checkPermission("VIEW_USER"),
+  // checkPermission("VIEW_USER"),
   catchError(usersController.getAllUserss)
 );
 
@@ -110,5 +110,10 @@ router.post(
   validateToken,
   catchError(usersController.assignPermissionsToUserController)
 );
+router.get(
+  "/users/registration",
+  validateToken,
+  catchError(usersController.getAllReservationsForUser)
+)
 
 module.exports = router;    

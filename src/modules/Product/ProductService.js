@@ -1,4 +1,4 @@
-const { Product, ProductAllowedUserType, currency , course ,productCourse, Receipts} = require("../../models");
+const { Product, ProductAllowedUserType, currency , course ,productCourse, Receipts, Payment} = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const { Op } = require("sequelize");
 const { concatLang } = require("../../Helpers/langHelper");
@@ -180,6 +180,21 @@ async function updateProduct(id, updateInfo,req) {
     const receipt=await Receipts.findByPk(receiptId)
     if(!receipt)
       throw new Error("receipt_not_found")
+    if(product.receiptId !== receiptId)
+    {
+      await Payment.update({
+        amount:receipt.totalAmount,
+        receiptId:receiptId
+      },
+      {
+        where:{
+          status:{[Op.ne]:"SUCCESS"},
+          receiptId:product.receiptId,
+          productId:id
+        }
+      }
+    )
+    }
     product.receiptId = receiptId
     product.priceEgyptian=receipt.totalAmount
   }
@@ -193,6 +208,22 @@ async function updateProduct(id, updateInfo,req) {
     if(!currencyCode)
       throw new Error("currency_not_found");
     product.currencyId=currencyCode.currencyId
+    if(product.receiptIdOthers !== receiptIdOthers)
+      {
+        await Payment.update({
+          amount:receipt.totalAmount,
+          receiptId:receiptIdOthers,
+          currencyId:currencyCode.currencyId
+        },
+        {
+          where:{
+            status:{[Op.ne]:"SUCCESS"},
+            receiptId:product.receiptIdOthers,
+            productId:id
+          }
+        }
+      )
+      }
     product.receiptIdOthers = receiptIdOthers
     product.priceOther=receipt.totalAmount
   }

@@ -1,4 +1,5 @@
-const { Service, currency,Receipts } = require("../../models");
+const { Op } = require("sequelize");
+const { Service, currency,Receipts, Payment } = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const { formatService } = require("./helpers/responseHelper");
@@ -91,6 +92,21 @@ async function updateService(id, updateInfo, req) {
     const receipt=await Receipts.findByPk(receiptId)
     if(!receipt)
       throw new Error("receipt_not_found")
+
+    if(service.receiptId !== receiptId)
+      {
+        await Payment.update({
+          amount:receipt.totalAmount,
+          receiptId:receiptId
+        },
+        {
+          where:{
+            status:{[Op.ne]:"SUCCESS"},
+            receiptId:service.receiptId
+          }
+        }
+      )
+      }
     service.receiptId = receiptId
     service.priceEgyptian=receipt.totalAmount
   }
@@ -103,6 +119,22 @@ async function updateService(id, updateInfo, req) {
     })
     if(!currencyCode)
       throw new Error("currency_not_found");
+
+    if(service.receiptIdOthers !== receiptIdOthers)
+      {
+        await Payment.update({
+          amount:receipt.totalAmount,
+          receiptId:receiptIdOthers,
+          currencyId:currencyCode.currencyId
+        },
+        {
+          where:{
+            status:{[Op.ne]:"SUCCESS"},
+            receiptId:service.receiptIdOthers
+          }
+        }
+      )
+      }
     service.receiptIdOthers = receiptIdOthers
     service.currencyId=currencyCode.currencyId
     service.priceOther=receipt.totalAmount

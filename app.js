@@ -28,9 +28,18 @@ const port = 3000;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173","http://192.168.1.10:5173","http://193.227.34.48","http://192.168.159.1:5173","http://10.51.126.244:5173","https://lms4.capu.edu.eg"],
+    origin: [
+      "http://localhost:5173",
+      "http://192.168.1.10:5173",
+      "http://193.227.34.48",
+      "http://192.168.159.1:5173",
+      "http://10.51.126.244:5173",
+      "https://lms4.capu.edu.eg",
+      "capacitor://localhost", 
+      "ionic://localhost"      
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true, 
+    credentials: true,
   })
 );
 const limiter = rateLimit({

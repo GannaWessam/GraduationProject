@@ -1,0 +1,398 @@
+{
+    "users": {
+      "insert": ["email", "passwordHash", "role", "tokenVersion"],
+      "update": ["email", "passwordHash", "role", "tokenVersion"],
+      "delete": false,
+      "restricted_columns": ["userId"]
+    },
+    "students": {
+      "insert": [
+        "userId",
+        "fullName",
+        "NameEn",
+        "Mobile",
+        "StudyLan",
+        "nationality",
+        "QRdata",
+        "nationalId",
+        "nationalIdImage",
+        "university",
+        "college",
+        "department",
+        "type",
+        "status",
+        "profilePhoto",
+        "productId"
+      ],
+      "update": [
+        "fullName",
+        "NameEn",
+        "Mobile",
+        "StudyLan",
+        "nationality",
+        "QRdata",
+        "nationalIdImage",
+        "university",
+        "college",
+        "department",
+        "type",
+        "status",
+        "profilePhoto"
+      ],
+      "delete": false,
+      "restricted_columns": ["userId", "nationalId", "productId"]
+    },
+    "products": {
+      "insert": [
+        "courseName",
+        "priceEgyptian",
+        "priceOther",
+        "currencyId",
+        "examStatus",
+        "trainingStatus",
+        "requirdCourses",
+        "receiptId",
+        "receiptIdOthers"
+      ],
+      "update": [
+        "courseName",
+        "priceEgyptian",
+        "priceOther",
+        "currencyId",
+        "examStatus",
+        "trainingStatus",
+        "requirdCourses",
+        "receiptId",
+        "receiptIdOthers"
+      ],
+      "delete": false,
+      "restricted_columns": ["productId"]
+    },
+    "payments": {
+      "insert": [
+        "userId",
+        "receiptId",
+        "orderId",
+        "currencyId",
+        "productId",
+        "serviceId",
+        "amount",
+        "actualAmount",
+        "timestamp",
+        "status"
+      ],
+      "update": [
+        "status",
+        "actualAmount"
+      ],
+      "delete": false,
+      "restricted_columns": ["paymentId", "userId", "productId", "serviceId", "currencyId", "receiptId"]
+    },
+    "university": {
+      "insert": ["Name"],
+      "update": ["Name"],
+      "delete": false,
+      "restricted_columns": ["UniversityId"]
+    },
+    "colleges": {
+      "insert": ["Name"],
+      "update": ["Name"],
+      "delete": false,
+      "restricted_columns": ["collegeId"]
+    },
+    "universityCollege": {
+      "insert": ["universityId", "collegeId"],
+      "update": [],
+      "delete": true,
+      "restricted_columns": ["Id"]
+    },
+    "Department": {
+      "insert": ["Name", "CollegeId"],
+      "update": ["Name"],
+      "delete": false,
+      "restricted_columns": ["DepartmentId", "CollegeId"]
+    },
+    "product_allowed_user_types": {
+      "insert": ["productId", "userType"],
+      "update": [],
+      "delete": true,
+      "restricted_columns": ["id"]
+    },
+    "course": {
+      "insert": ["name", "title", "priceEgyptian", "priceOther", "currencyId"],
+      "update": ["name", "title", "priceEgyptian", "priceOther", "currencyId"],
+      "delete": false,
+      "restricted_columns": ["courseId"]
+    },
+    "training": {
+      "insert": ["courseId", "trainerId", "eventId"],
+      "update": ["courseId", "trainerId"],
+      "delete": true,
+      "restricted_columns": ["trainingId", "eventId"]
+    },
+    "event": {
+      "insert": [
+        "eventName",
+        "packageId",
+        "productId",
+        "startDate",
+        "endDate",
+        "startDateRes",
+        "endDateRes",
+        "capacity",
+        "status",
+        "type",
+        "language"
+      ],
+      "update": [
+        "eventName",
+        "startDate",
+        "endDate",
+        "startDateRes",
+        "endDateRes",
+        "capacity",
+        "status",
+        "type",
+        "language"
+      ],
+      "delete": false,
+      "restricted_columns": ["eventId", "packageId", "productId", "numberOfRegistered"]
+    },
+    "exam": {
+      "insert": ["courseId", "supervisorId", "date", "place", "eventId"],
+      "update": ["courseId", "supervisorId", "date", "place"],
+      "delete": false,
+      "restricted_columns": ["examId", "eventId"]
+    },
+    "notification": {
+      "insert": ["name", "description", "userId", "type", "Status"],
+      "update": ["Status"],
+      "delete": true,
+      "restricted_columns": ["notificationId", "userId"]
+    },
+    "resource": {
+      "insert": ["name", "capacity"],
+      "update": ["name", "capacity"],
+      "delete": true,
+      "restricted_columns": ["resourceId"]
+    },
+    "productCourse": {
+      "insert": ["courseId", "productId", "status"],
+      "update": ["status"],
+      "delete": true,
+      "restricted_columns": ["id"]
+    },
+    "studentCourse": {
+      "insert": ["courseId", "userId", "examStatus", "trainingStatus", "attempts"],
+      "update": ["examStatus", "trainingStatus", "attempts"],
+      "delete": false,
+      "restricted_columns": ["id", "courseId", "userId"]
+    },
+    "packages": {
+      "insert": ["packageName", "size"],
+      "update": ["packageName", "size"],
+      "delete": false,
+      "restricted_columns": ["packageId"]
+    },
+    "packageCourse": {
+      "insert": ["packageId", "courseId"],
+      "update": [],
+      "delete": true,
+      "restricted_columns": ["Id"]
+    },
+    "reservation": {
+      "insert": ["userId", "eventId"],
+      "update": [],
+      "delete": false,
+      "restricted_columns": ["reservationId", "userId", "eventId"]
+    },
+    "examReservation": {
+      "insert": ["reservationId", "userId", "examId", "type", "attempts", "result", "reservationStatus"],
+      "update": ["result", "reservationStatus", "attempts"],
+      "delete": false,
+      "restricted_columns": ["examReservationId", "reservationId", "userId", "examId"]
+    },
+    "trainingReservation": {
+      "insert": ["reservationId", "userId", "trainingId", "type", "reservationStatus", "trainigStatus"],
+      "update": ["reservationStatus", "trainigStatus"],
+      "delete": false,
+      "restricted_columns": ["trainingReservationId", "reservationId", "userId", "trainingId"]
+    },
+    "conversations": {
+      "insert": ["type", "name", "eventId"],
+      "update": ["name"],
+      "delete": false,
+      "restricted_columns": ["conversationId", "eventId", "type"]
+    },
+    "messages": {
+      "insert": [
+        "conversationId",
+        "senderId",
+        "receiverIds",
+        "content",
+        "status",
+        "sentAt",
+        "type",
+        "duration",
+        "seenBy"
+      ],
+      "update": ["status", "seenBy"],
+      "delete": false,
+      "restricted_columns": ["messageId", "conversationId", "senderId"]
+    },
+    "conversation_users": {
+      "insert": ["conversationId", "userId", "joinedAt"],
+      "update": [],
+      "delete": true,
+      "restricted_columns": ["conversationUserId", "conversationId", "userId"]
+    },
+    "sessions": {
+      "insert": ["trainingId", "name", "startTime", "endTime", "date", "virtualLink", "material"],
+      "update": ["name", "startTime", "endTime", "date", "virtualLink", "material"],
+      "delete": false,
+      "restricted_columns": ["sessionId", "trainingId"]
+    },
+    "sessionMaterials": {
+      "insert": ["sessionId", "name", "file", "fileType"],
+      "update": ["name"],
+      "delete": true,
+      "restricted_columns": ["materialId", "sessionId", "file", "fileType"]
+    },
+    "attendance": {
+      "insert": ["userId", "sessionId"],
+      "update": [],
+      "delete": false,
+      "restricted_columns": ["attendanceId", "userId", "sessionId"]
+    },
+    "currency": {
+      "insert": ["code", "name", "symbol"],
+      "update": ["name", "symbol"],
+      "delete": false,
+      "restricted_columns": ["currencyId", "code"]
+    },
+    "efada": {
+      "insert": ["userId", "paymentId", "date"],
+      "update": [],
+      "delete": false,
+      "restricted_columns": ["efadaId", "userId", "paymentId"]
+    },
+    "ReexamRequest": {
+      "insert": ["userId", "examId", "paymentId", "date", "ProductId"],
+      "update": [],
+      "delete": false,
+      "restricted_columns": ["ReexamId", "userId", "examId", "paymentId", "ProductId"]
+    },
+    "SystemData": {
+      "insert": ["numberOfAttemptsAvailableToReexam", "titlePersonInefada1", "nameOfPersonInefada1", "titlePersonInefada2", "nameOfPersonInefada2"],
+      "update": ["numberOfAttemptsAvailableToReexam", "titlePersonInefada1", "nameOfPersonInefada1", "titlePersonInefada2", "nameOfPersonInefada2"],
+      "delete": false,
+      "restricted_columns": ["systemDataId"]
+    },
+    "RegisterRequest": {
+      "insert": ["userId", "ProductId", "paymentId", "date"],
+      "update": [],
+      "delete": false,
+      "restricted_columns": ["Id", "userId", "ProductId", "paymentId"]
+    },
+    "Receipts": {
+      "insert": [
+        "receiptId",
+        "receiptSerialNumber",
+        "receiptName",
+        "description",
+        "receiptTypeName",
+        "receiptTypeDescription",
+        "totalAmount",
+        "currency"
+      ],
+      "update": [
+        "receiptSerialNumber",
+        "receiptName",
+        "description",
+        "receiptTypeName",
+        "receiptTypeDescription",
+        "totalAmount",
+        "currency"
+      ],
+      "delete": false,
+      "restricted_columns": ["receiptId"]
+    },
+    "webhook": {
+      "insert": ["webhookId", "webhookEvent"],
+      "update": ["webhookEvent"],
+      "delete": true,
+      "restricted_columns": ["webhookId"]
+    },
+    "trainer": {
+      "insert": ["userId", "Name"],
+      "update": ["Name"],
+      "delete": false,
+      "restricted_columns": ["userId"]
+    },
+    "supervisor": {
+      "insert": ["userId", "Name"],
+      "update": ["Name"],
+      "delete": false,
+      "restricted_columns": ["userId"]
+    },
+    "SuperAdmin": {
+      "insert": ["userId", "Name"],
+      "update": ["Name"],
+      "delete": false,
+      "restricted_columns": ["userId"]
+    },
+    "Admin": {
+      "insert": ["userId", "Name"],
+      "update": ["Name"],
+      "delete": false,
+      "restricted_columns": ["userId"]
+    },
+    "nationalitys": {
+      "insert": ["Name"],
+      "update": ["Name"],
+      "delete": false,
+      "restricted_columns": ["NationalityId"]
+    },
+    "services": {
+      "insert": ["name", "priceEgyptian", "priceOther", "receiptId", "receiptIdOthers", "currencyId"],
+      "update": ["name", "priceEgyptian", "priceOther", "receiptId", "receiptIdOthers", "currencyId"],
+      "delete": false,
+      "restricted_columns": ["serviceId"]
+    },
+    "permissions": {
+      "insert": ["name", "viewName", "containerId"],
+      "update": ["viewName", "containerId"],
+      "delete": false,
+      "restricted_columns": ["permissionId", "name"]
+    },
+    "user_permissions": {
+      "insert": ["userId", "permissionId"],
+      "update": [],
+      "delete": true,
+      "restricted_columns": ["userId", "permissionId"]
+    },
+    "profiles": {
+      "insert": ["name"],
+      "update": ["name"],
+      "delete": false,
+      "restricted_columns": ["profileId"]
+    },
+    "profile_permissions": {
+      "insert": ["profileId", "permissionId"],
+      "update": [],
+      "delete": true,
+      "restricted_columns": ["profileId", "permissionId"]
+    },
+    "containers": {
+      "insert": ["name", "description"],
+      "update": ["name", "description"],
+      "delete": false,
+      "restricted_columns": ["containerId"]
+    },
+    "subscription": {
+      "insert": ["userId", "endpoint", "p256dh", "auth"],
+      "update": [],
+      "delete": true,
+      "restricted_columns": []
+    }
+  }

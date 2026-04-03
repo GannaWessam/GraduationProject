@@ -1,0 +1,765 @@
+{
+    "tables": {
+      "users": {
+        "columns": {
+          "userId": { "type": "uuid", "primary": true, "nullable": false, "unique": true },
+          "email": { "type": "string(255)", "nullable": false, "unique": true },
+          "passwordHash": { "type": "string(255)", "nullable": false },
+          "role": { "type": "enum('STUDENT','ADMIN','MANAGER','TRAINER','SUPERVISOR','SUPERADMIN')", "nullable": false },
+          "tokenVersion": { "type": "integer", "nullable": false, "default": 0 }
+        },
+        "primary_key": ["userId"],
+        "foreign_keys": {},
+        "unique_constraints": [["email"]],
+        "relations": {
+          "has_one": ["students", "trainer", "supervisor", "SuperAdmin", "Admin"],
+          "has_many": ["payments", "notifications", "messages", "conversation_users", "conversations"],
+          "belongs_to_many": ["course", "permissions", "conversations"],
+          "belongs_to": []
+        }
+      },
+      "students": {
+        "columns": {
+          "userId": { "type": "uuid", "primary": true, "nullable": false, "unique": true, "foreign_key": "users.userId" },
+          "fullName": { "type": "string(200)", "nullable": false },
+          "NameEn": { "type": "string(200)", "nullable": false },
+          "Mobile": { "type": "string(200)", "nullable": false },
+          "StudyLan": { "type": "string(200)", "nullable": false },
+          "nationality": { "type": "string(100)", "nullable": true },
+          "QRdata": { "type": "string(200)", "nullable": true },
+          "nationalId": { "type": "string(50)", "nullable": false, "unique": true },
+          "nationalIdImage": { "type": "string(300)", "nullable": true },
+          "university": { "type": "string(150)", "nullable": true },
+          "college": { "type": "string(150)", "nullable": true },
+          "department": { "type": "string(150)", "nullable": true },
+          "type": { "type": "enum('1','2','3','4')", "nullable": true },
+          "status": { "type": "string(200)", "nullable": false },
+          "profilePhoto": { "type": "string(10000)", "nullable": true },
+          "productId": { "type": "uuid", "nullable": true, "foreign_key": "products.productId" }
+        },
+        "primary_key": ["userId"],
+        "foreign_keys": {
+          "userId": "users.userId",
+          "productId": "products.productId"
+        },
+        "unique_constraints": [["userId"], ["nationalId"]],
+        "relations": {
+          "belongs_to": ["users", "products"],
+          "has_many": ["payments", "examReservation", "trainingReservation", "studentCourse", "reservation", "attendance", "efada", "Reexam", "RegisterRequest"]
+        }
+      },
+      "products": {
+        "columns": {
+          "productId": { "type": "uuid", "primary": true, "nullable": false },
+          "courseName": { "type": "string(200)", "nullable": false },
+          "priceEgyptian": { "type": "decimal(12,2)", "nullable": false, "default": 0 },
+          "priceOther": { "type": "decimal(12,2)", "nullable": false, "default": 0 },
+          "currencyId": { "type": "uuid", "nullable": true, "foreign_key": "currency.currencyId" },
+          "examStatus": { "type": "boolean", "nullable": true, "default": true },
+          "trainingStatus": { "type": "boolean", "nullable": true, "default": true },
+          "requirdCourses": { "type": "integer", "nullable": true },
+          "receiptId": { "type": "integer", "nullable": true, "foreign_key": "Receipts.receiptId" },
+          "receiptIdOthers": { "type": "integer", "nullable": true, "foreign_key": "Receipts.receiptId" }
+        },
+        "primary_key": ["productId"],
+        "foreign_keys": {
+          "currencyId": "currency.currencyId",
+          "receiptId": "Receipts.receiptId",
+          "receiptIdOthers": "Receipts.receiptId"
+        },
+        "relations": {
+          "belongs_to": ["currency", "Receipts"],
+          "has_many": ["payments", "students", "events", "Reexam"],
+          "belongs_to_many": ["course", "packages"],
+          "has_many_through": ["product_allowed_user_types", "productCourse", "packageProduct"]
+        }
+      },
+      "payments": {
+        "columns": {
+          "paymentId": { "type": "uuid", "primary": true, "nullable": false },
+          "userId": { "type": "uuid", "nullable": false, "foreign_key": "users.userId" },
+          "receiptId": { "type": "integer", "nullable": true },
+          "orderId": { "type": "string(100)", "nullable": true },
+          "currencyId": { "type": "uuid", "nullable": true, "foreign_key": "currency.currencyId" },
+          "productId": { "type": "uuid", "nullable": true, "foreign_key": "products.productId" },
+          "serviceId": { "type": "uuid", "nullable": true, "foreign_key": "services.serviceId" },
+          "amount": { "type": "decimal(12,2)", "nullable": true },
+          "actualAmount": { "type": "decimal(12,2)", "nullable": true },
+          "timestamp": { "type": "date", "nullable": false },
+          "status": { "type": "enum('PENDING','SUCCESS','FAILED','PAID')", "nullable": false, "default": "PENDING" }
+        },
+        "primary_key": ["paymentId"],
+        "foreign_keys": {
+          "userId": "users.userId",
+          "currencyId": "currency.currencyId",
+          "productId": "products.productId",
+          "serviceId": "services.serviceId"
+        },
+        "relations": {
+          "belongs_to": ["users", "students", "products", "currency", "services"],
+          "has_many": ["efada", "Reexam", "RegisterRequest"]
+        }
+      },
+      "university": {
+        "columns": {
+          "UniversityId": { "type": "uuid", "primary": true, "nullable": false },
+          "Name": { "type": "string(200)", "nullable": false }
+        },
+        "primary_key": ["UniversityId"],
+        "relations": {
+          "has_many": ["universityCollege"],
+          "belongs_to_many": ["colleges"]
+        }
+      },
+      "colleges": {
+        "columns": {
+          "collegeId": { "type": "uuid", "primary": true, "nullable": false },
+          "Name": { "type": "string(200)", "nullable": false }
+        },
+        "primary_key": ["collegeId"],
+        "relations": {
+          "has_many": ["universityCollege", "Department"],
+          "belongs_to_many": ["university"]
+        }
+      },
+      "universityCollege": {
+        "columns": {
+          "Id": { "type": "uuid", "primary": true, "nullable": false },
+          "universityId": { "type": "uuid", "nullable": false, "foreign_key": "university.UniversityId" },
+          "collegeId": { "type": "uuid", "nullable": false, "foreign_key": "colleges.collegeId" }
+        },
+        "primary_key": ["Id"],
+        "foreign_keys": {
+          "universityId": "university.UniversityId",
+          "collegeId": "colleges.collegeId"
+        },
+        "relations": {
+          "belongs_to": ["university", "colleges"]
+        }
+      },
+      "Department": {
+        "columns": {
+          "DepartmentId": { "type": "uuid", "primary": true, "nullable": false },
+          "Name": { "type": "string(200)", "nullable": false },
+          "CollegeId": { "type": "uuid", "nullable": false, "foreign_key": "colleges.collegeId" }
+        },
+        "primary_key": ["DepartmentId"],
+        "foreign_keys": {
+          "CollegeId": "colleges.collegeId"
+        },
+        "relations": {
+          "belongs_to": ["colleges"]
+        }
+      },
+      "product_allowed_user_types": {
+        "columns": {
+          "id": { "type": "uuid", "primary": true, "nullable": false },
+          "productId": { "type": "uuid", "nullable": false, "foreign_key": "products.productId" },
+          "userType": { "type": "enum('1','2','3','4')", "nullable": false }
+        },
+        "primary_key": ["id"],
+        "foreign_keys": {
+          "productId": "products.productId"
+        },
+        "relations": {
+          "belongs_to": ["products"]
+        }
+      },
+      "course": {
+        "columns": {
+          "courseId": { "type": "uuid", "primary": true, "nullable": false },
+          "name": { "type": "string(200)", "nullable": false },
+          "title": { "type": "string(200)", "nullable": true },
+          "priceEgyptian": { "type": "decimal(12,2)", "nullable": false, "default": 0 },
+          "priceOther": { "type": "decimal(12,2)", "nullable": false, "default": 0 },
+          "currencyId": { "type": "uuid", "nullable": true, "foreign_key": "currency.currencyId" }
+        },
+        "primary_key": ["courseId"],
+        "foreign_keys": {
+          "currencyId": "currency.currencyId"
+        },
+        "relations": {
+          "belongs_to": ["currency"],
+          "has_many": ["training", "exam", "studentCourse", "productCourse", "packageCourse"],
+          "belongs_to_many": ["products", "packages", "users"]
+        }
+      },
+      "training": {
+        "columns": {
+          "trainingId": { "type": "uuid", "primary": true, "nullable": false },
+          "courseId": { "type": "uuid", "nullable": true, "foreign_key": "course.courseId" },
+          "trainerId": { "type": "uuid", "nullable": true, "foreign_key": "trainer.userId" },
+          "eventId": { "type": "uuid", "nullable": false, "foreign_key": "event.eventId" }
+        },
+        "primary_key": ["trainingId"],
+        "foreign_keys": {
+          "courseId": "course.courseId",
+          "trainerId": "trainer.userId",
+          "eventId": "event.eventId"
+        },
+        "relations": {
+          "belongs_to": ["course", "trainer", "event"],
+          "has_many": ["trainingReservation", "sessions"]
+        }
+      },
+      "event": {
+        "columns": {
+          "eventId": { "type": "uuid", "primary": true, "nullable": false },
+          "eventName": { "type": "string(200)", "nullable": false },
+          "packageId": { "type": "uuid", "nullable": true, "foreign_key": "packages.packageId" },
+          "productId": { "type": "uuid", "nullable": true, "foreign_key": "products.productId" },
+          "startDate": { "type": "datetime", "nullable": false },
+          "endDate": { "type": "datetime", "nullable": false },
+          "startDateRes": { "type": "datetime", "nullable": false },
+          "endDateRes": { "type": "datetime", "nullable": false },
+          "capacity": { "type": "integer", "nullable": false },
+          "numberOfRegistered": { "type": "integer", "nullable": false, "default": 0 },
+          "status": { "type": "string(200)", "nullable": false },
+          "type": { "type": "string(200)", "nullable": false },
+          "language": { "type": "string(200)", "nullable": true, "default": "AR" }
+        },
+        "primary_key": ["eventId"],
+        "foreign_keys": {
+          "packageId": "packages.packageId",
+          "productId": "products.productId"
+        },
+        "relations": {
+          "belongs_to": ["packages", "products"],
+          "has_many": ["training", "exam", "reservation", "conversations"]
+        }
+      },
+      "exam": {
+        "columns": {
+          "examId": { "type": "uuid", "primary": true, "nullable": false },
+          "courseId": { "type": "uuid", "nullable": true, "foreign_key": "course.courseId" },
+          "supervisorId": { "type": "uuid", "nullable": true, "foreign_key": "supervisor.userId" },
+          "date": { "type": "datetime", "nullable": false },
+          "place": { "type": "string(200)", "nullable": true },
+          "eventId": { "type": "uuid", "nullable": true, "foreign_key": "event.eventId" }
+        },
+        "primary_key": ["examId"],
+        "foreign_keys": {
+          "courseId": "course.courseId",
+          "supervisorId": "supervisor.userId",
+          "eventId": "event.eventId"
+        },
+        "relations": {
+          "belongs_to": ["course", "supervisor", "event"],
+          "has_many": ["examReservation", "examReservationArchive", "ReexamRequest"]
+        }
+      },
+      "notification": {
+        "columns": {
+          "notificationId": { "type": "uuid", "primary": true, "nullable": false },
+          "name": { "type": "string(200)", "nullable": false },
+          "description": { "type": "string(200)", "nullable": false },
+          "userId": { "type": "uuid", "nullable": false, "foreign_key": "users.userId" },
+          "type": { "type": "string(200)", "nullable": true },
+          "Status": { "type": "string(200)", "nullable": false, "default": "dilevered" }
+        },
+        "primary_key": ["notificationId"],
+        "foreign_keys": {
+          "userId": "users.userId"
+        },
+        "relations": {
+          "belongs_to": ["users"]
+        }
+      },
+      "resource": {
+        "columns": {
+          "resourceId": { "type": "uuid", "primary": true, "nullable": false },
+          "name": { "type": "string(200)", "nullable": true },
+          "capacity": { "type": "integer", "nullable": false }
+        },
+        "primary_key": ["resourceId"],
+        "relations": {}
+      },
+      "productCourse": {
+        "columns": {
+          "id": { "type": "uuid", "primary": true, "nullable": false },
+          "courseId": { "type": "uuid", "nullable": false, "foreign_key": "course.courseId" },
+          "productId": { "type": "uuid", "nullable": false, "foreign_key": "products.productId" },
+          "status": { "type": "string(200)", "nullable": true }
+        },
+        "primary_key": ["id"],
+        "foreign_keys": {
+          "courseId": "course.courseId",
+          "productId": "products.productId"
+        },
+        "relations": {
+          "belongs_to": ["course", "products"]
+        }
+      },
+      "studentCourse": {
+        "columns": {
+          "id": { "type": "uuid", "primary": true, "nullable": false },
+          "courseId": { "type": "uuid", "nullable": false, "foreign_key": "course.courseId" },
+          "userId": { "type": "uuid", "nullable": false, "foreign_key": "students.userId" },
+          "examStatus": { "type": "string(200)", "nullable": true },
+          "trainingStatus": { "type": "string(200)", "nullable": true },
+          "attempts": { "type": "integer", "nullable": false, "default": 0 }
+        },
+        "primary_key": ["id"],
+        "foreign_keys": {
+          "courseId": "course.courseId",
+          "userId": "students.userId"
+        },
+        "relations": {
+          "belongs_to": ["course", "students"]
+        }
+      },
+      "packages": {
+        "columns": {
+          "packageId": { "type": "uuid", "primary": true, "nullable": false },
+          "packageName": { "type": "string(200)", "nullable": true },
+          "size": { "type": "integer", "nullable": true }
+        },
+        "primary_key": ["packageId"],
+        "relations": {
+          "has_many": ["packageCourse", "event"],
+          "belongs_to_many": ["products", "course"]
+        }
+      },
+      "packageCourse": {
+        "columns": {
+          "Id": { "type": "uuid", "primary": true, "nullable": false },
+          "packageId": { "type": "uuid", "nullable": false, "foreign_key": "packages.packageId" },
+          "courseId": { "type": "uuid", "nullable": false, "foreign_key": "course.courseId" }
+        },
+        "primary_key": ["Id"],
+        "foreign_keys": {
+          "packageId": "packages.packageId",
+          "courseId": "course.courseId"
+        },
+        "relations": {
+          "belongs_to": ["packages", "course"]
+        }
+      },
+      "reservation": {
+        "columns": {
+          "reservationId": { "type": "uuid", "primary": true, "nullable": false },
+          "userId": { "type": "uuid", "nullable": false, "foreign_key": "students.userId" },
+          "eventId": { "type": "uuid", "nullable": false, "foreign_key": "event.eventId" }
+        },
+        "primary_key": ["reservationId"],
+        "foreign_keys": {
+          "userId": "students.userId",
+          "eventId": "event.eventId"
+        },
+        "relations": {
+          "belongs_to": ["students", "event"],
+          "has_many": ["examReservation"],
+          "has_one": ["trainingReservation"]
+        }
+      },
+      "examReservation": {
+        "columns": {
+          "examReservationId": { "type": "uuid", "primary": true, "nullable": false },
+          "reservationId": { "type": "uuid", "nullable": true, "foreign_key": "reservation.reservationId" },
+          "userId": { "type": "uuid", "nullable": false, "foreign_key": "students.userId" },
+          "examId": { "type": "uuid", "nullable": true, "foreign_key": "exam.examId" },
+          "type": { "type": "string(200)", "nullable": false },
+          "attempts": { "type": "integer", "nullable": true, "default": 1 },
+          "result": { "type": "string(200)", "nullable": true },
+          "reservationStatus": { "type": "string(200)", "nullable": false }
+        },
+        "primary_key": ["examReservationId"],
+        "foreign_keys": {
+          "reservationId": "reservation.reservationId",
+          "userId": "students.userId",
+          "examId": "exam.examId"
+        },
+        "relations": {
+          "belongs_to": ["students", "exam", "reservation"]
+        }
+      },
+      "trainingReservation": {
+        "columns": {
+          "trainingReservationId": { "type": "uuid", "primary": true, "nullable": false },
+          "reservationId": { "type": "uuid", "nullable": true, "foreign_key": "reservation.reservationId" },
+          "userId": { "type": "uuid", "nullable": false, "foreign_key": "students.userId" },
+          "trainingId": { "type": "uuid", "nullable": true, "foreign_key": "training.trainingId" },
+          "type": { "type": "string(200)", "nullable": false },
+          "reservationStatus": { "type": "string(200)", "nullable": false },
+          "trainigStatus": { "type": "string(200)", "nullable": false }
+        },
+        "primary_key": ["trainingReservationId"],
+        "foreign_keys": {
+          "reservationId": "reservation.reservationId",
+          "userId": "students.userId",
+          "trainingId": "training.trainingId"
+        },
+        "relations": {
+          "belongs_to": ["reservation", "students", "training"]
+        }
+      },
+      "conversations": {
+        "columns": {
+          "conversationId": { "type": "uuid", "primary": true, "nullable": false },
+          "type": { "type": "enum('direct','group')", "nullable": false, "default": "direct" },
+          "name": { "type": "string(200)", "nullable": true },
+          "eventId": { "type": "uuid", "nullable": true, "foreign_key": "event.eventId" },
+          "createdAt": { "type": "datetime", "nullable": false },
+          "updatedAt": { "type": "datetime", "nullable": false }
+        },
+        "primary_key": ["conversationId"],
+        "foreign_keys": {
+          "eventId": "event.eventId"
+        },
+        "relations": {
+          "belongs_to": ["event"],
+          "has_many": ["messages", "conversation_users"],
+          "belongs_to_many": ["users"]
+        }
+      },
+      "messages": {
+        "columns": {
+          "messageId": { "type": "uuid", "primary": true, "nullable": false },
+          "conversationId": { "type": "uuid", "nullable": false, "foreign_key": "conversations.conversationId" },
+          "senderId": { "type": "uuid", "nullable": false, "foreign_key": "users.userId" },
+          "receiverIds": { "type": "uuid[]", "nullable": false },
+          "content": { "type": "text", "nullable": false },
+          "status": { "type": "enum('sent','delivered','seen')", "nullable": false, "default": "sent" },
+          "sentAt": { "type": "datetime", "nullable": false },
+          "createdAt": { "type": "datetime", "nullable": false },
+          "updatedAt": { "type": "datetime", "nullable": false },
+          "type": { "type": "enum('text','voice','image','file')", "nullable": false, "default": "text" },
+          "duration": { "type": "integer", "nullable": true },
+          "seenBy": { "type": "uuid[]", "nullable": false }
+        },
+        "primary_key": ["messageId"],
+        "foreign_keys": {
+          "conversationId": "conversations.conversationId",
+          "senderId": "users.userId"
+        },
+        "relations": {
+          "belongs_to": ["conversations", "users"]
+        }
+      },
+      "conversation_users": {
+        "columns": {
+          "conversationUserId": { "type": "uuid", "primary": true, "nullable": false },
+          "conversationId": { "type": "uuid", "nullable": false, "foreign_key": "conversations.conversationId" },
+          "userId": { "type": "uuid", "nullable": false, "foreign_key": "users.userId" },
+          "joinedAt": { "type": "datetime", "nullable": false },
+          "createdAt": { "type": "datetime", "nullable": false },
+          "updatedAt": { "type": "datetime", "nullable": false }
+        },
+        "primary_key": ["conversationUserId"],
+        "unique_constraints": [["conversationId", "userId"]],
+        "foreign_keys": {
+          "conversationId": "conversations.conversationId",
+          "userId": "users.userId"
+        },
+        "relations": {
+          "belongs_to": ["conversations", "users"]
+        }
+      },
+      "sessions": {
+        "columns": {
+          "sessionId": { "type": "uuid", "primary": true, "nullable": false },
+          "trainingId": { "type": "uuid", "nullable": false, "foreign_key": "training.trainingId" },
+          "name": { "type": "string(200)", "nullable": false },
+          "startTime": { "type": "time", "nullable": false },
+          "endTime": { "type": "time", "nullable": false },
+          "date": { "type": "date", "nullable": false },
+          "virtualLink": { "type": "string(500)", "nullable": false },
+          "material": { "type": "string(500)", "nullable": true }
+        },
+        "primary_key": ["sessionId"],
+        "foreign_keys": {
+          "trainingId": "training.trainingId"
+        },
+        "relations": {
+          "belongs_to": ["training"],
+          "has_many": ["sessionMaterials", "attendance"]
+        }
+      },
+      "sessionMaterials": {
+        "columns": {
+          "materialId": { "type": "uuid", "primary": true, "nullable": false },
+          "sessionId": { "type": "uuid", "nullable": false, "foreign_key": "sessions.sessionId" },
+          "name": { "type": "string(200)", "nullable": true },
+          "file": { "type": "string(500)", "nullable": false },
+          "fileType": { "type": "enum('pdf','zip','docx','ppt','pptx')", "nullable": false }
+        },
+        "primary_key": ["materialId"],
+        "foreign_keys": { "sessionId": "sessions.sessionId" },
+        "relations": {
+          "belongs_to": ["sessions"]
+        }
+      },
+      "attendance": {
+        "columns": {
+          "attendanceId": { "type": "uuid", "primary": true, "nullable": false },
+          "userId": { "type": "uuid", "nullable": false, "foreign_key": "students.userId" },
+          "sessionId": { "type": "uuid", "nullable": false, "foreign_key": "sessions.sessionId" }
+        },
+        "primary_key": ["attendanceId"],
+        "unique_constraints": [["userId", "sessionId"]],
+        "foreign_keys": {
+          "userId": "students.userId",
+          "sessionId": "sessions.sessionId"
+        },
+        "relations": {
+          "belongs_to": ["students", "sessions"]
+        }
+      },
+      "currency": {
+        "columns": {
+          "currencyId": { "type": "uuid", "primary": true, "nullable": false },
+          "code": { "type": "string(3)", "nullable": false, "unique": true },
+          "name": { "type": "string(50)", "nullable": false },
+          "symbol": { "type": "string(5)", "nullable": false }
+        },
+        "primary_key": ["currencyId"],
+        "unique_constraints": [["code"]],
+        "relations": {
+          "has_many": ["course", "products", "services", "payments"]
+        }
+      },
+      "efada": {
+        "columns": {
+          "efadaId": { "type": "uuid", "primary": true, "nullable": false },
+          "userId": { "type": "uuid", "nullable": true, "foreign_key": "students.userId" },
+          "paymentId": { "type": "uuid", "nullable": true, "foreign_key": "payments.paymentId" },
+          "date": { "type": "date", "nullable": false }
+        },
+        "primary_key": ["efadaId"],
+        "foreign_keys": {
+          "userId": "students.userId",
+          "paymentId": "payments.paymentId"
+        },
+        "relations": {
+          "belongs_to": ["students", "payments"]
+        }
+      },
+      "ReexamRequest": {
+        "columns": {
+          "ReexamId": { "type": "uuid", "primary": true, "nullable": false },
+          "userId": { "type": "uuid", "nullable": true, "foreign_key": "students.userId" },
+          "examId": { "type": "uuid", "nullable": false, "foreign_key": "exam.examId" },
+          "paymentId": { "type": "uuid", "nullable": true, "foreign_key": "payments.paymentId" },
+          "date": { "type": "date", "nullable": false },
+          "ProductId": { "type": "uuid", "nullable": true, "foreign_key": "products.productId" }
+        },
+        "primary_key": ["ReexamId"],
+        "foreign_keys": {
+          "userId": "students.userId",
+          "examId": "exam.examId",
+          "paymentId": "payments.paymentId",
+          "ProductId": "products.productId"
+        },
+        "relations": {
+          "belongs_to": ["students", "exam", "payments", "products"]
+        }
+      },
+      "SystemData": {
+        "columns": {
+          "systemDataId": { "type": "uuid", "primary": true, "nullable": false },
+          "numberOfAttemptsAvailableToReexam": { "type": "integer", "nullable": false, "default": 3 },
+          "titlePersonInefada1": { "type": "string(200)", "nullable": true },
+          "nameOfPersonInefada1": { "type": "string(200)", "nullable": true },
+          "titlePersonInefada2": { "type": "string(200)", "nullable": true },
+          "nameOfPersonInefada2": { "type": "string(200)", "nullable": true }
+        },
+        "primary_key": ["systemDataId"],
+        "relations": {}
+      },
+      "RegisterRequest": {
+        "columns": {
+          "Id": { "type": "uuid", "primary": true, "nullable": false },
+          "userId": { "type": "uuid", "nullable": true, "foreign_key": "students.userId" },
+          "ProductId": { "type": "uuid", "nullable": false, "foreign_key": "products.productId" },
+          "paymentId": { "type": "uuid", "nullable": true, "foreign_key": "payments.paymentId" },
+          "date": { "type": "date", "nullable": false }
+        },
+        "primary_key": ["Id"],
+        "foreign_keys": {
+          "userId": "students.userId",
+          "ProductId": "products.productId",
+          "paymentId": "payments.paymentId"
+        },
+        "relations": {
+          "belongs_to": ["students", "products", "payments"]
+        }
+      },
+      "Receipts": {
+        "columns": {
+          "receiptId": { "type": "integer", "primary": true, "nullable": false },
+          "receiptSerialNumber": { "type": "string", "nullable": false },
+          "receiptName": { "type": "string", "nullable": false },
+          "description": { "type": "string", "nullable": false },
+          "receiptTypeName": { "type": "string", "nullable": false },
+          "receiptTypeDescription": { "type": "string", "nullable": false },
+          "totalAmount": { "type": "decimal", "nullable": false },
+          "currency": { "type": "string", "nullable": false, "default": "EGP" }
+        },
+        "primary_key": ["receiptId"],
+        "relations": {
+          "has_many": ["products", "services"]
+        }
+      },
+      "webhook": {
+        "columns": {
+          "webhookId": { "type": "uuid", "primary": true, "nullable": false },
+          "webhookEvent": { "type": "string(200)", "nullable": true }
+        },
+        "primary_key": ["webhookId"],
+        "relations": {}
+      },
+      "trainer": {
+        "columns": {
+          "userId": { "type": "uuid", "primary": true, "nullable": false, "foreign_key": "users.userId" },
+          "Name": { "type": "string(200)", "nullable": false }
+        },
+        "primary_key": ["userId"],
+        "foreign_keys": { "userId": "users.userId" },
+        "relations": {
+          "belongs_to": ["users"],
+          "has_many": ["training"]
+        }
+      },
+      "supervisor": {
+        "columns": {
+          "userId": { "type": "uuid", "primary": true, "nullable": false, "foreign_key": "users.userId" },
+          "Name": { "type": "string(200)", "nullable": false }
+        },
+        "primary_key": ["userId"],
+        "foreign_keys": { "userId": "users.userId" },
+        "relations": {
+          "belongs_to": ["users"],
+          "has_many": ["exam"]
+        }
+      },
+      "SuperAdmin": {
+        "columns": {
+          "userId": { "type": "uuid", "primary": true, "nullable": false, "foreign_key": "users.userId" },
+          "Name": { "type": "string(200)", "nullable": false }
+        },
+        "primary_key": ["userId"],
+        "foreign_keys": { "userId": "users.userId" },
+        "relations": {
+          "belongs_to": ["users"]
+        }
+      },
+      "Admin": {
+        "columns": {
+          "userId": { "type": "uuid", "primary": true, "nullable": false, "foreign_key": "users.userId" },
+          "Name": { "type": "string(200)", "nullable": false }
+        },
+        "primary_key": ["userId"],
+        "foreign_keys": { "userId": "users.userId" },
+        "relations": {
+          "belongs_to": ["users"]
+        }
+      },
+      "nationalitys": {
+        "columns": {
+          "NationalityId": { "type": "uuid", "primary": true, "nullable": false },
+          "Name": { "type": "string(200)", "nullable": false }
+        },
+        "primary_key": ["NationalityId"],
+        "relations": {}
+      },
+      "services": {
+        "columns": {
+          "serviceId": { "type": "uuid", "primary": true, "nullable": false },
+          "name": { "type": "string(200)", "nullable": false },
+          "priceEgyptian": { "type": "decimal(12,2)", "nullable": false, "default": 0 },
+          "priceOther": { "type": "decimal(12,2)", "nullable": false, "default": 0 },
+          "receiptId": { "type": "integer", "nullable": true, "foreign_key": "Receipts.receiptId" },
+          "receiptIdOthers": { "type": "integer", "nullable": true, "foreign_key": "Receipts.receiptId" },
+          "currencyId": { "type": "uuid", "nullable": true, "foreign_key": "currency.currencyId" }
+        },
+        "primary_key": ["serviceId"],
+        "foreign_keys": {
+          "receiptId": "Receipts.receiptId",
+          "receiptIdOthers": "Receipts.receiptId",
+          "currencyId": "currency.currencyId"
+        },
+        "relations": {
+          "belongs_to": ["Receipts", "currency"],
+          "has_many": ["payments"]
+        }
+      },
+      "permissions": {
+        "columns": {
+          "permissionId": { "type": "uuid", "primary": true, "nullable": false },
+          "name": { "type": "string(100)", "nullable": false, "unique": true },
+          "viewName": { "type": "string(100)", "nullable": false },
+          "containerId": { "type": "uuid", "nullable": true, "foreign_key": "containers.containerId" }
+        },
+        "primary_key": ["permissionId"],
+        "unique_constraints": [["name"]],
+        "foreign_keys": { "containerId": "containers.containerId" },
+        "relations": {
+          "belongs_to": ["containers"],
+          "belongs_to_many": ["users", "profiles"]
+        }
+      },
+      "user_permissions": {
+        "columns": {
+          "userId": { "type": "uuid", "primary": true, "nullable": false, "foreign_key": "users.userId" },
+          "permissionId": { "type": "uuid", "primary": true, "nullable": false, "foreign_key": "permissions.permissionId" }
+        },
+        "primary_key": ["userId", "permissionId"],
+        "foreign_keys": {
+          "userId": "users.userId",
+          "permissionId": "permissions.permissionId"
+        },
+        "relations": {
+          "belongs_to": ["users", "permissions"]
+        }
+      },
+      "profiles": {
+        "columns": {
+          "profileId": { "type": "uuid", "primary": true, "nullable": false },
+          "name": { "type": "string(100)", "nullable": false, "unique": true }
+        },
+        "primary_key": ["profileId"],
+        "unique_constraints": [["name"]],
+        "relations": {
+          "belongs_to_many": ["permissions"]
+        }
+      },
+      "profile_permissions": {
+        "columns": {
+          "profileId": { "type": "uuid", "primary": true, "nullable": false, "foreign_key": "profiles.profileId" },
+          "permissionId": { "type": "uuid", "primary": true, "nullable": false, "foreign_key": "permissions.permissionId" }
+        },
+        "primary_key": ["profileId", "permissionId"],
+        "foreign_keys": {
+          "profileId": "profiles.profileId",
+          "permissionId": "permissions.permissionId"
+        },
+        "relations": {
+          "belongs_to": ["profiles", "permissions"]
+        }
+      },
+      "containers": {
+        "columns": {
+          "containerId": { "type": "uuid", "primary": true, "nullable": false },
+          "name": { "type": "string(100)", "nullable": false, "unique": true },
+          "description": { "type": "text", "nullable": true }
+        },
+        "primary_key": ["containerId"],
+        "unique_constraints": [["name"]],
+        "relations": {
+          "has_many": ["permissions"]
+        }
+      },
+      "subscription": {
+        "columns": {
+          "userId": { "type": "string", "nullable": false },
+          "endpoint": { "type": "text", "nullable": false },
+          "p256dh": { "type": "text", "nullable": false },
+          "auth": { "type": "text", "nullable": false },
+          "createdAt": { "type": "datetime", "nullable": true },
+          "updatedAt": { "type": "datetime", "nullable": true }
+        },
+        "primary_key": [],
+        "relations": {}
+      }
+    }
+  }

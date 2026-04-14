@@ -134,10 +134,24 @@ const handleWebhook = async (req, res, next) => {
   }
 };
 
+async function handleUserPayment(req, res, next) {
+  try {
+    const result = await paymentService.handleUserPaymentAndRegistration(
+      req.params.userId,
+      req
+    );
+
+    return res.status(200).json(ApiResponse.success(result));
+  } catch (error) {
+    next(error);
+  }
+}
+
 
 module.exports = {
   createPaymentAndRedirect,
   getPaymentsByUserId,
   getAllPayments,
-  handleWebhook
+  handleWebhook,
+  handleUserPayment
 };

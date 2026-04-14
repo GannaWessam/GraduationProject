@@ -1,4 +1,4 @@
-const {Payment , Student ,Product ,webhook ,sequelize, Service, currency , studentCourse ,Reexam , exam} = require("../../models");
+const {Payment , Student ,Product ,webhook ,sequelize, Service, currency , studentCourse ,Reexam , exam , Register} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
@@ -293,9 +293,67 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
   }
 };
 
+async function handleUserPaymentAndRegistration(userId, req) {
+  // 1️⃣ get all register requests for user
+  const requests = await Register.findAll({
+    where: { userId },
+  });
+
+  if (!requests.length) throw new Error("no_requests_found");
+
+  for (const request of requests) {
+    // 2️⃣ get payment
+    const payment = await Payment.findByPk(request.paymentId);
+
+    if (!payment) continue;
+
+    // 3️⃣ لو مش مدفوع → خليه PAID
+    if (payment.status !== "SUCCESS" && payment.status !== "PAID") {
+      payment.status = "PAID";
+      await payment.save();
+    }
+
+    // 4️⃣ get product
+    const product = await Product.findByPk(request.ProductId);
+    if (!product) continue;
+
+    // 5️⃣ update studentCourse بناء على product
+    const updateData = {};
+
+    if (product.trainingStatus) {
+      updateData.trainingStatus = "pending";
+    }
+
+    if (product.examStatus) {
+      updateData.examStatus = "pending";
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await studentCourse.update(updateData, {
+        where: {
+          userId: userId,
+          // ممكن تضيف شرط courseId لو عندك relation واضحة
+        },
+      });
+    }
+  }
+
+  // audit
+  if (req) {
+    req.audit.affectedThing = {
+      userId,
+    };
+    req.audit.message =
+      "User payment handled and course registered successfully";
+  }
+
+  return { message: "Process completed successfully" };
+}
+
 module.exports = {
   createPayment,
   getPaymentsByUserId,
   getAllPayments,
-  processWebhook
+  processWebhook,
+  handleUserPaymentAndRegistration
 };

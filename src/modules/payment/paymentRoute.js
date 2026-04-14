@@ -14,4 +14,9 @@ router.post('/pay/:id',validateToken, catchError(paymentController.createPayment
 
 router.post("/Webhook",express.raw({ type: "application/json" }),paymentController.handleWebhook);
 
+router.post(
+    "/handle-user/:userId",
+    catchError(paymentController.handleUserPayment)
+  );
+
 module.exports = router;

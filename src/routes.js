@@ -24,7 +24,9 @@ const logsRoutes = require("./modules/Log/LogRoutes");
 const payment = require("./modules/payment/paymentRoute");
 const gradesManagmentRoutes = require("./modules/Grades/gradeRoute");
 const serviceRoutes = require("./modules/ServiceManagement/ServiceRoutes");
-const ReceiptsRoutes=require("./modules/SuperAdmin/ReceiptsManagment/ReceiptsRoutes")
+const ReceiptsRoutes=require("./modules/SuperAdmin/ReceiptsManagment/ReceiptsRoutes");
+const statisticsRoutes=require("./modules/statistics/statisticsRoutes");
+
 
 const { validateToken } = require("./middlewares/token");
 const reportRoutes = require("./modules/Report/ReportRoute");
@@ -58,6 +60,6 @@ router.use("/api/logs", logsRoutes);
 router.use("/api/pay", payment);
 router.use("/api/gradesManagment", gradesManagmentRoutes);
 router.use("/api/services", serviceRoutes);
-
+router.use("/api/statistics", statisticsRoutes);
 
 module.exports = router;

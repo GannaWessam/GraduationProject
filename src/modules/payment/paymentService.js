@@ -53,7 +53,7 @@ const createPayment = async ({
   };
 
   const response = await axios.post(
-    "https://lms2.capu.edu.eg/api/api/payments/eFinance/initiate",
+    "https://nub.capu.edu.eg/api/api/payments/eFinance/initiate",
     requestBody,
     {
       headers: {

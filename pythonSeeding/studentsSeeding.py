@@ -2,7 +2,9 @@ import datetime
 import pandas as pd
 import psycopg2
 from io import StringIO
+from utils import apply_codex_logic, clean_national_id, clean_mobile, clean_name, map_university,map_product_id,export_final_csv
 
+# ---------------- DB ----------------
 conn = psycopg2.connect(
     dbname="Digital Transformation",
     user="postgres",
@@ -11,82 +13,121 @@ conn = psycopg2.connect(
 )
 cur = conn.cursor()
 
-df = pd.read_csv("studentsData.csv", encoding='utf-8')
+# ---------------- READ CSV ----------------
+df = pd.read_csv("main_FINAL_version.csv", encoding="utf-8")
 
+# ---------------- CODEX ----------------
+df = apply_codex_logic(df, True, "conflicts_before_cleaning.csv")
 
+df["NameEn"] = df["NameEn"].apply(clean_name)
+df["nationalId"] = df["nationalId"].apply(clean_national_id)
 
-##### 🧹 إزالة التكرار حسب nationalId
-df = df.drop_duplicates(subset=["nationalId"]).reset_index(drop=True)
-duplicates = df[df.duplicated(subset=["nationalId"], keep=False)]
-if not duplicates.empty:
-    print("⚠️ كان فيه duplicates وتم حذفهم:")
-    print(duplicates)
+df = apply_codex_logic(df, True, "conflicts_after_cleaning.csv")
 
+# ---------------- HANDLE NULL ----------------
+# pipeline:
+    # - handle null
+    # - audit duplicates
+    # - fix uniqueness
+mask_null = df["nationalId"].isna()
+df.loc[mask_null, "nationalId"] = [f"TEMP_NULL_{i}" for i in range(mask_null.sum())]
 
+duplicates_mask = df["nationalId"].duplicated(keep=False)
 
+if duplicates_mask.any():
+    df[duplicates_mask].to_csv("nationalId_duplicates_audit.csv", index=False, encoding="utf-8-sig")
+    print(f"[WARNING] {duplicates_mask.sum()} duplicate rows saved for audit")
+
+df["nationalId"] = df["nationalId"].astype(str)
+
+df.loc[duplicates_mask, "nationalId"] = [
+    f"{val}_{i}" for i, val in enumerate(df.loc[duplicates_mask, "nationalId"])
+]
+
+# ---------------- CLEAN MOBILE ----------------
+df["Mobile"] = df["Mobile"].apply(clean_mobile)
+
+# ---------------- MAPPING ----------------
+df["nationality"] = df["nationality"].astype(str).str.strip().replace({
+    "Egypt": "Egyptian"
+})
+
+df["StudyLan"] = df["StudyLan"].astype(str).str.strip().replace({
+    "العربية": "AR",
+    "الإنجليزية": "EN"
+})
+
+df["university"] = df["university"].apply(map_university)
+
+df["productId"] = df.apply(
+    lambda row: map_product_id(
+        row["systemToRegisterIn"],
+        row.get("courseToAttend")
+    ),
+    axis=1
+)
+
+# ---------------- USER IDS ----------------
 cur.execute('SELECT "userId" FROM users ORDER BY "userId" ASC;')
-user_ids = [row[0] for row in cur.fetchall()]
+df["userId"] = [row[0] for row in cur.fetchall()]
 
-
-df["userId"] = user_ids #bgeb el forign keys
-
-
-
+# ---------------- TYPE ----------------
 def detect_type(value):
     if pd.isna(value):
         return None
     text = str(value).strip()
+
     if "دكتور" in text or "دكتوراه" in text:
         return 1
     elif "ماجستير" in text:
         return 2
     elif "دبلوم" in text:
         return 3
-    elif "تدريس" in text or "التدريس" in text or "ترقيات" in text or "هيئه" in text or "هيئة" in text:
+    elif any(x in text for x in ["تدريس", "التدريس", "ترقيات", "هيئه", "هيئة"]):
         return 4
-    else:
-        return None  # مش معروف
+    return None
 
-df["type"] = df["type"].apply(detect_type) # .apply = map + contains
+df["type"] = df["type"].apply(detect_type)
 
-# لو في قيم مش متعرف عليها نطبعهم
 if df["type"].isna().any():
-    missing_rows = df[df["type"].isna()]
-    print("❌ Error: فيه صفوف فيها قيم type مش متعرّفة:")
-    print(missing_rows)
-    raise ValueError("فيه قيم type مش متعرّفة أو فيها أخطاء إملائية كبيرة")
+    raise ValueError("[ERROR] Invalid type values found")
 
-print("✅ تم تحويل القيم النصية إلى أرقام بنجاح!")
+print("[SUCCESS] Type mapping completed")
 
-
-
-if "updatedAt" not in df.columns:
-    df["updatedAt"] = datetime.datetime.now() 
+# ---------------- DEFAULTS ----------------
+now = datetime.datetime.now()
+df["createdAt"] = now
+df["updatedAt"] = now
 
 if "profilePhoto" not in df.columns:
-    df["profilePhoto"] = None  # null
+    df["profilePhoto"] = None
 
-# Default study language when CSV has null/empty value
-df["StudyLan"] = df["StudyLan"].fillna("").astype(str).str.strip()
-df.loc[df["StudyLan"] == "", "StudyLan"] = "العربية"
+df["StudyLan"] = df["StudyLan"].fillna("AR")
 
-# 5. نختار الأعمدة اللي عايزينها فقط — بأي ترتيب يناسب جدولك
-df = df[["userId", "fullName", "nationality", "nationalId","nationalIdImage", "university", 
-"college", "createdAt", "updatedAt", "NameEn", "Mobile", "StudyLan", "department",
- "type", "status", "profilePhoto" ]]
+# ---------------- FINAL ----------------
+df = df[
+    ["userId","fullName","nationality","nationalId","nationalIdImage",
+     "university","college","createdAt","updatedAt","NameEn",
+     "Mobile","StudyLan","department","type","status","profilePhoto","productId"]
+]
 
+df["createdAt"] = df["createdAt"].dt.strftime("%Y-%m-%d %H:%M:%S")
+df["updatedAt"] = df["updatedAt"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
+export_final_csv(df, "final_students_dataset.csv")
+
+# ---------------- INSERT ----------------
 buffer = StringIO()
 df.to_csv(buffer, index=False, header=False)
 buffer.seek(0)
 
-# bulk insert
-# cur.copy_from(buffer, "users", sep=",")
 cur.copy_expert(
     '''
-    COPY students ("userId", "fullName", nationality, "nationalId", "nationalIdImage",
-                 university, college, "createdAt", "updatedAt", "NameEn",
-                 "Mobile", "StudyLan", department, type, status, "profilePhoto")
+    COPY students (
+        "userId","fullName",nationality,"nationalId","nationalIdImage",
+        university,college,"createdAt","updatedAt","NameEn",
+        "Mobile","StudyLan",department,type,status,"profilePhoto","productId"
+    )
     FROM STDIN WITH (FORMAT csv)
     ''',
     buffer
@@ -96,4 +137,4 @@ conn.commit()
 cur.close()
 conn.close()
 
-print("✅ تم إدخال البيانات بنجاح!")
+print("[SUCCESS] Students inserted successfully!")

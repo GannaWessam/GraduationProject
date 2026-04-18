@@ -3,32 +3,60 @@ import pandas as pd
 import psycopg2
 from io import StringIO
 import uuid
+from utils import apply_codex_logic, clean_national_id, hash_password
 
-df = pd.read_csv("studentsData.csv", encoding='utf-8')
+# ---------------- READ CSV ----------------
+df = pd.read_csv("main_FINAL_version.csv", encoding="utf-8")
 
+# ---------------- CODEX LOGIC (BEFORE CLEANING) ----------------
+df = apply_codex_logic(df, True, "conflicts_before_cleaning.csv")
 
-##### 🧹 إزالة التكرار حسب nationalId
-df = df.drop_duplicates(subset=["nationalId"]).reset_index(drop=True)
-duplicates = df[df.duplicated(subset=["nationalId"], keep=False)]
-if not duplicates.empty:
-    print("⚠️ كان فيه duplicates وتم حذفهم:")
-    print(duplicates)
+# ---------------- CLEAN NATIONAL ID ----------------
+df["nationalId"] = df["nationalId"].apply(clean_national_id)
 
+# ---------------- CODEX LOGIC (AFTER CLEANING) ----------------
+df = apply_codex_logic(df, True, "conflicts_after_cleaning.csv")
 
+# ---------------- HANDLE NULL NATIONAL ID ----------------
+mask_null = df["nationalId"].isna()
+df.loc[mask_null, "nationalId"] = [f"TEMP_NULL_{i}" for i in range(mask_null.sum())]
+
+# ---------------- AUDIT DUPLICATES ----------------
+duplicates_mask = df["nationalId"].duplicated(keep=False)
+duplicates_df = df[duplicates_mask]
+
+if not duplicates_df.empty:
+    duplicates_df.to_csv("nationalId_duplicates_audit.csv", index=False, encoding="utf-8-sig")
+    print(f"[WARNING] {len(duplicates_df)} duplicate rows saved for audit")
+
+df["nationalId"] = df["nationalId"].astype(str)
+
+df.loc[duplicates_mask, "nationalId"] = [
+    f"{val}_{i}" for i, val in enumerate(df.loc[duplicates_mask, "nationalId"])
+]
+
+print(f"[INFO] NULL nationalId fixed: {mask_null.sum()}")
+print(f"[INFO] Duplicate nationalId fixed: {duplicates_mask.sum()}")
+
+# ---------------- USERS PREP ----------------
 df["role"] = df["role"].str.upper()
-
 df["userId"] = [str(uuid.uuid4()) for _ in range(len(df))]
 
+now = datetime.datetime.now()
+df["createdAt"] = now
+df["updatedAt"] = now
 
-if "updatedAt" not in df.columns:
-    df["updatedAt"] = datetime.datetime.now()
+df = df[["userId", "email", "passwordHash", "role", "createdAt", "updatedAt"]]
 
+df["createdAt"] = df["createdAt"].dt.strftime("%Y-%m-%d %H:%M:%S")
+df["updatedAt"] = df["updatedAt"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
-# 5. نختار الأعمدة اللي عايزينها فقط — ب ترتيب يناسب جدولك
-df = df[["userId","email", "passwordHash", "role", "createdAt", "updatedAt" ]]
+# ---------------- HASH PASSWORD ----------------
+df["passwordHash"] = [
+    hash_password(p) for p in df["passwordHash"]
+]
 
-
-# 6. نحولها لتنسيق نص CSV مؤقت
+# ---------------- INSERT ----------------
 buffer = StringIO()
 df.to_csv(buffer, index=False, header=False)
 buffer.seek(0)
@@ -39,15 +67,19 @@ conn = psycopg2.connect(
     password="123",
     host="localhost"
 )
+
 cur = conn.cursor()
 
-# bulk insert
-# cur.copy_from(buffer, "users", sep=",")
-cur.copy_expert('COPY users ("userId", email, "passwordHash", role, "createdAt", "updatedAt") FROM STDIN WITH (FORMAT csv)', buffer)
-
+cur.copy_expert(
+    '''
+    COPY users ("userId", email, "passwordHash", role, "createdAt", "updatedAt")
+    FROM STDIN WITH (FORMAT csv)
+    ''',
+    buffer
+)
 
 conn.commit()
 cur.close()
 conn.close()
 
-print("✅ تم إدخال البيانات بنجاح!")
+print("[SUCCESS] Users inserted successfully!")

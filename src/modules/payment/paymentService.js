@@ -4,6 +4,7 @@ const axios = require('axios');
 const crypto = require("crypto");
 const secretKey = process.env.WEBHOOK_SECRET;
 const { verifySignature , validateWebhookTimestamp } = require("./helper/Webhook");
+const { Op } = require("sequelize");
 
 
 
@@ -86,6 +87,52 @@ const getPaymentsByUserId = async (userId,features) => {
     const offset = (page - 1) * limit;
   const {rows,count}= await Payment.findAndCountAll({
     where: { userId },
+    limit,
+    offset,
+    attributes: [
+      "paymentId",
+      "userId",
+      "productId",
+      "amount",
+      "status",
+      "timestamp",
+      "receiptId",
+      "serviceId"
+    ],
+    include: [
+      {
+        model: Product,
+        attributes: ["courseName"]
+      },
+      {
+        model:Service,
+        attributes:["name"]
+      },
+      {
+        model:currency,
+        attributes:["code"]
+      }
+    ],
+    order: [["timestamp", "DESC"]],
+  });
+  return PaginatedResponse.fromApiFeature(
+    features,
+    count,
+    rows,
+    "Fees fetched successfully"
+  );
+};
+const getPendingPaymentsByUserId = async (userId,features) => {
+  const page = features.page * 1 || 1;
+    const limit = features.limit * 1 || 10;
+    const offset = (page - 1) * limit;
+  const {rows,count}= await Payment.findAndCountAll({
+    where:{
+      userId,
+      status: {
+        [Op.ne]: "PAID"
+      }
+    },
     limit,
     offset,
     attributes: [
@@ -404,5 +451,6 @@ module.exports = {
   getPaymentsByUserId,
   getAllPayments,
   processWebhook,
-  handleUserPaymentAndRegistration
+  handleUserPaymentAndRegistration,
+  getPendingPaymentsByUserId
 };

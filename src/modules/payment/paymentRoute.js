@@ -9,6 +9,7 @@ const checkPermission = require('../../middlewares/checkPermission');
 router.get("/", validateToken,checkPermission("VIEW_FINANCE"), paymentController.getAllPayments);
 
 router.get("/:userId", paymentController.getPaymentsByUserId);
+router.get("/pending/:userId", paymentController.getPendingPaymentsByUserId);
 
 router.post('/pay/:id',validateToken, catchError(paymentController.createPaymentAndRedirect));
 

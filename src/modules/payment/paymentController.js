@@ -69,6 +69,24 @@ const getPaymentsByUserId = async (req, res, next) => {
     next(error);
   }
 };
+const getPendingPaymentsByUserId = async (req, res, next) => {
+  try {
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
+    const { userId } = req.params;
+
+    const payments = await paymentService.getPendingPaymentsByUserId(userId,features);
+
+    res.status(200).json(ApiResponse.success(payments,"Payment fetched successfully"));
+
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 
@@ -153,5 +171,6 @@ module.exports = {
   getPaymentsByUserId,
   getAllPayments,
   handleWebhook,
-  handleUserPayment
+  handleUserPayment,
+  getPendingPaymentsByUserId
 };

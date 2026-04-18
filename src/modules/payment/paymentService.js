@@ -53,7 +53,7 @@ const createPayment = async ({
   };
 
   const response = await axios.post(
-    "https://lms2.capu.edu.eg/api/api/payments/eFinance/initiate",
+    "https://nub.capu.edu.eg/api/api/payments/eFinance/initiate",
     requestBody,
     {
       headers: {
@@ -293,61 +293,110 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
   }
 };
 
-async function handleUserPaymentAndRegistration(userId, req) {
-  // 1️⃣ get all register requests for user
-  const requests = await Register.findAll({
-    where: { userId },
-  });
+async function handleUserPaymentAndRegistration(paymentId, req) {
+  const t = await sequelize.transaction();
 
-  if (!requests.length) throw new Error("no_requests_found");
+  try {
 
-  for (const request of requests) {
-    // 2️⃣ get payment
-    const payment = await Payment.findByPk(request.paymentId);
+    const paymentData = await Payment.findOne({
+      where: { paymentId }, 
+      transaction: t
+    });
 
-    if (!payment) continue;
-
-    // 3️⃣ لو مش مدفوع → خليه PAID
-    if (payment.status !== "SUCCESS" && payment.status !== "PAID") {
-      payment.status = "PAID";
-      await payment.save();
+    if (!paymentData) {
+      const error = new Error("Bad request - Invalid payload format");
+      error.statusCode = 400;
+      throw error;
     }
 
-    // 4️⃣ get product
-    const product = await Product.findByPk(request.ProductId);
-    if (!product) continue;
 
-    // 5️⃣ update studentCourse بناء على product
-    const updateData = {};
 
-    if (product.trainingStatus) {
-      updateData.trainingStatus = "pending";
-    }
+    // ✅ Product case
+    if (
+      paymentData.status !== "PAID" &&
+      paymentData.productId
+    ) {
 
-    if (product.examStatus) {
-      updateData.examStatus = "pending";
-    }
+      paymentData.status = "PAID";
+      await paymentData.save({ transaction: t });
 
-    if (Object.keys(updateData).length > 0) {
-      await studentCourse.update(updateData, {
-        where: {
-          userId: userId,
-          // ممكن تضيف شرط courseId لو عندك relation واضحة
-        },
+      const product = await Product.findByPk(paymentData.productId, {
+        transaction: t
       });
+
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      await studentCourse.update(
+        {
+          examStatus: product.examStatus ? "pending" : null,
+          trainingStatus: product.trainingStatus ? "pending" : null
+        },
+        {
+          where: { userId: paymentData.userId },
+          transaction: t
+        }
+      );
     }
-  }
 
-  // audit
-  if (req) {
-    req.audit.affectedThing = {
-      userId,
-    };
-    req.audit.message =
-      "User payment handled and course registered successfully";
-  }
+    // ✅ Service (re-exam) case
+    if (
+      paymentData.status !== "PAID" &&
+      !paymentData.productId &&
+      paymentData.serviceId
+    ) {
+      
+      paymentData.status = "PAID";
+      await paymentData.save({ transaction: t });
 
-  return { message: "Process completed successfully" };
+      const reexamRequest = await Reexam.findOne({
+        where: { paymentId: paymentData.paymentId },
+        transaction: t
+      });
+
+      if (reexamRequest) {
+        const examData = await exam.findByPk(reexamRequest.examId, {
+          transaction: t
+        });
+
+        if (!examData) {
+          throw new Error("Exam not found");
+        }
+
+        await studentCourse.update(
+          {
+            examStatus: "pending"
+          },
+          {
+            where: {
+              userId: reexamRequest.userId,
+              courseId: examData.courseId
+            },
+            transaction: t
+          }
+        );
+      }
+    }
+
+
+    if (req) {
+      req.audit = req.audit || {};
+      req.audit.affectedThing = {
+        userId: paymentData.userId,
+      };
+      req.audit.message =
+        "User payment handled and course registered successfully";
+    }
+
+    await t.commit();
+
+    return { message: "Process completed successfully" };
+
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
 }
 
 module.exports = {

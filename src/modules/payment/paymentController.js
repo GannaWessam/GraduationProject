@@ -137,7 +137,7 @@ const handleWebhook = async (req, res, next) => {
 async function handleUserPayment(req, res, next) {
   try {
     const result = await paymentService.handleUserPaymentAndRegistration(
-      req.params.userId,
+      req.params.paymentId,
       req
     );
 

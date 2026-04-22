@@ -7,11 +7,13 @@ const checkPermission = require("../../middlewares/checkPermission");
 
 router.get(
     "/stats",
+    validateToken,
     catchError(statisticsController.getStudentsStats)
 );
 
 router.get(
     "/stats/courses-exams",
+    validateToken,
     catchError(statisticsController.getCoursesAndExamsStats)
   );
 

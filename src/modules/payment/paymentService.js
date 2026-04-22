@@ -365,6 +365,7 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
     ) {
 
       paymentData.status = "PAID";
+      paymentData.actualAmount=paymentData.amount
       await paymentData.save({ transaction: t });
 
       const product = await Product.findByPk(paymentData.productId, {
@@ -395,8 +396,8 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
     ) {
       
       paymentData.status = "PAID";
+      paymentData.actualAmount=paymentData.amount
       await paymentData.save({ transaction: t });
-
       const reexamRequest = await Reexam.findOne({
         where: { paymentId: paymentData.paymentId },
         transaction: t

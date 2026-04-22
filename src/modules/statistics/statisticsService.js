@@ -16,10 +16,10 @@ async function getTodayTotalPayments() {
       [fn('SUM', col('actualAmount')), 'total']
     ],
     where: {
-      timestamp: {
+      updatedAt: {
         [Op.between]: [startOfDay, endOfDay]
       },
-      status: 'SUCCESS'
+      status: 'PAID'
     },
     raw: true
   });

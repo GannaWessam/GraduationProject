@@ -408,7 +408,7 @@ const getUsersByTrainingId = async (trainingId, features) => {
       include: [
         {
           model: Student,
-          attributes: ["fullName","Mobile","NameEn","college"],
+          attributes: ["fullName","Mobile","NameEn","college","nationalId","university"],
           include: [
             {
               model: User,
@@ -426,6 +426,8 @@ const getUsersByTrainingId = async (trainingId, features) => {
       NameEn:r.Student.NameEn,
       Mobile:r.Student.Mobile,
       college:r.Student.college,
+      nationalId:r.Student.nationalId,
+      university:r.Student.university,
       reservationStatus: r.reservationStatus,
     }));
 

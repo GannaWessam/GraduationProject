@@ -39,6 +39,21 @@ const getAllTrainings = async (req, res, next) => {
     return next(error);
   }
 };
+const getAllTrainingsForTrainer = async (req, res, next) => {
+  try {
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
+      const { id } = req.params;
+    const result = await trainingService.getTrainingsForTrainer(id,features);
+    res.status(200).json(ApiResponse.success(result));
+  } catch (error) {
+    return next(error);
+  }
+};
 
 
 // Update training by ID
@@ -98,5 +113,6 @@ module.exports = {
   updateTraining,
   deleteTraining,
   getTrainingReservations,
-  updateEventTraining
+  updateEventTraining,
+  getAllTrainingsForTrainer
 };

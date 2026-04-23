@@ -124,8 +124,8 @@ const getPaymentsByUserId = async (userId,features) => {
 };
 const getPendingPaymentsByUserId = async (userId,features) => {
   const page = features.page * 1 || 1;
-    const limit = features.limit * 1 || 10;
-    const offset = (page - 1) * limit;
+  const limit = features.limit * 1 || 10;
+  const offset = (page - 1) * limit;
   const {rows,count}= await Payment.findAndCountAll({
     where:{
       userId,
@@ -386,6 +386,14 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
           transaction: t
         }
       );
+      await Student.update({
+        status:"PAID"
+      },
+      {
+        where:{userId:paymentData.userId},
+        transaction:t
+      }
+    )
     }
 
     // ✅ Service (re-exam) case
@@ -434,7 +442,7 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
         userId: paymentData.userId,
       };
       req.audit.message =
-        "User payment handled and course registered successfully";
+        "User payment handled and course registered successfully | تم تأكيد الدفع للمستخدم بنجاح";
     }
 
     await t.commit();

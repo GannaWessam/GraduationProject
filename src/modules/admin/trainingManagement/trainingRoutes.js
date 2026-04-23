@@ -20,6 +20,12 @@ router.get(
   catchError(trainingController.getAllTrainings)
 );
 router.get(
+  "/trainer/:id",
+  validateToken,
+  checkPermission(["VIEW_EVENT","VIEW_ASSGINED_TRAININGS"]),
+  catchError(trainingController.getAllTrainingsForTrainer)
+);
+router.get(
   "/:id",
   validateToken,
   checkPermission("VIEW_EVENT"),

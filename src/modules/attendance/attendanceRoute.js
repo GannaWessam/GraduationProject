@@ -34,7 +34,6 @@ router.get(
 router.get(
   "/Session-Attendance/:sessionId",
   validateToken,
-  // checkPermission("getAttendance"),
   catchError(attendanceController.getBySession)
 );
 

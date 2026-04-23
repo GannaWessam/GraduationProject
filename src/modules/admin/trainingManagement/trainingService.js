@@ -6,6 +6,7 @@ const {
   trainingReservation,
   sequelize,
   trainer,
+  session,
 } = require("../../../models/index.js");
 const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
@@ -30,19 +31,17 @@ const createTrainingPackage = async (trainingData) => {
   const pkg = await packageService.getPackageById(trainingData.packageId);
   if (!pkg) throw new Error("package_not_found");
 
-   // ✅ Compare course lists
+  // ✅ Compare course lists
   const packageCourseIds = pkg.courses.map((c) => c.courseId);
   const requestCourseIds = trainingData.courses.map((c) => c.courseId);
 
   const missing = packageCourseIds.filter(
-    (id) => !requestCourseIds.includes(id),
+    (id) => !requestCourseIds.includes(id)
   );
   const extra = requestCourseIds.filter((id) => !packageCourseIds.includes(id));
 
-  if (missing.length > 0)
-    throw new Error("missing_courses_from_package");
-  if (extra.length > 0)
-    throw new Error("extra_courses_not_in_package");
+  if (missing.length > 0) throw new Error("missing_courses_from_package");
+  if (extra.length > 0) throw new Error("extra_courses_not_in_package");
 
   let createNewEventDespiteTheSameData = true;
   for (let i = 0; i < pkg.courses.length; i++) {
@@ -91,7 +90,7 @@ const createOneTraining = async (
       endDateRes: trainingData.endDateRes,
       status: "opend",
       type: "training",
-      language: trainingData.language || "AR" // Default to Arabic if not provided
+      language: trainingData.language || "AR", // Default to Arabic if not provided
     };
     let eventt;
     if (createNewEventDespiteTheSameData) {
@@ -188,9 +187,9 @@ const getAllTrainings = async (features) => {
         ],
       },
       {
-        model:course,
-        attributes:["name"]
-      }
+        model: course,
+        attributes: ["name"],
+      },
     ],
   });
 
@@ -208,31 +207,36 @@ const getAllTrainings = async (features) => {
 
 const updateTraining = async (trainingId, updateData) => {
   return sequelize.transaction(async (t) => {
-
     const trainingg = await training.findByPk(trainingId, { transaction: t });
     if (!trainingg) throw new Error("training_not_found");
 
     // Validate Course
     if (updateData.courseId) {
-      const coursee = await course.findByPk(updateData.courseId, { transaction: t });
+      const coursee = await course.findByPk(updateData.courseId, {
+        transaction: t,
+      });
       if (!coursee) throw new Error("course_not_found");
     }
 
     // Validate Trainer
     if (updateData.trainerId) {
-      const trainerExist = await trainer.findByPk(updateData.trainerId, { transaction: t });
+      const trainerExist = await trainer.findByPk(updateData.trainerId, {
+        transaction: t,
+      });
       if (!trainerExist) throw new Error("trainer_not_found");
     }
 
-    await trainingg.update({
-      courseId: updateData.courseId ?? trainingg.courseId,
-      trainerId: updateData.trainerId ?? trainingg.trainerId
-    }, { transaction: t });
+    await trainingg.update(
+      {
+        courseId: updateData.courseId ?? trainingg.courseId,
+        trainerId: updateData.trainerId ?? trainingg.trainerId,
+      },
+      { transaction: t }
+    );
 
     return trainingg;
   });
 };
-
 
 const deleteTraining = async (trainingId) => {
   return sequelize.transaction(async (t) => {
@@ -284,6 +288,64 @@ const getTrainingReservations = async (trainingId, features) => {
   );
 };
 
+const getTrainingsForTrainer = async (trainerId, features) => {
+  const {
+    where: featureWhere,
+    limit,
+    offset,
+    order,
+    attributes,
+  } = features.options || {};
+  const { count, rows: trainings } = await training.findAndCountAll({
+    where: {
+      trainerId,
+      ...(featureWhere || {}),
+    },
+    distinct: true,
+    subQuery: false,
+    limit,
+    offset,
+    order,
+    attributes,
+    include: [
+      {
+        model: event,
+        as: "event",
+        attributes: [
+          "startDate",
+          "eventName",
+          "endDate",
+          "startDateRes",
+          "endDateRes",
+          "capacity",
+          "numberOfRegistered",
+          "status",
+        ],
+      },
+      {
+        model: course,
+        attributes: ["name"],
+      },
+      {
+        model: session,
+        as: "sessions",
+        attributes: ["sessionId"],
+      },
+    ],
+  });
+
+  if (!trainings || trainings.length === 0) {
+    throw new Error("no_trainings_found");
+  }
+
+  return PaginatedResponse.fromApiFeature(
+    features,
+    Array.isArray(count) ? count.length : count,
+    trainings,
+    "Trainings fetched successfully"
+  );
+};
+
 module.exports = {
   createTraining,
   getTrainingById,
@@ -291,4 +353,5 @@ module.exports = {
   updateTraining,
   deleteTraining,
   getTrainingReservations,
+  getTrainingsForTrainer,
 };

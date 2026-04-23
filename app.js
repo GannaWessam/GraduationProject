@@ -42,15 +42,15 @@ app.use(
     credentials: true,
   })
 );
-const limiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 500,
-  message: "Too many requests from this IP, please try again later.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// const limiter = rateLimit({
+//   windowMs: 5 * 60 * 1000,
+//   max: ,
+//   message: "Too many requests from this IP, please try again later.",
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
-app.use(limiter);
+// app.use(limiter);
 
 
 app.use(express.json()); 

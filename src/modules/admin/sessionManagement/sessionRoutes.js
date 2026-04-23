@@ -12,49 +12,41 @@ const checkPermission = require("../../../middlewares/checkPermission");
 router.get(
   "/activeSessions",
   validateToken,
-  // checkPermission("getSessions"),
   catchError(sessionController.getUserActiveSessions)
 );
 router.post(
   "/",
   validateToken,
-  // checkPermission("createSession"),
   catchError(sessionController.create)
 );
 router.get(
   "/",
   validateToken,
-  // checkPermission("getSessions"),
   catchError(sessionController.getAll)
 );
 router.get(
   "/:id",
   validateToken,
-  // checkPermission("getSession"),
   catchError(sessionController.getById)
 );
 router.get(
   "/Training-Sessions/:id",
   validateToken,
-  // checkPermission("getSession"),
   catchError(sessionController.getTrainingSessionsById)
 );
 router.get(
   "/Event-Sessions/:id",
   validateToken,
-  // checkPermission("getSession"),
   catchError(sessionController.getEventSessionsById)
 );
 router.put(
   "/:id",
   validateToken,
-  // checkPermission("updateSession"),
   catchError(sessionController.update)
 );
 router.delete(
   "/:id",
   validateToken,
-  // checkPermission("deleteSession"),
   catchError(sessionController.delete)
 );
 

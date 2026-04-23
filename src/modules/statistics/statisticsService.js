@@ -1,6 +1,6 @@
 const { Op, fn, col } = require("sequelize");
 const { Student } = require("../../models");
-const { course, exam,Payment } = require("../../models");
+const { course, exam,Payment ,training ,event ,reservation } = require("../../models");
 
 // ================= GET STATS =================
 
@@ -88,8 +88,116 @@ async function getCoursesAndExamsStats() {
     };
   }
 
+async function getTrainerTrainings(trainerId) {
+
+    const trainings = await training.findAll({
+      where: { trainerId },
+      include: [{ model: event , as: 'event', required: true,}]
+    });
+    
+    let current = 0;
+    let upcoming = 0;
+    
+    const today = new Date();
+    
+    trainings.forEach(t => {
+      const e = t.event;
+    
+      if (e.startDate <= today && e.endDate >= today) current++;
+      else if (e.startDate > today) upcoming++;
+    });
+    
+    return {
+      currentCount: current,
+      upcomingCount: upcoming,
+      totalCount: trainings.length
+    };
+  }
+
+async function getTrainerStudentsCount(trainerId) {
+    const count = await reservation.count({
+      distinct: true,           
+      col: 'reservationId',
+      include: [
+        {
+          model: event,
+          as: "reservationEvent",
+          required: true,
+          include: [
+            {
+              model: training,
+              as: "trainings",
+              required: true,
+              where: { trainerId }
+            }
+          ]
+        }
+      ]
+    });
+  
+    return count;
+  }
+  
+async function getSupervisorExamStats(supervisorId) {
+    const today = new Date();
+  
+  
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+  
+
+    const totalExams = await exam.count({
+      where: { supervisorId }
+    });
+  
+
+    const todayExams = await exam.count({
+      where: {
+        supervisorId,
+        date: {
+          [Op.between]: [startOfDay, endOfDay]
+        }
+      }
+    });
+  
+  
+    const finishedExams = await exam.count({
+      where: {
+        supervisorId,
+        date: {
+          [Op.lt]: startOfDay
+        }
+      }
+    });
+  
+    const finishedPercentage =
+      totalExams === 0 ? 0 : (finishedExams / totalExams) * 100;
+  
+    const closedEventExams = await exam.count({
+      where: { supervisorId },
+      include: [
+        {
+          model: event,
+          where: {
+            status: "closed"
+          }
+        }
+      ]
+    });
+  
+    return {
+      totalExams,
+      todayExams,
+      finishedExams,
+      finishedPercentage: Number(finishedPercentage.toFixed(2)),
+      closedEventExams
+    };
+  }
 
 module.exports = {
   getStudentsStats,
-  getCoursesAndExamsStats
+  getCoursesAndExamsStats,
+  getTrainerTrainings,
+  getTrainerStudentsCount,
+  getSupervisorExamStats
 };

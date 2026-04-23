@@ -19,7 +19,73 @@ async function getCoursesAndExamsStats(req, res, next) {
     }
   }
 
+
+async function getTrainerTrainingsCountController(req, res ,next) {
+    try {
+      const { trainerId } = req.params;
+  
+      if (!trainerId) {
+        return res.status(400).json({
+          success: false,
+          message: "trainerId is required"
+        });
+      }
+  
+      const data = await statisticsService.getTrainerTrainings(trainerId);
+  
+      return res.status(200).json(ApiResponse.success(data));
+  
+    } catch (error) {
+      next(error);
+    }
+  }
+
+async function getTrainerStudentsCountController(req, res ,next) {
+    try {
+      const { trainerId } = req.params;
+  
+      if (!trainerId) {
+        return res.status(400).json({
+          success: false,
+          message: "trainerId is required"
+        });
+      }
+  
+      const data = await statisticsService.getTrainerStudentsCount(trainerId);
+  
+      return res.status(200).json(ApiResponse.success(data));
+  
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async function getSupervisorExamStatsController(req, res ,next) {
+    try {
+      const { supervisorId } = req.params;
+  
+      if (!supervisorId) {
+        return res.status(400).json({
+          success: false,
+          message: "supervisorId is required"
+        });
+      }
+  
+      const data = await statisticsService.getSupervisorExamStats(supervisorId);
+  
+      return res.status(200).json(ApiResponse.success(data));
+  
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  
+
 module.exports = {
   getStudentsStats,
-  getCoursesAndExamsStats
+  getCoursesAndExamsStats,
+  getTrainerTrainingsCountController,
+  getTrainerStudentsCountController,
+  getSupervisorExamStatsController
 };

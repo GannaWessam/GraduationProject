@@ -17,5 +17,24 @@ router.get(
     catchError(statisticsController.getCoursesAndExamsStats)
   );
 
+router.get(
+    "/stats/trainer-training/:trainerId",
+    validateToken,
+    catchError(statisticsController.getTrainerTrainingsCountController)
+  );
+
+router.get(
+    "/stats/trainer-student/:trainerId",
+    validateToken,
+    catchError(statisticsController.getTrainerStudentsCountController)
+  );
+
+router.get(
+    "/stats/supervisor/:supervisorId",
+    validateToken,
+    catchError(statisticsController.getSupervisorExamStatsController)
+  );
+
+
 
 module.exports = router;

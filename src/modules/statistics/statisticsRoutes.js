@@ -31,7 +31,7 @@ router.get(
 
 router.get(
     "/stats/supervisor/:supervisorId",
-    validateToken,
+ 
     catchError(statisticsController.getSupervisorExamStatsController)
   );
 

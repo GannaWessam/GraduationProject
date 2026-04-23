@@ -1,6 +1,6 @@
 const { Op, fn, col } = require("sequelize");
 const { Student } = require("../../models");
-const { course, exam,Payment ,training ,event ,reservation } = require("../../models");
+const { course, exam,Payment ,training ,event ,reservation , examReservation} = require("../../models");
 
 // ================= GET STATS =================
 
@@ -184,13 +184,26 @@ async function getSupervisorExamStats(supervisorId) {
         }
       ]
     });
+
+    const studentsInExams = await examReservation.count({
+      include: [
+        {
+          model: exam,
+          where: { supervisorId },
+          attributes: [],
+        },
+      ],
+      distinct: true,
+      col: "userId",
+    });
   
     return {
       totalExams,
       todayExams,
       finishedExams,
       finishedPercentage: Number(finishedPercentage.toFixed(2)),
-      closedEventExams
+      closedEventExams,
+      studentsInExams
     };
   }
 

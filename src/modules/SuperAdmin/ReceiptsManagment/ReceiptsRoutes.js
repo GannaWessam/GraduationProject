@@ -8,7 +8,7 @@ const checkPermission = require("../../../middlewares/checkPermission");
 router.get(
     "/",
     validateToken,
-    checkPermission("VIEW_FINANCE"),
+    checkPermission("VIEW_RECEIPTS"),
     catchError(ReceiptController.getAll),
   );
 

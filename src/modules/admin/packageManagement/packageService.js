@@ -5,7 +5,7 @@ const PaginatedResponse = require("../../../Util/PaginatedResponse");
 
 const packageService = {
   async createPackage(data) {
-    const { packageName, size, productIds, courseIds } = data;
+    const { packageName, size, courseIds } = data;
 
     if(!packageName || !size)
         throw new Error("packageName and size are required")
@@ -14,17 +14,6 @@ const packageService = {
         { packageName, size },
         { transaction: t }
       );
-
-      //packageId & productId COBINATION is UNIQUE
-      if (productIds?.length) {
-        const packageProducts = productIds.map((productId) => ({
-          packageId: newPackage.packageId,
-          productId,
-        }));
-        await packageProduct.bulkCreate(packageProducts, { transaction: t });
-      }else
-      throw new Error("product_id_is_null");
-
       if (courseIds?.length) {
         const packageCourses = courseIds.map((courseId) => ({
           packageId: newPackage.packageId,
@@ -44,7 +33,6 @@ const packageService = {
       ...features.options,
       distinct: true,
       include: [
-        { model: Product, through: { attributes: [] } }, //"خبّي بيانات الجدول الوسيط من النتيجة"
         { model: Course, through: { attributes: [] } },
       ],
     });
@@ -60,7 +48,6 @@ const packageService = {
   async getPackageById(packageId) {
     const pkg = await Package.findByPk(packageId, {
       include: [
-        { model: Product, through: { attributes: [] } },
         { model: Course, through: { attributes: [] } }, //ht7otly array of courses
       ],
     });
@@ -70,7 +57,7 @@ const packageService = {
 
   // Update package
   async updatePackage(packageId, data) {
-    const { packageName, size, productIds, courseIds } = data;
+    const { packageName, size, courseIds } = data;
 
     return sequelize.transaction(async (t) => {
       const pkg = await Package.findByPk(packageId, { transaction: t });
@@ -78,22 +65,6 @@ const packageService = {
 
       if(packageName || size)
         await pkg.update({ packageName, size }, { transaction: t });
-
-      if (productIds) {
-        try {
-          await packageProduct.destroy({ where: { packageId }, transaction: t });
-      
-          const newLinks = productIds.map((productId) => ({ packageId, productId }));
-          await packageProduct.bulkCreate(newLinks, { transaction: t });
-        } catch (error) {
-          // Sequelize foreign key violation
-          if (error.name === 'SequelizeForeignKeyConstraintError') {
-            throw new Error('Please enter existing and valid product IDs.');
-          }
-          throw error; // rethrow others
-        }
-      }
-      
       if (courseIds) {
         try {
           await packageCourse.destroy({ where: { packageId }, transaction: t });
@@ -118,8 +89,6 @@ const packageService = {
     return sequelize.transaction(async (t) => {
       const pkg = await Package.findByPk(packageId, { transaction: t });
       if (!pkg) throw new Error("package_not_found");
-
-      await packageProduct.destroy({ where: { packageId }, transaction: t });
       await packageCourse.destroy({ where: { packageId }, transaction: t });
       await pkg.destroy({ transaction: t });
 

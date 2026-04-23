@@ -11,7 +11,7 @@ const {
   currency,
   Service,
   Reexam,
-  Payment
+  Payment,
 } = require("../../../models/index.js");
 const { sendNotificationToUsers } = require("../../../Services/pushService.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
@@ -23,6 +23,8 @@ const {
 const { getEligibleUserIdsForEvent } = require("./helpers/sendNotification.js");
 const ws = require("../../../Services/WebSocket");
 const packageService = require("../../admin/packageManagement/packageService.js");
+const { splitLang } = require("../../../Helpers/langHelper.js");
+const { Op } = require("sequelize");
 
 // Create a new exam (which is also an event)
 
@@ -145,14 +147,12 @@ const createExamPackage = async (examData) => {
   const requestCourseIds = examData.courses.map((c) => c.courseId);
 
   const missing = packageCourseIds.filter(
-    (id) => !requestCourseIds.includes(id),
+    (id) => !requestCourseIds.includes(id)
   );
   const extra = requestCourseIds.filter((id) => !packageCourseIds.includes(id));
 
-  if (missing.length > 0)
-    throw new Error("missing_courses_from_package");
-  if (extra.length > 0)
-    throw new Error("extra_courses_not_in_package");
+  if (missing.length > 0) throw new Error("missing_courses_from_package");
+  if (extra.length > 0) throw new Error("extra_courses_not_in_package");
 
   // ✅ Create exams for each course (one event for the first course only)
   let createNewEventDespiteTheSameData = true;
@@ -172,8 +172,7 @@ const createExamPackage = async (examData) => {
 
 const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
   const validationErrors = validateExamData(examData);
-  if (validationErrors.length > 0)
-    throw new Error("validation_failed");
+  if (validationErrors.length > 0) throw new Error("validation_failed");
 
   const { eventt, examm } = await sequelize.transaction(async (t) => {
     // ✅ Validate course
@@ -202,9 +201,25 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
 
     let eventt;
     if (createNewEventDespiteTheSameData) {
-      // ✅ Create new event once
+      const arName = splitLang(examData.eventName).ar;
+      const enName = splitLang(examData.eventName).en;
+
       eventt = await event.findOne({
-        where: { eventName: examData.eventName, type: "exam" },
+        where: {
+          type: "exam",
+          [Op.or]: [
+            {
+              eventName: {
+                [Op.like]: `%${enName}%`,
+              },
+            },
+            {
+              eventName: {
+                [Op.like]: `%${arName}%`,
+              },
+            },
+          ],
+        },
         transaction: t,
       });
       if (eventt) throw new Error("there is already exam with the same name");
@@ -232,7 +247,7 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
         place: examData.place,
         eventId: eventt.dataValues.eventId,
       },
-      { transaction: t },
+      { transaction: t }
     );
 
     return { eventt, examm };
@@ -297,7 +312,7 @@ const getAllExams = async (features) => {
     features,
     count,
     exams,
-    "Exams fetched successfully",
+    "Exams fetched successfully"
   );
 };
 
@@ -319,7 +334,7 @@ const updateExam = async (examId, updateData) => {
     if (updateData.supervisorId) {
       const supervisorExist = await supervisor.findByPk(
         updateData.supervisorId,
-        { transaction: t },
+        { transaction: t }
       );
       if (!supervisorExist) throw new Error("supervisor_not_found");
     }
@@ -331,7 +346,7 @@ const updateExam = async (examId, updateData) => {
         date: updateData.date ?? examm.date,
         place: updateData.place ?? examm.place,
       },
-      { transaction: t },
+      { transaction: t }
     );
 
     return examm;
@@ -394,7 +409,7 @@ const getUpcomingExams = async (features) => {
     features,
     count,
     exams,
-    "Upcoming exams fetched successfully",
+    "Upcoming exams fetched successfully"
   );
 };
 
@@ -418,16 +433,14 @@ const getExamReservations = async (examId, features) => {
     features,
     count,
     reservations,
-    "Exam reservations fetched successfully",
+    "Exam reservations fetched successfully"
   );
 };
 
-
-const ReexamService = async (userId,examId ,req) => {
+const ReexamService = async (userId, examId, req) => {
   const t = await sequelize.transaction();
 
   try {
-
     const student = await Student.findByPk(userId, { transaction: t });
     if (!student) {
       throw new Error("Student not found");
@@ -448,8 +461,7 @@ const ReexamService = async (userId,examId ,req) => {
 
     // 4️⃣ Determine nationality
     const isEgyptian =
-      student.nationality === "Egyptian" ||
-      student.nationality === "مصري";
+      student.nationality === "Egyptian" || student.nationality === "مصري";
 
     let receiptId;
     let currencyId;
@@ -469,9 +481,7 @@ const ReexamService = async (userId,examId ,req) => {
       }
 
       currencyId = egpCurrency.currencyId;
-
     } else {
-      
       receiptId = service.receiptIdOthers;
       amount = service.priceOther;
 
@@ -516,7 +526,6 @@ const ReexamService = async (userId,examId ,req) => {
     }
 
     return newReexam;
-
   } catch (error) {
     await t.rollback();
     throw error;

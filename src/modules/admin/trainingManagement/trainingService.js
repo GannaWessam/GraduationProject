@@ -19,7 +19,8 @@ const {
 } = require("../examManagment/helpers/sendNotification.js");
 const ws = require("../../../Services/WebSocket");
 const packageService = require("../../admin/packageManagement/packageService.js");
-const { where } = require("sequelize");
+const { where, Op } = require("sequelize");
+const { splitLang } = require("../../../Helpers/langHelper.js");
 
 const createTraining = async (trainingData) => {
   if (trainingData.packageId) await createTrainingPackage(trainingData);
@@ -94,10 +95,24 @@ const createOneTraining = async (
     };
     let eventt;
     if (createNewEventDespiteTheSameData) {
+      const arName=splitLang(trainingData.eventName).ar
+      const enName=splitLang(trainingData.eventName).en
+
       eventt = await event.findOne({
         where: {
-          eventName: trainingData.eventName,
           type: "training",
+          [Op.or]: [
+            {
+              eventName: {
+                [Op.like]: `%${enName}%`,
+              },
+            },
+            {
+              eventName: {
+                [Op.like]: `%${arName}%`,
+              },
+            },
+          ]
         },
         transaction: t,
       });

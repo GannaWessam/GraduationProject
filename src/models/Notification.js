@@ -25,7 +25,11 @@ module.exports = (sequelize) => {
       type:DataTypes.STRING(200),
       allowNull:false,
       defaultValue:"dilevered"
-    }
+    },
+    redirectUrl: { 
+      type: DataTypes.STRING(200), 
+      allowNull:true
+  },
   }, {
     tableName: 'notification',
   });

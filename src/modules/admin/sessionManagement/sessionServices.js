@@ -8,6 +8,8 @@ const fs = require("fs");
 const QRCode = require("qrcode");
 const archiver = require("archiver");
 const { validateSession } = require("./helper/validateSession");
+const WebSocket = require("../../../Services/WebSocket");
+const { sendNotificationToUsers } = require("../../../Services/pushService");
 
 const sessionService = {
 
@@ -20,6 +22,28 @@ const sessionService = {
     await validateSession(sessionData);
 
     const newSession = await Session.create(sessionData);
+
+    const userIds=await trainingReservation.findAll({
+      where:{trainingId:sessionData.trainingId},
+      attributes:["userId"]
+    })
+    const ids = userIds.map(item => item.dataValues.userId);
+    
+    const message={
+            title:"New Session has been added",
+            body:"The trainer add new session to your training so go and check the details",
+            redirectUrl:"training-details"
+          }
+          const translation={
+            title: "اضافة جلسة جديدة",
+            body: "تم اضافة جلسة جديدة فى التدريب المسجل به من خلال المدرب لذا اذهب الى تفاصيل التدريب لمعرفة التفاصيل",
+            type:"Add_training"
+          }
+          ids.forEach(id =>
+            WebSocket.notifyClients("message",id)
+          )
+          sendNotificationToUsers(ids, message, translation)
+          .catch(err => console.error("Push error:", err));
 
     if (req && req.audit) {
       req.audit.affectedThing = {

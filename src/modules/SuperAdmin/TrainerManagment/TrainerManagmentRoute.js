@@ -8,7 +8,7 @@ const checkPermission = require("../../../middlewares/checkPermission");
 router.get("/",validateToken,catchError(TrainerController.getAll));
 router.get("/:id",validateToken,catchError(TrainerController.getById));
 router.post("/add-Trainer",validateToken,checkPermission("ADD_TRAINER"),catchError(TrainerController.register));
-router.put("/:id", validateToken,checkPermission("EDIT_TRAINER"),catchError(TrainerController.update));
+router.put("/:id", validateToken,catchError(TrainerController.update));
 router.delete("/:id",validateToken,checkPermission("DELETE_TRAINER"), catchError(TrainerController.remove));
 
 

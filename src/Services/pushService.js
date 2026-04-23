@@ -68,11 +68,11 @@ async function sendNotificationToUser(userId, payload,translation) {
     : { success: false, message: `All subscriptions for user ${userId} were invalid or removed` };
 }
 
-async function sendNotificationToUsers(userIds, payload) {
+async function sendNotificationToUsers(userIds, payload,translation) {
   const results = [];
 
   for (const userId of userIds) {
-    const result = await sendNotificationToUser(userId, payload);
+    const result = await sendNotificationToUser(userId, payload,translation);
     results.push({ userId, ...result });
   }
 

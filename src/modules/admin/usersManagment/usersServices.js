@@ -264,7 +264,8 @@ async function updateUser(userId, payload, idImage) {
 
       const message={
         title:"Update personal data",
-        body:"Your data has been modified plase go to your profile to check it"
+        body:"Your data has been modified plase go to your profile to check it",
+        redirectUrl:"profile"
       }
       const translation={
         title: "تحديث البيانات الشخصية",
@@ -344,7 +345,8 @@ async function updateStudentNationalId(userId, nationalId) {
     
     const payload={
       title:"Update national ID",
-      body:"Your national id has been modified plase go to your profile to check it"
+      body:"Your national id has been modified plase go to your profile to check it",
+      redirectUrl:"profile"
     }
     const translation={
       title: "تحديث رقم الهوية",

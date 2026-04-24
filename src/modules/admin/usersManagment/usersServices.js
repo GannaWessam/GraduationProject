@@ -297,7 +297,8 @@ const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||
   
   const payload={
     title:"Acceptance Message",
-    body:"Your data has been modified and now you can regiester your course or exam"
+    body:"Your data has been modified and now you can regiester your course or exam",
+    redirectUrl:"profile"
   }
   const translation={
     title: "رسالة القبول",

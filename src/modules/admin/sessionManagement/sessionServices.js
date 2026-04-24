@@ -215,6 +215,7 @@ const sessionService = {
           ],
         },
       ],
+      order: [["createdAt", "DESC"]], // 👈 newest first
     });
   },
 

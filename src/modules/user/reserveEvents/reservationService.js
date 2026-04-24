@@ -12,6 +12,7 @@ const {
   Student,
   studentCourse,
   Product,
+  systemdata,
 } = require("../../../models");
 // const Student = require("../../../models/Student");
 const { Op } = require("sequelize");
@@ -39,7 +40,7 @@ const registerForExam = async (userId, eventId, req) => {
     if (!eventData) throw new Error("Event not found");
     if (eventData.capacity <= eventData.numberOfRegistered) {
       eventData.status = "closed";
-      await eventData.save();
+      await eventData.save({ transaction: t });
       throw new Error("Can not register for this event");
     }
 
@@ -90,8 +91,10 @@ const registerForExam = async (userId, eventId, req) => {
       transaction: t,
     });
 
+    const sd = await systemdata.findOne();
+
     const exceededCourses = studentCourses
-      .filter((sc) => sc.attempts >= 4)
+      .filter((sc) => sc.attempts >= sd.numberOfAttemptsAvailableToReexam)
       .map((sc) => sc.courseId);
 
     if (exceededCourses.length > 0) {
@@ -215,11 +218,13 @@ const registerForExam = async (userId, eventId, req) => {
       }
     }
     eventData.numberOfRegistered++;
-    await eventData.save();
-
+    console.log("\n" + "testttt before save" + "\n");
+    await eventData.save({ transaction: t });
+    console.log("\n" + "testttt after save" + "\n");
+    
     if (eventData.capacity <= eventData.numberOfRegistered) {
       eventData.status = "closed";
-      await eventData.save();
+      await eventData.save({ transaction: t });
       await handleCreateGroupChatForEvent(
         eventData.eventId,
         eventData.eventName,

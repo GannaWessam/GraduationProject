@@ -1,4 +1,4 @@
-const {Payment , Student ,Product ,webhook ,sequelize, Service, currency , studentCourse ,Reexam , exam , Register} = require("../../models");
+const {Payment , Student ,Product ,webhook ,sequelize, Service, currency , studentCourse ,Reexam , exam , Register, User} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
@@ -394,6 +394,7 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
         transaction:t
       }
     )
+    await User.increment("tokenVersion", { where: { userId: paymentData.userId } });
     }
 
     // ✅ Service (re-exam) case

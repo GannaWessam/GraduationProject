@@ -52,6 +52,11 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(200), 
       allowNull: true,
       defaultValue: 'AR'  // existing rows get a value on sync/alter
+    },
+    retry:{
+      type:DataTypes.BOOLEAN,
+      allowNull:false,
+      defaultValue:false
     }
   }, {
     tableName: 'event',

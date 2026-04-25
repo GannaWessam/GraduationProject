@@ -42,7 +42,7 @@ const uploadGrades = async (req, res, next) => {
       });
     }
 
-    const parseResult = await parseGradesFromExcelBuffer(buffer);
+    const parseResult = await parseGradesFromExcelBuffer(buffer,eventId);
        //parseResult.parsedData is : Array<{
         //  nationalId: string,
         //  uploadDate: Date,

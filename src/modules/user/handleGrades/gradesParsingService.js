@@ -1,6 +1,6 @@
 const ExcelJS = require("exceljs");
 const { getGradeForCell } = require("./quizUtils");
-const { course, Student } = require("../../../models");
+const { course, Student, reservation } = require("../../../models");
 
 /**
  * Validate nationalId: must be a string of exactly 14 digits.
@@ -95,7 +95,7 @@ function buildGradeColumnMap(headerRow, validCourseTitles) {
  *  }>
  * }>}
  */
-async function parseGradesFromExcelBuffer(buffer) {
+async function parseGradesFromExcelBuffer(buffer,eventId) {
   if (!buffer) {
     throw new Error("Excel buffer is required");
   }
@@ -161,11 +161,18 @@ async function parseGradesFromExcelBuffer(buffer) {
     //   continue;
     // }
 
-    const student = await Student.findOne({
-      where: { nationalId: nationalIdTrimmed },
+    const eventReservation = await reservation.findOne({
+      where: { eventId },
+      include: [
+        {
+          model: Student,
+          where: { nationalId: nationalIdTrimmed },
+          attributes: ["userId"],
+        },
+      ],
     });
-    if (!student) {
-      errors.push({ row: rowNumber, reason: "Student not found" });
+    if (!eventReservation) {
+      errors.push({ row: rowNumber, reason: "Student not found for event" });
       const err = new Error("student_not_found_for_national_id");
       err.nationalId = nationalIdTrimmed;
       throw err;

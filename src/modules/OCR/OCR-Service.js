@@ -25,7 +25,7 @@ async function sendOcrRequest(base64Image) {
   const url = "https://api.ocr.space/parse/image";
 
   const headers = {
-    apikey: process.env.OCR_API_KEY,
+    apikey: "K81369309088957",
     "Content-Type": "application/x-www-form-urlencoded",
   };
 
@@ -40,15 +40,12 @@ async function sendOcrRequest(base64Image) {
 
   try {
     const response = await axios.post(url, formData.toString(), { headers });
-    console.log(response);
-    
     const text = response.data?.ParsedResults?.[0]?.ParsedText || "";
     const extracted = extract14DigitNumber(text);
 
     return {
       success: true,
       extractedNumber: extracted,
-      rawText: text,
     };
   } catch (error) {
     return {

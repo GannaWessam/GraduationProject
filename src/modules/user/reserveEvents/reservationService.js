@@ -20,7 +20,6 @@ const { handleCreateGroupChatForEvent } = require("./helpers/helper");
 
 const registerForExam = async (userId, eventId, req) => {
   return sequelize.transaction(async (t) => {
-
     const doneCoursesBefore = await studentCourse.count({
       where: {
         userId,
@@ -74,7 +73,7 @@ const registerForExam = async (userId, eventId, req) => {
       const productExams = await exam.findAll({
         where: {
           courseId: sequelize.literal(
-            `course."productId" = '${eventData.productId}'`,
+            `course."productId" = '${eventData.productId}'`
           ),
         },
         transaction: t,
@@ -99,10 +98,10 @@ const registerForExam = async (userId, eventId, req) => {
 
     if (exceededCourses.length > 0) {
       throw new Error(
-        `You cannot reserve exams for these courses anymore (attempts >= 4)`,
+        `You cannot reserve exams for these courses anymore (attempts >= 4)`
       );
     }
-    
+
     const previousReservations = await examReservation.findAll({
       where: { userId },
       include: [
@@ -127,12 +126,12 @@ const registerForExam = async (userId, eventId, req) => {
       }
     }
     const hasNonFailLatest = Object.values(latestReservationsByCourse).some(
-      (r) => r.reservationStatus !== "failed",
+      (r) => r.reservationStatus !== "failed"
     );
 
     if (hasNonFailLatest) {
       throw new Error(
-        "You cannot reserve this event again until your latest exam result is 'failed'.",
+        "You cannot reserve this event again until your latest exam result is 'failed'."
       );
     }
 
@@ -163,7 +162,7 @@ const registerForExam = async (userId, eventId, req) => {
 
     const newReservation = await reservation.create(
       { userId, eventId },
-      { transaction: t },
+      { transaction: t }
     );
     const student = await Student.findOne({ where: { userId } });
 
@@ -172,9 +171,9 @@ const registerForExam = async (userId, eventId, req) => {
       attributes: ["requirdCourses"],
       transaction: t,
     });
-    
+
     if (!productData) throw new Error("Product not found");
-    
+
     const requiredCourses = productData.requirdCourses;
 
     const examReservations = examsToReserve.map((ex) => ({
@@ -185,20 +184,19 @@ const registerForExam = async (userId, eventId, req) => {
       reservationStatus: "reserved",
     }));
 
-      if (student) {
-        const hasFailedBefore = previousReservations.some(
-          (r) => r.reservationStatus === "failed",
-        );
+    if (student) {
+      const hasFailedBefore = previousReservations.some(
+        (r) => r.reservationStatus === "failed"
+      );
 
-        if (hasFailedBefore) {
-          student.status = "reserved Reexam";
-        } else {
-          student.status = "reserved Exam";
-        }
-
-        await student.save({ transaction: t });
+      if (hasFailedBefore) {
+        student.status = "reserved Reexam";
+      } else {
+        student.status = "reserved Exam";
       }
 
+      await student.save({ transaction: t });
+    }
 
     await examReservation.bulkCreate(examReservations, { transaction: t });
     for (const ex of examsToReserve) {
@@ -213,24 +211,25 @@ const registerForExam = async (userId, eventId, req) => {
             courseId: ex.courseId,
             attempts: 1,
           },
-          { transaction: t },
+          { transaction: t }
         );
       }
     }
     eventData.numberOfRegistered++;
-    console.log("\n" + "testttt before save" + "\n");
     await eventData.save({ transaction: t });
-    console.log("\n" + "testttt after save" + "\n");
-    
+
     if (eventData.capacity <= eventData.numberOfRegistered) {
       eventData.status = "closed";
       await eventData.save({ transaction: t });
-      await handleCreateGroupChatForEvent(
-        eventData.eventId,
-        eventData.eventName,
-        eventData.type,
-        t,
-      );
+      t.afterCommit(() => {
+        handleCreateGroupChatForEvent(
+          eventData.eventId,
+          eventData.eventName,
+          eventData.type
+        ).catch((err) => {
+          console.error("Group chat creation failed:", err);
+        });
+      });
     }
     await studentCourse.update(
       { examStatus: "done" },
@@ -240,7 +239,7 @@ const registerForExam = async (userId, eventId, req) => {
           courseId: courseIds,
         },
         transaction: t,
-      },
+      }
     );
 
     const doneNow = courseIds.length;
@@ -255,7 +254,7 @@ const registerForExam = async (userId, eventId, req) => {
             examStatus: "pending",
           },
           transaction: t,
-        },
+        }
       );
     }
 
@@ -286,7 +285,7 @@ const registerForTraining = async (userId, eventId, req) => {
     const eventData = await event.findOne({
       where: { eventId, type: "training" },
       transaction: t,
-      lock: t.LOCK.UPDATE
+      lock: t.LOCK.UPDATE,
     });
 
     if (!eventData) throw new Error("Training event not found");
@@ -314,12 +313,12 @@ const registerForTraining = async (userId, eventId, req) => {
 
     if (previousReservations.length > 0) {
       const hasNonFinished = previousReservations.some(
-        (r) => r.trainigStatus?.toLowerCase() !== "finshed",
+        (r) => r.trainigStatus?.toLowerCase() !== "finshed"
       );
 
       if (hasNonFinished) {
         throw new Error(
-          "You cannot reserve this training again until previous sessions are finished.",
+          "You cannot reserve this training again until previous sessions are finished."
         );
       }
     }
@@ -350,7 +349,7 @@ const registerForTraining = async (userId, eventId, req) => {
 
     const newReservation = await reservation.create(
       { userId, eventId },
-      { transaction: t },
+      { transaction: t }
     );
 
     const student = await Student.findOne({ where: { userId } });
@@ -380,7 +379,7 @@ const registerForTraining = async (userId, eventId, req) => {
         eventData.eventId,
         eventData.eventName,
         "training",
-        t,
+        t
       );
     }
     await studentCourse.update(
@@ -391,7 +390,7 @@ const registerForTraining = async (userId, eventId, req) => {
           courseId: courseIds,
         },
         transaction: t,
-      },
+      }
     );
     await eventData.save({ transaction: t });
 

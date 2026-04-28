@@ -14,11 +14,10 @@ const {
   studentCourse,
   Product,
   User,
+  systemdata,
 } = require("../../../models");
 const { error } = require("../../../Util/ApiResponse");
 
-/** Pass threshold: grade >= this value → status = succeeded */
-const PASS_GRADE = 65.0;
 
 /**
  * Resolve how many exams must be passed for this event, based on its product.requirdCourses.
@@ -61,10 +60,11 @@ async function getRequiredExamsPassedForEvent(eventId) {
  * @param {Date} uploadDate
  * @returns {'succeeded' | 'failed' | 'absent' | 'reserved'}
  */
-function computeReservationStatus(grade, examDate, uploadDate) {
+async function computeReservationStatus(grade, examDate, uploadDate) {
   console.log("/n/n/n/n method computeReservationStatus /n/n/n/n")
+  const sd = await systemdata.findOne();
   if (grade !== null && grade !== undefined) {
-    return grade >= PASS_GRADE ? "succeeded" : "failed";
+    return grade >= Number(sd.successDegree) ? "succeeded" : "failed";
   }
   // grade is null
   if (examDate && uploadDate && new Date(examDate) < new Date(uploadDate)) {
@@ -233,7 +233,7 @@ async function processOneStudent(
     remainingInEvent.delete(quiz.courseTitle);
 
     const { examId, examDate } = examInfo;
-    const status = computeReservationStatus(
+    const status = await computeReservationStatus(
       quiz.grade,
       examDate,
       uploadDate
@@ -394,5 +394,4 @@ module.exports = {
   getEventExamsWithCourses,
   processOneStudent,
   computeReservationStatus,
-  PASS_GRADE,
 };

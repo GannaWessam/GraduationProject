@@ -164,6 +164,7 @@ const createExamPackage = async (examData) => {
       date: currentCourse.date,
       place: currentCourse.place,
       supervisorId: currentCourse.supervisorId,
+      location:currentCourse.location
     };
     await createOneExam(oneExamData, createNewEventDespiteTheSameData);
     createNewEventDespiteTheSameData = false; // next exams share same event
@@ -197,7 +198,7 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
       status: examData.status || "opend",
       type: "exam",
       language: examData.language || "AR", // Default to Arabic if not provided
-      retry:examData.retry
+      retry:examData.retry,
     };
 
     let eventt;
@@ -246,6 +247,7 @@ const createOneExam = async (examData, createNewEventDespiteTheSameData) => {
         supervisorId: examData.supervisorId,
         date: examData.date,
         place: examData.place,
+        location:examData.location,
         eventId: eventt.dataValues.eventId,
       },
       { transaction: t }
@@ -346,6 +348,7 @@ const updateExam = async (examId, updateData) => {
         supervisorId: updateData.supervisorId ?? examm.supervisorId,
         date: updateData.date ?? examm.date,
         place: updateData.place ?? examm.place,
+        location:updateData?.location ?? examm.location
       },
       { transaction: t }
     );

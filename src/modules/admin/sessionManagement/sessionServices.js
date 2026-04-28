@@ -1,4 +1,5 @@
 const { session: Session, training: Training,trainingReservation, sequelize,event,SessionMaterial } = require("../../../models/index");
+const { attendance, Student} = require("../../../models");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { generateSessionToken } = require("../../../Util/SessionToken");
 const { Op } = require("sequelize");
@@ -10,6 +11,7 @@ const archiver = require("archiver");
 const { validateSession } = require("./helper/validateSession");
 const WebSocket = require("../../../Services/WebSocket");
 const { sendNotificationToUsers } = require("../../../Services/pushService");
+const ExcelJS = require("exceljs");
 
 const sessionService = {
 
@@ -437,6 +439,131 @@ const sessionService = {
       fileName: material.name || path.basename(filePath),
     };
   },
+
+  async exportSessionAttendanceExcel(sessionId, res) {
+      // 1️⃣ هات السيشن
+  const session = await Session.findByPk(sessionId);
+  if (!session) throw new Error("session_not_found");
+
+  // 2️⃣ هات الحضور
+  const attendanceList = await attendance.findAll({
+    where: { sessionId },
+    include: [
+      {
+        model: Student,
+        attributes: ["fullName", "nationalId"],
+      },
+    ],
+    order: [["createdAt", "ASC"]],
+  });
+
+  if (!attendanceList.length) {
+    throw new Error("No attendance found");
+  }
+
+  // 3️⃣ إنشاء الملف
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Attendance");
+
+  // =============================
+  // 🟢 عنوان السيشن
+  // =============================
+  worksheet.mergeCells("A1:C1");
+  const titleCell = worksheet.getCell("A1");
+  titleCell.value = `Session: ${session.name}`;
+  titleCell.font = { size: 16, bold: true };
+  titleCell.alignment = { horizontal: "center", vertical: "middle" };
+
+  // =============================
+  // 🟢 تفاصيل الحضور
+  // =============================
+  worksheet.mergeCells("A2:C2");
+  const detailsCell = worksheet.getCell("A2");
+  detailsCell.value = `Attendance Count: ${attendanceList.length} | Date: ${new Date().toLocaleDateString()}`;
+  detailsCell.alignment = { horizontal: "center", vertical: "middle" };
+
+  // =============================
+  // 🟢 الهيدر (Row 3)
+  // =============================
+  const headerRow = worksheet.getRow(3);
+  headerRow.values = ["#", "Name", "National ID", "Attendance Time"];
+
+  headerRow.font = { bold: true };
+  headerRow.alignment = {
+    horizontal: "center",
+    vertical: "middle",
+  };
+  headerRow.height = 20;
+
+  // عرض الأعمدة
+  worksheet.getColumn(1).width = 10;
+  worksheet.getColumn(2).width = 30;
+  worksheet.getColumn(3).width = 25;
+  worksheet.getColumn(4).width = 30;
+
+  // =============================
+  // 🟢 البيانات (تبدأ من Row 4)
+  // =============================
+  attendanceList.forEach((item, index) => {
+    const row = worksheet.addRow([
+      index + 1,
+      item.Student?.fullName || "N/A",
+      item.Student?.nationalId || "N/A",
+      new Date(item.createdAt).toLocaleString(),
+    ]);
+
+    row.height = 20;
+  });
+
+  // =============================
+  // 🟢 تنسيق عام (Borders + Center)
+  // =============================
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber >= 3) {
+      row.eachCell((cell) => {
+        cell.alignment = {
+          horizontal: "center",
+          vertical: "middle",
+        };
+
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
+    }
+  });
+
+  // =============================
+  // 🟢 تثبيت الهيدر (UX حلوة)
+  // =============================
+  worksheet.views = [{ state: "frozen", ySplit: 3 }];
+
+  // =============================
+  // 🟢 اسم الملف (Safe)
+  // =============================
+  const fileName = `session-${session.name}-attendance.xlsx`;
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="session-${sessionId}.xlsx"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+  );
+
+  // =============================
+  // 🟢 إرسال
+  // =============================
+  await workbook.xlsx.write(res);
+  res.end();
+}
+
+
 
 };
 

@@ -375,12 +375,15 @@ const registerForTraining = async (userId, eventId, req) => {
 
     if (eventData.numberOfRegistered >= eventData.capacity) {
       eventData.status = "closed";
-      await handleCreateGroupChatForEvent(
-        eventData.eventId,
-        eventData.eventName,
-        "training",
-        t
-      );
+      t.afterCommit(() => {
+        handleCreateGroupChatForEvent(
+          eventData.eventId,
+          eventData.eventName,
+          "training",
+        ).catch((err) => {
+          console.error("Group chat creation failed:", err);
+        });
+      });
     }
     await studentCourse.update(
       { trainingStatus: "reserved" },

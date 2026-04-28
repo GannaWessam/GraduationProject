@@ -12,6 +12,7 @@ const { validateSession } = require("./helper/validateSession");
 const WebSocket = require("../../../Services/WebSocket");
 const { sendNotificationToUsers } = require("../../../Services/pushService");
 const ExcelJS = require("exceljs");
+const { splitLang } = require("../../../Helpers/langHelper");
 
 const sessionService = {
 
@@ -440,7 +441,7 @@ const sessionService = {
     };
   },
 
-  async exportSessionAttendanceExcel(sessionId, res) {
+  async exportSessionAttendanceExcel(sessionId, res,lang) {
       // 1️⃣ هات السيشن
   const session = await Session.findByPk(sessionId);
   if (!session) throw new Error("session_not_found");
@@ -468,16 +469,17 @@ const sessionService = {
   // =============================
   // 🟢 عنوان السيشن
   // =============================
-  worksheet.mergeCells("A1:C1");
+  worksheet.mergeCells("A1:D1");
   const titleCell = worksheet.getCell("A1");
-  titleCell.value = `Session: ${session.name}`;
+  const name=lang === 'ar'?splitLang(session.name).ar ?? session.name : splitLang(session.name).en ?? session.name
+  titleCell.value = `Session: ${name}`;
   titleCell.font = { size: 16, bold: true };
   titleCell.alignment = { horizontal: "center", vertical: "middle" };
 
   // =============================
   // 🟢 تفاصيل الحضور
   // =============================
-  worksheet.mergeCells("A2:C2");
+  worksheet.mergeCells("A2:D2");
   const detailsCell = worksheet.getCell("A2");
   detailsCell.value = `Attendance Count: ${attendanceList.length} | Date: ${new Date().toLocaleDateString()}`;
   detailsCell.alignment = { horizontal: "center", vertical: "middle" };

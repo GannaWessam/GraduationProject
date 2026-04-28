@@ -97,7 +97,7 @@ router.get(
   catchError(sessionController.getAllSessionMaterialsController)
 );
 router.get(
-  "/sessions/:sessionId/attendance-excel",
+  "/sessions/:sessionId/attendance-excel/:lang",
   catchError(sessionController.exportAttendanceExcel)
 );
 

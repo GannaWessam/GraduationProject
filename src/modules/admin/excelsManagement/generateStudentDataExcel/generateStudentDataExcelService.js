@@ -2,6 +2,7 @@ const ExcelJS = require('exceljs');
 const { reservation, event, Student, User } = require('../../../../models');
 const { generateUsername } = require('./helpers/usernameHelper');
 const { generatePasswordFromUsername } = require('./helpers/passwordHelper');
+const { splitLang } = require('../../../../Helpers/langHelper');
 
 /** UUID v4 regex for validation */
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -10,7 +11,7 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-
 const CONSTANTS = {
   country: 'Egypt',
   city: 'Helwan',
-  institution: 'Helwan University',
+  institution: 'Capital University',
   department: 'TPIT',
   role1: 'student',
   sheetSuffix: '-Helwan-منح',
@@ -174,12 +175,11 @@ async function generateStudentDataExcel(eventId) {
     throw new Error('error_in_getting_student_data'); 
   }
 
-  const dataRows = rows.map((row, index) => {
-    const counter = index + 1;
-    const username = generateUsername(row.eventName, counter);
+  const dataRows = rows.map((row) => {
+    const username = row.nationalId
     const password = generatePasswordFromUsername(username);
     const { firstname, lastname } = splitFullName(row.fullName);
-    const course1 = `Helwan University - Helwan - ${row.language}`;
+    const course1 = `Capital University - Helwan - ${row.language}`;
 
     return {
       username,
@@ -188,7 +188,7 @@ async function generateStudentDataExcel(eventId) {
       idnumber: row.nationalId,
       email: row.email,
       password,
-      group1: row.eventName,
+      group1: splitLang(row.eventName).en,
       course1,
     };
   });

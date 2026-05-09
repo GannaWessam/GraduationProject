@@ -55,20 +55,11 @@ async function addAdmin(AdminInfo, req) {
 async function getAllAdmins(features, req) {
   const { count, rows: admins } = await Admin.findAndCountAll({
     ...features.options,
-    subQuery: false, 
     distinct: true,
     include: [
       {
         model: User,
         attributes: ["userId", "email", "role"],
-        include: [
-          {
-            model: Permission,
-            as: "permissions",
-            attributes: ["permissionId", "name"],
-            through: { attributes: [] },
-          },
-        ],
       },
     ],
   });

@@ -33,6 +33,14 @@ module.exports = (sequelize) => {
     nameOfPersonInefada2: {
       type: DataTypes.STRING(200),
       allowNull: true
+    },
+    successDegree: {
+      type: DataTypes.STRING(200),
+      allowNull: true
+    },
+    serviceStatus: {
+      type: DataTypes.STRING(200),
+      allowNull: true
     }
 
   }, {

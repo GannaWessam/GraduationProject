@@ -16,6 +16,8 @@ const {
   examReservation,
   examReservationArchive,
   course,
+  UserPermission,
+  Permission,
 } = require("../../../../models");
 
 //bfkr a3ml 3leha endpoint?
@@ -371,8 +373,27 @@ async function handleCreateGroupChatForEvent(
     });
     staffIds = exams.map((ex) => ex.supervisorId).filter((id) => id != null);
   }
+  const admins = await User.findAll({
+    where: {
+      role: "ADMIN",
+    },
+    attributes: ["userId"],
+    include: [
+      {
+        model: Permission,
+        as: "permissions",
+        required: true,
+        where: {
+          permissionId: process.env.CHAT_PERMISSION_ID,
+        },
+        attributes: [],
+      },
+    ],
+    transaction: tx,
+  });
+  const adminUserIds = admins.map(a => a.userId);
 
-  const finalGroupMembers = [...new Set([...staffIds, ...userIds])];
+  const finalGroupMembers = [...new Set([...staffIds, ...userIds,...adminUserIds])];
 
   await chattingService.createGroupConversation(
     finalGroupMembers,

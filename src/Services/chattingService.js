@@ -8,6 +8,7 @@ const {
   Student,
   trainer,
   supervisor,
+  Admin,
 } = require("../models/index.js");
 
 class ChattingService {
@@ -215,6 +216,10 @@ class ChattingService {
             },
             {
               model:supervisor,
+              attributes:["Name"]
+            },
+            {
+              model:Admin,
               attributes:["Name"]
             }
           ]

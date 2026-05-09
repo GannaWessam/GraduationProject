@@ -26,6 +26,7 @@ const gradesManagmentRoutes = require("./modules/Grades/gradeRoute");
 const serviceRoutes = require("./modules/ServiceManagement/ServiceRoutes");
 const ReceiptsRoutes=require("./modules/SuperAdmin/ReceiptsManagment/ReceiptsRoutes");
 const statisticsRoutes=require("./modules/statistics/statisticsRoutes");
+const OCR=require("./modules/OCR/OCR-Routes")
 
 
 const { validateToken } = require("./middlewares/token");
@@ -61,5 +62,7 @@ router.use("/api/pay", payment);
 router.use("/api/gradesManagment", gradesManagmentRoutes);
 router.use("/api/services", serviceRoutes);
 router.use("/api/statistics", statisticsRoutes);
+router.use("/api/ocr", OCR);
+
 
 module.exports = router;

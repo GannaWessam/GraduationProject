@@ -6,7 +6,8 @@ const {
   Student,
   Reexam,
   Payment,
-  efada
+  efada,
+  systemdata
 } = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 
@@ -132,8 +133,13 @@ const getReservationsByUserId = async (userId, features) => {
     where: { userId },
     attributes: ["efadaId"],
   });
+  const sd = await systemdata.findOne();
   
-  const hasEfada = !!userEfada;
+  let hasEfada=true
+  if(userEfada)
+    hasEfada=true
+  else if(sd.serviceStatus === "Activated")
+    hasEfada=false
 
   
   const formattedRows = rows.map((row) => {

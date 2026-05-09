@@ -65,16 +65,6 @@ async function getAllSupervisors(features) {
       {
         model: User,
         attributes: ["userId", "email", "role"],
-        include: [
-          {
-            model: Permission,
-            as: "permissions",
-            attributes: ["permissionId", "name","viewName"],
-            through: {
-              attributes: [],
-            },
-          },
-        ],
       },
     ],
   });

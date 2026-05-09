@@ -159,6 +159,21 @@ const sessionController = {
       next(error);
     }
   },
+  async exportAttendanceExcel(req, res, next) {
+    try {
+      const { sessionId,lang } = req.params;
+      if (!sessionId) {
+        return res.status(400).json(
+          ApiResponse.error("sessionId is required")
+        );
+      }
+  
+      await sessionService.exportSessionAttendanceExcel(sessionId, res,lang);
+  
+    } catch (error) {
+      next(error);
+    }
+  }
 };
 
 module.exports = sessionController;

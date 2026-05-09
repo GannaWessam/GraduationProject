@@ -96,5 +96,9 @@ router.get(
   // checkPermission("getSessions"),
   catchError(sessionController.getAllSessionMaterialsController)
 );
+router.get(
+  "/sessions/:sessionId/attendance-excel/:lang",
+  catchError(sessionController.exportAttendanceExcel)
+);
 
 module.exports = router;

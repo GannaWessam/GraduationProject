@@ -33,6 +33,7 @@ app.use(
       "http://192.168.1.10:5173",
       "http://193.227.34.48",
       "http://192.168.159.1:5173",
+      "http://192.168.1.11:5173",
       "http://10.51.126.244:5173",
       "https://lms4.capu.edu.eg",
       "capacitor://localhost", 
@@ -53,7 +54,8 @@ app.use(
 // app.use(limiter);
 
 
-app.use(express.json()); 
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use("/uploads", express.static("uploads"));
 
 

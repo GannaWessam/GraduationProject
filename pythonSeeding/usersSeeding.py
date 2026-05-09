@@ -6,16 +6,17 @@ import uuid
 from utils import apply_codex_logic, clean_national_id, hash_password
 
 # ---------------- READ CSV ----------------
-df = pd.read_csv("main_FINAL_version.csv", encoding="utf-8")
+df = pd.read_excel("FinalClean.xlsx")
+df = df.rename(columns={"password": "passwordHash"})
 
 # ---------------- CODEX LOGIC (BEFORE CLEANING) ----------------
-df = apply_codex_logic(df, True, "conflicts_before_cleaning.csv")
+# df = apply_codex_logic(df, True, "conflicts_before_cleaning.csv")
 
 # ---------------- CLEAN NATIONAL ID ----------------
 df["nationalId"] = df["nationalId"].apply(clean_national_id)
 
-# ---------------- CODEX LOGIC (AFTER CLEANING) ----------------
-df = apply_codex_logic(df, True, "conflicts_after_cleaning.csv")
+# # ---------------- CODEX LOGIC (AFTER CLEANING) ----------------
+# df = apply_codex_logic(df, True, "conflicts_after_cleaning.csv")
 
 # ---------------- HANDLE NULL NATIONAL ID ----------------
 mask_null = df["nationalId"].isna()
@@ -39,7 +40,8 @@ print(f"[INFO] NULL nationalId fixed: {mask_null.sum()}")
 print(f"[INFO] Duplicate nationalId fixed: {duplicates_mask.sum()}")
 
 # ---------------- USERS PREP ----------------
-df["role"] = df["role"].str.upper()
+# df["role"] = df["role"].str.upper()
+df["role"] = "STUDENT"
 df["userId"] = [str(uuid.uuid4()) for _ in range(len(df))]
 
 now = datetime.datetime.now()

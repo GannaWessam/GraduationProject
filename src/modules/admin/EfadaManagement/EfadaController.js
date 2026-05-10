@@ -74,6 +74,39 @@ const efadaController = {
       });
     }
   },
+
+  generateEfadaWord: async (req, res) => {
+    try {
+      const { name, nationalId } = req.body;
+
+      const date = new Date().toLocaleDateString("ar-EG");
+
+      const picturePath = path.join(__dirname, "Picture1.png");
+
+      const docxBuffer = await efadaService.createEfadaWord({
+        name,
+        nationalId,
+        date,
+        picturePath,
+      });
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      );
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=efada.docx`,
+      );
+      res.send(docxBuffer);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: "فشل في توليد خطاب الإفادة بصيغة Word",
+        error: error.message,
+      });
+    }
+  },
 };
 
 module.exports = efadaController;

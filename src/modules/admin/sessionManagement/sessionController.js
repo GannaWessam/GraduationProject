@@ -112,7 +112,16 @@ const sessionController = {
         next(error);
       }
   },
-  
+
+  async QRforEFadaController(req, res,next) {
+    try {
+      const { userId } = req.params;
+      const QR = await sessionService.QRforEFada(userId);
+      res.status(200).json(ApiResponse.success(QR));
+    } catch (error) {
+      next(error);
+    }
+  },
 
   async getSessionMaterialController(req, res , next) {
     try {

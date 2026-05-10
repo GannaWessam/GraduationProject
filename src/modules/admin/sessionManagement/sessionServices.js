@@ -357,6 +357,20 @@ const sessionService = {
 
     return {qr, url};
   },
+  async QRforEFada(userId) {
+
+    const userId = await User.findByPk(userId);
+
+    if (!userId) {
+      throw new Error("user not found");
+    }
+
+    const url = `${process.env.EFADA_HOST}/UserProfile?userId=${userId}`;
+
+    const qr = await QRCode.toDataURL(url);
+
+    return {qr, url};
+  },
 
   async getSessionMaterialService(sessionId, features) {
     try {

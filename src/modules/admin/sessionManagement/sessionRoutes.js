@@ -85,6 +85,12 @@ router.get(
   catchError(sessionController.QRcontroller)
 );
 router.get(
+  "/sessionQRforEFada/:userId",
+  validateToken,
+  // checkPermission("getSession"),
+  catchError(sessionController.QRforEFadaController)
+);
+router.get(
   "/session-materials/download/:materialId",
   validateToken,
   // checkPermission("getSession"),

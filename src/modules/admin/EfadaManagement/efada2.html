@@ -79,11 +79,12 @@
       .signatures {
         display: flex;
         justify-content: space-between;
+        align-items: flex-end;
         font-size: 14pt;
         margin-top: 1cm;
       }
       .sig-block {
-        width: 48%;
+        width: 32%;
         text-align: center;
       }
       .sig-title {
@@ -97,6 +98,50 @@
       .addressee2{
         text-align: center;
         font-weight: bold;
+      }
+      .qr-block {
+        width: 32%;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+      }
+      .qr-frame {
+        display: inline-block;
+        padding: 6px;
+        background: #fff;
+        border: 1.2px solid #000;
+        border-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        line-height: 0;
+      }
+      .qr-image {
+        display: block;
+        width: 105px;
+        height: 105px;
+      }
+      .qr-caption {
+        margin-top: 0.18cm;
+        font-size: 10pt;
+        font-weight: bold;
+        color: #1a1a1a;
+        line-height: 1.3;
+      }
+      .qr-caption small {
+        display: block;
+        font-size: 8pt;
+        font-weight: normal;
+        color: #555;
+        margin-top: 2px;
+        letter-spacing: 0.3px;
+      }
+      @media print {
+        .qr-frame {
+          box-shadow: none;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
       }
     </style>
   </head>
@@ -155,6 +200,22 @@
             <div class="sig-title">{{titlePersonInefada1}}</div>
             {{nameOfPersonInefada1}}
           </div>
+
+
+          <div class="qr-block">
+            <div class="qr-frame">
+              <img
+                class="qr-image"
+                src="https://api.qrserver.com/v1/create-qr-code/?size=210x210&margin=0&ecc=M&data=https%3A%2F%2Fverify.example.com%2Fefada%2FPLACEHOLDER-{{nationalId}}"
+                alt="رمز التحقق من صحة الإفادة"
+              />
+            </div>
+            <!-- <div class="qr-caption">
+              رمز التحقق من صحة الإفادة
+              <small>Scan to verify</small>
+            </div> -->
+          </div>
+
           <div class="sig-block">
             <div class="sig-title">{{titlePersonInefada2}}</div>
             {{nameOfPersonInefada2}}

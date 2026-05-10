@@ -1,4 +1,4 @@
-const { session: Session, training: Training,trainingReservation, sequelize,event,SessionMaterial } = require("../../../models/index");
+const { session: Session, training: Training,trainingReservation, sequelize,event,SessionMaterial, User } = require("../../../models/index");
 const { attendance, Student} = require("../../../models");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { generateSessionToken } = require("../../../Util/SessionToken");
@@ -357,9 +357,9 @@ const sessionService = {
 
     return {qr, url};
   },
-  async QRforEFada(userId) {
+  async QRforEFada(id) {
 
-    const userId = await User.findByPk(userId);
+    const userId = await User.findByPk(id);
 
     if (!userId) {
       throw new Error("user not found");

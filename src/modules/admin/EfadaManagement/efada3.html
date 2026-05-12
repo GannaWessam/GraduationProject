@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>خطاب إفادة الدراسات العليا</title>
+    <style>
+      @page {
+        size: A4 portrait;
+        margin: 0.8cm;
+      }
+    
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+    
+      body {
+        font-size: 10.5pt;  
+        line-height: 1.2;
+        font-family: "Amiri", Arial, Tahoma, serif;
+        color: #000;
+        direction: rtl;
+        text-align: right;
+      }
+    
+      .header {
+        position: relative;
+        height: 1.3cm;
+        margin-bottom: 0.1cm;
+      }
+    
+      .image1 {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 25px;
+      }
+    
+      .project-info {
+        position: absolute;
+        right: 1.5cm;
+        left: 1cm;
+        text-align: center;
+        font-size: 10pt;
+        font-weight: bold;
+      }
+    
+      hr.separator {
+        margin: 0.05cm 0;
+      }
+    
+      .addressee,
+      .addressee2 {
+        font-size: 10pt;
+        font-weight: bold;
+      }
+    
+      .addressee2 {
+        text-align: center;
+      }
+    
+      .content-block {
+        margin-bottom: 0.08cm;
+        line-height: 1.15;
+        text-align: justify;
+      }
+    
+      .closing {
+        margin-top: 0.1cm;
+        font-weight: bold;
+      }
+    
+      .signatures {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 0.25cm;
+        font-size: 9.5pt;
+      }
+    
+      .sig-block {
+        width: 32%;
+        text-align: center;
+      }
+    
+      .sig-title {
+        font-weight: bold;
+        margin-bottom: 0.2cm;
+      }
+    
+      /* QR ULTRA SMALL */
+      .qr-block {
+        width: 15%;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+    
+      .qr-frame {
+        padding: 2px;
+        justify-content: center;
+        align-items: center;
+      }
+    
+      .qr-image {
+        width: 25px;
+        height: 25px;
+      }
+    
+      .date {
+        margin-top: 0.15cm;
+        font-size: 9.5pt;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="{{logo}}" alt="" class="image1" />
+        <div class="project-info">
+          مشروع التدريب على تكنولوجيا المعلومات – جامعة العاصمة (حلوان
+          سابقاً)<br />
+          دورات شهادة أساسيات التحول الرقمي (FDTC)
+        </div>
+      </div>
+      <hr class="separator" />
+      <div class="main-content">
+        <div class="addressee">السيد الأستاذ الدكتور/</div>
+        <div class="addressee2">
+          وكيل كلية {{collegename}} لشئون الدراسات العليا والبحوث
+        </div>
+
+        <div class="content-block">تحية طيبة وبعد ،،،</div>
+        <div class="content-block">
+          نهدي لسيادتكم وافر التحية والتقدير والاحترام.
+        </div>
+
+        <div class="content-block">
+          في إطار العمل على تنفيذ قرارات الجامعة والمجلس الأعلى للجامعات نحو
+          تفعيل دورات شهادة أساسيات التحول الرقمي والتي تعد شرطاً لمنح شهادات
+          الدراسات العليا.
+        </div>
+
+        <div class="content-block">
+          نتشرف بأن نفيد سيادتكم علماً بأن / {{name}} رقم قومي/جواز سفر:
+          {{nationalId}} قد تم الإنتهاء والاجتياز بنجاح لاختبارات دورة شهادة
+          أساسيات التحول الرقمي المطلوبة لمنح شهادات الدراسات العليا.
+        </div>
+
+        <div class="content-block">
+          وقد تم التحقق ومراجعة حالة اجتياز الاختبارات على نظام المجلس الأعلى
+          للجامعات من خلال السيد الدكتور/ مدير مشروع التدريب على تكنولوجيا
+          المعلومات – جامعة العاصمة (حلوان سابقاً).
+        </div>
+
+        <div class="content-block">
+          وهذا للعلم والإحاطة ولحين صدور الشهادة الأصلية من المجلس الأعلى
+          للجامعات ودون أدنى مسئولية على مشروع التدريب على تكنولوجيا المعلومات –
+          جامعة العاصمة (حلوان سابقاً).
+        </div>
+
+        <div class="closing">
+          وتفضلوا سيادتكم بقبول فائق الإحترام والتقدير،،،
+        </div>
+
+        <div class="signatures">
+          <div class="sig-block">
+            <div class="sig-title">{{titlePersonInefada1}}</div>
+            {{nameOfPersonInefada1}}
+          </div>
+
+
+          <div class="qr-block">
+            <div class="qr-frame">
+              <img
+                  class="qr-image"
+                  src="{{qr_base64}}"
+                  alt="QR"
+                />
+            </div>
+            <!-- <div class="qr-caption">
+              رمز التحقق من صحة الإفادة
+              <small>Scan to verify</small>
+            </div> -->
+          </div>
+
+          <div class="sig-block">
+            <div class="sig-title">{{titlePersonInefada2}}</div>
+            {{nameOfPersonInefada2}}
+          </div>
+        </div>
+
+        <div class="date">تحريراً في: {{date}}</div>
+      </div>
+    </div>
+  </body>
+</html>

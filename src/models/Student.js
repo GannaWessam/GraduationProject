@@ -16,7 +16,10 @@ module.exports = (sequelize) => {
       Mobile: { type: DataTypes.STRING(200), allowNull: false },
       StudyLan: { type: DataTypes.STRING(200), allowNull: false },
       nationality: { type: DataTypes.STRING(100), allowNull: true },
-      QRdata: { type: DataTypes.STRING(200), allowNull: true },
+      QRdata: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
       nationalId: { type: DataTypes.STRING(50), allowNull: false, unique: true },
       nationalIdImage: {
         type: DataTypes.STRING(300),

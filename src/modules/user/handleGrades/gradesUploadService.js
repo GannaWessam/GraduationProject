@@ -310,6 +310,12 @@ async function processOneStudent(
   const studentFailed = passedCount < requiredExamsPassed;
   if (studentSucceeded) {
     await studentRecord.update({ status: "succeeded" }, { transaction: t });
+    await studentCourse.destroy({
+      where: {
+        userId: userId
+      },
+      transaction: t
+    });
     await User.increment("tokenVersion", { where: { userId: userId } });
   } else if (studentFailed) {
     await studentRecord.update({ status: "failed" }, { transaction: t });

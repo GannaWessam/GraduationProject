@@ -6,21 +6,21 @@ import uuid
 from utils import apply_codex_logic, clean_national_id, hash_password
 
 # ---------------- READ CSV ----------------
-df = pd.read_excel("FinalClean.xlsx")
+df = pd.read_excel("Success_Student.xlsx")
 df = df.rename(columns={"password": "passwordHash"})
 
 # ---------------- CODEX LOGIC (BEFORE CLEANING) ----------------
 # df = apply_codex_logic(df, True, "conflicts_before_cleaning.csv")
 
 # ---------------- CLEAN NATIONAL ID ----------------
-df["nationalId"] = df["nationalId"].apply(clean_national_id)
+# df["nationalId"] = df["nationalId"].apply(clean_national_id)
 
 # # ---------------- CODEX LOGIC (AFTER CLEANING) ----------------
 # df = apply_codex_logic(df, True, "conflicts_after_cleaning.csv")
 
 # ---------------- HANDLE NULL NATIONAL ID ----------------
-mask_null = df["nationalId"].isna()
-df.loc[mask_null, "nationalId"] = [f"TEMP_NULL_{i}" for i in range(mask_null.sum())]
+# mask_null = df["nationalId"].isna()
+# df.loc[mask_null, "nationalId"] = [f"TEMP_NULL_{i}" for i in range(mask_null.sum())]
 
 # ---------------- AUDIT DUPLICATES ----------------
 duplicates_mask = df["nationalId"].duplicated(keep=False)
@@ -36,7 +36,7 @@ df.loc[duplicates_mask, "nationalId"] = [
     f"{val}_{i}" for i, val in enumerate(df.loc[duplicates_mask, "nationalId"])
 ]
 
-print(f"[INFO] NULL nationalId fixed: {mask_null.sum()}")
+# print(f"[INFO] NULL nationalId fixed: {mask_null.sum()}")
 print(f"[INFO] Duplicate nationalId fixed: {duplicates_mask.sum()}")
 
 # ---------------- USERS PREP ----------------
@@ -66,7 +66,7 @@ buffer.seek(0)
 conn = psycopg2.connect(
     dbname="Digital Transformation",
     user="postgres",
-    password="123",
+    password="ahmed711.aa",
     host="localhost"
 )
 

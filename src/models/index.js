@@ -49,6 +49,7 @@ const examReservationArchive = require("./ExamReservationArchive")(sequelize);
 const Reexam = require("./ReexamRequest")(sequelize);
 const Register = require("./RegisterRequest")(sequelize);
 const systemdata = require("./SystemData")(sequelize);
+const userReceipts = require("./userReceipts")(sequelize);
 
 Student.hasMany(Payment, {
   foreignKey: "userId",
@@ -566,6 +567,27 @@ Receipts.hasMany(Service, {
 });
 
 
+
+Student.hasMany(userReceipts, {
+  foreignKey: 'userId',
+  sourceKey: 'userId',
+});
+
+userReceipts.belongsTo(Student, {
+  foreignKey: 'userId',
+  targetKey: 'userId',
+});
+
+Payment.hasOne(userReceipts, {
+  foreignKey: 'paymentId',
+  sourceKey: 'paymentId',
+});
+
+userReceipts.belongsTo(Payment, {
+  foreignKey: 'paymentId',
+  targetKey: 'paymentId',
+});
+
 module.exports = {
   sequelize,
   User,
@@ -615,5 +637,6 @@ module.exports = {
   Reexam,
   Register,
   systemdata,
-  Receipts
+  Receipts,
+  userReceipts
 };

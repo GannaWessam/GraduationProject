@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const HTMLtoDOCX = require("html-to-docx");
 const QRCode = require("qrcode");
+const htmlDocx = require("html-docx-js");
 const {
   efada,
   Student,
@@ -19,6 +20,15 @@ const { splitLang } = require("../../../Helpers/langHelper");
  * Find the index right after the matching </div> for a <div ...> that starts at openIdx.
  * Returns -1 if no match.
  */
+function imageToBase64(imagePath) {
+
+  const image = fs.readFileSync(imagePath);
+
+  const ext = path.extname(imagePath)
+    .replace(".", "");
+
+  return `data:image/${ext};base64,${image.toString("base64")}`;
+}
 function findMatchingDivClose(html, openIdx) {
   let i = openIdx + 4; // skip past "<div"
   let depth = 1;
@@ -401,6 +411,71 @@ const efadaService = {
 
     return docxBuffer;
   },
+
+  generateWordFile: async (data) => {
+
+    try {
+
+      const htmlPath = path.join(
+        __dirname,
+        "efada3.html"
+      );
+    
+      // read html template
+      let html = fs.readFileSync(
+        htmlPath,
+        "utf8"
+      );
+    
+      // convert logo image to base64
+      const logoBase64 = imageToBase64(
+        path.join(
+          __dirname,
+          "Picture1.png"
+        )
+      );
+    
+      // add image inside html
+      html = html.replace(
+        /{{logo}}/g,
+        logoBase64
+      );
+    
+      // replace placeholders
+      Object.keys(data).forEach((key) => {
+    
+        const regex = new RegExp(
+          `{{${key}}}`,
+          "g"
+        );
+    
+        html = html.replace(
+          regex,
+          data[key] || ""
+        );
+      });
+    
+      // convert html to blob
+      const blob = htmlDocx.asBlob(html);
+    
+      // blob -> arrayBuffer
+      const arrayBuffer =
+        await blob.arrayBuffer();
+    
+      // arrayBuffer -> buffer
+      const buffer =
+        Buffer.from(arrayBuffer);
+    
+      return buffer;
+  
+    } catch (error) {
+  
+      console.error(error);
+  
+      throw error;
+    }
+  },
+  
 };
 
 module.exports = efadaService;

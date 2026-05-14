@@ -515,7 +515,6 @@ const ReexamService = async (userId, examId, req) => {
         userId: userId,
         paymentId: payment.paymentId,
         examId,
-        date: new Date(),
       },
       { transaction: t }
     );

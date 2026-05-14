@@ -2,6 +2,7 @@
 
 const QRCode = require("qrcode");
 const { Student } = require("../src/models"); 
+const { generateQr } = require("../src/modules/Auth/helpers/userHelper");
 
 async function generateMissingQRs() {
   try {
@@ -11,7 +12,7 @@ async function generateMissingQRs() {
     // get students with null qr
     const students = await Student.findAll({
       where: {
-        QRdata: null,
+        profilePhoto: null,
       },
     });
 
@@ -19,17 +20,11 @@ async function generateMissingQRs() {
 
     for (const student of students) {
 
-      const qrData = JSON.stringify({
-        name: student.fullName,
-        nationalId: student.nationalId,
-      });
-
-      // generate qr base64
-      const qrBase64 = await QRCode.toDataURL(qrData);
+      const qrImage =await generateQr(student.fullName, student.nationalId);
 
       // update database
       await student.update({
-        QRdata: qrBase64,
+        profilePhoto: qrImage,
       });
 
       console.log(`Generated QR for: ${student.fullName}`);

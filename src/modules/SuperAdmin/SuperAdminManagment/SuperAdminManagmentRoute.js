@@ -7,7 +7,7 @@ const { validateToken } = require("../../../middlewares/token");
 router.get("/",validateToken,catchError(SuperAdminController.getAll));
 router.get("/:id",validateToken,catchError(SuperAdminController.getById));
 router.put("/:id",validateToken,catchError(SuperAdminController.update));
-router.post("/add-SuperAdmin",validateToken,catchError(SuperAdminController.register));
+router.post("/add-SuperAdmin",catchError(SuperAdminController.register));
 
 
 

@@ -524,8 +524,6 @@ Student.hasMany(Register, {
 Register.belongsTo(Payment, { foreignKey: "paymentId" });
 Payment.hasMany(Register, { foreignKey: "paymentId" });
 
-Reexam.belongsTo(Product, { foreignKey: "ProductId" });
-Product.hasMany(Reexam, { foreignKey: "ProductId" });
 
 Product.belongsTo(Receipts, {
   foreignKey: "receiptId",

@@ -15,6 +15,7 @@ const {
 } = require("../../../models/index");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 const { splitLang } = require("../../../Helpers/langHelper");
+const { createEfadaDOCX } = require("./createEfadaDOCX");
 
 /**
  * Find the index right after the matching </div> for a <div ...> that starts at openIdx.
@@ -328,6 +329,15 @@ const efadaService = {
 
     await browser.close();
     return pdf;
+  },
+  createEfadaDOCX: async ({ nationalId, date, picturePath }) => {
+    const student = await Student.findOne({ where: { nationalId } });
+    if (!student) throw new Error("student_not_found");
+  
+    const sd = await systemdata.findOne();
+  
+    const buffer = await createEfadaDOCX({ nationalId, date, picturePath, student, sd });
+    return buffer;
   },
 
   /**

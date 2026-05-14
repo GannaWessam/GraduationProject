@@ -15,6 +15,7 @@ const checkPermission = require('../../../middlewares/checkPermission');
 router.get('/',validateToken,checkPermission("VIEW_STATEMENTS") ,efadaController.getAllEfadas);
 router.post('/',validateToken,efadaController.addEfada);
 router.post("/efada",validateToken,checkPermission("GENERATE_STATEMENTS") ,efadaController.generateEfada);
-router.post("/efada/word" ,efadaController.generateWord);
+router.post("/efada/word",validateToken,efadaController.generateEfadaDOCX);
+// router.post("/efada/word" ,efadaController.generateWord);
 
 module.exports = router;

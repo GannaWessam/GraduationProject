@@ -6,7 +6,6 @@ module.exports = (sequelize) => {
     userId: { type: DataTypes.UUID, allowNull: true},
     examId: { type: DataTypes.UUID, allowNull: false},
     paymentId:{ type: DataTypes.UUID, allowNull: true},
-    date: { type: DataTypes.DATE, allowNull: false},
   }, {
     tableName: 'ReexamRequest',
   });

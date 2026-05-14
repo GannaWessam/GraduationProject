@@ -28,7 +28,9 @@ async function registerStudentsToEvent(eventId) {
     console.log("✅ DB Connected");
 
     // ---------------- READ EXCEL ----------------
-    const nationalIds = loadNationalIds("students.xlsx");
+    const nationalIds = loadNationalIds("scripts/No_Degrees_Type_1.xlsx");
+    console.log(nationalIds);
+    
 
     console.log(`📄 Loaded ${nationalIds.length} national IDs`);
 
@@ -45,6 +47,7 @@ async function registerStudentsToEvent(eventId) {
     // ---------------- REGISTER ----------------
     let successCount = 0;
     let failedCount = 0;
+    let failed=[]
 
     for (const student of students) {
       try {
@@ -62,6 +65,7 @@ async function registerStudentsToEvent(eventId) {
       } catch (err) {
 
         failedCount++;
+        failed.push(student.nationalId)
 
         console.log(
           `❌ Failed ${student.nationalId}: ${err.message}`
@@ -73,6 +77,8 @@ async function registerStudentsToEvent(eventId) {
     console.log("\n🎉 REGISTRATION FINISHED");
     console.log(`✅ Success: ${successCount}`);
     console.log(`❌ Failed: ${failedCount}`);
+    console.log(`Filed National Ids ${failed}`);
+    
 
     process.exit();
 

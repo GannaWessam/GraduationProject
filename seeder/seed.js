@@ -19,7 +19,7 @@ async function seedAllPart1() {
       "Tanta University|جامعة طنطا",
       "Mansoura University|جامعة المنصورة",
       "Zagazig University|جامعة الزقازيق",
-      "Helwan University|جامعة حلوان",
+      "Capital University|جامعة العاصمة",
       "Minia University|جامعة المنيا",
       "Menoufia University|جامعة المنوفية",
       "Suez Canal University|جامعة قناة السويس",
@@ -78,7 +78,8 @@ async function seedAllPart1() {
       "Deraya University|جامعة دراية",
       "Merit University|جامعة ميريت",
       "Sinai University|جامعة سيناء",
-      "Berlin Technical University|جامعة برلين التقنية"
+      "Berlin Technical University|جامعة برلين التقنية",
+      "Other | اخري"
     ];
 
     const universityData = universities.map((name) => ({
@@ -95,30 +96,51 @@ async function seedAllPart1() {
     // 2️⃣ الكليات
     // ========================
     const colleges = [
-      "Faculty of Engineering|كلية الهندسة",
+      "Faculty of Engineering (Helwan)|كلية هندسة حلوان",
+      "Faculty of Engineering (Mataria)|كلية هندسة المطرية",
+    
       "Faculty of Applied Arts|كلية الفنون التطبيقية",
+      "Faculty of Fine Arts|كلية الفنون الجميلة",
+      "Faculty of Art Education|كلية التربية الفنية",
+      "Faculty of Music Education|كلية التربية الموسيقية",
+    
       "Faculty of Medicine|كلية الطب",
+      "Faculty of Pharmacy|كلية الصيدلة",
+      "Faculty of Nursing|كلية التمريض",
+      "Faculty of Technical Nursing Institute|كلية المعهد الفنى للتمريض",
+      "Faculty of Physical Therapy|كلية العلاج الطبيعي",
+    
       "Faculty of Computer and AI|كلية الحاسبات والذكاء الاصطناعي",
+      "Faculty of Science|كلية العلوم",
+      "Faculty of Agriculture|كلية الزراعة",
+    
       "Faculty of Law|كلية الحقوق",
       "Faculty of Commerce|كلية التجارة",
-      "Faculty of Pharmacy|كلية الصيدلة",
-      "Faculty of Science|كلية العلوم",
+      "Faculty of Commerce and Business Administration|كلية التجارة وإدارة الأعمال",
+    
       "Faculty of Arts|كلية الآداب",
-      "Faculty of Nursing|كلية التمريض",
-      "Faculty of Home Economics|كلية الاقتصاد المنزلي",
       "Faculty of Social Work|كلية الخدمة الاجتماعية",
-      "Faculty of Fine Arts|كلية فنون جميلة",
-      "Faculty of Agriculture|كلية الزراعة",
-      "Faculty of Economics and Political Science|كلية الاقتصاد والعلوم السياسية",
+      "Faculty of Home Economics|كلية الاقتصاد المنزلي",
+    
+      "Faculty of Tourism and Hotels|كلية السياحة والفنادق",
       "Faculty of Mass Communication|كلية الإعلام",
       "Faculty of Archaeology|كلية الآثار",
+    
+      "Faculty of Economics and Political Science|كلية الاقتصاد والعلوم السياسية",
       "Faculty of Specific Education|كلية التربية النوعية",
-      "Faculty of Physical Therapy|كلية العلاج الطبيعي",
-      "Faculty of Al-Alsun (Languages)|كلية الألسن",
-      "Faculty of Tourism and Hotels|كلية السياحة والفنادق",
+    
       "Faculty of Sport Sciences (Men)|كلية علوم الرياضة بنين",
       "Faculty of Sport Sciences (Women)|كلية علوم الرياضة بنات",
-      "National Institute of Intellectual Property|المعهد القومي للملكية الفكرية"
+    
+      "Faculty of Al-Alsun (Languages)|كلية الألسن",
+      "National Institute of Intellectual Property|المعهد القومي للملكية الفكرية",
+    
+      "Faculty of Military Science|الكلية العسكرية",
+    
+      "Faculty of Industrial Education|كلية التعليم الصناعي",
+      "Faculty of Technology and Education|كلية التكنولوجيا والتعليم",
+    
+      "Other|أخرى"
     ];
 
     const collegeData = colleges.map((name) => ({
@@ -161,12 +183,12 @@ async function seedAllPart1() {
       "Department of Nuclear Engineering|قسم الهندسة النووية",
       "Department of Mechanical Engineering|قسم الهندسة الميكانيكية"
     ];
-    console.log(getCollegeId("كلية الهندسة") , "88888888888888888888888888888888888888888888888888888")
+    console.log(getCollegeId("كلية هندسة حلوان") , "88888888888888888888888888888888888888888888888888888")
     engSections.forEach((name) =>
       departments.push({
         DepartmentId: uuidv4(),
         Name: name,
-        CollegeId: getCollegeId("كلية الهندسة"),
+        CollegeId: getCollegeId("كلية هندسة حلوان"),
         createdAt: now,
         updatedAt: now,
       })

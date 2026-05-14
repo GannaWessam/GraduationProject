@@ -100,7 +100,7 @@
         font-weight: bold;
       }
       .qr-block {
-        width: 32%;
+        width: 100%;
         text-align: center;
         display: flex;
         flex-direction: column;
@@ -109,7 +109,6 @@
       }
       .qr-frame {
         display: inline-block;
-        padding: 6px;
         background: #fff;
         border: 1.2px solid #000;
         border-radius: 4px;
@@ -118,8 +117,8 @@
       }
       .qr-image {
         display: block;
-        width: 105px;
-        height: 105px;
+        width: 120px;
+        height: 120px;
       }
       .qr-caption {
         margin-top: 0.18cm;
@@ -207,15 +206,15 @@
             <div class="sig-title">{{titlePersonInefada2}}</div>
             {{nameOfPersonInefada2}}
           </div>
-          <!-- <div class="qr-block">
-            <div class="qr-frame">
-              <img
-                class="qr-image"
-                src="https://api.qrserver.com/v1/create-qr-code/?size=210x210&margin=0&ecc=M&data=https%3A%2F%2Fverify.example.com%2Fefada%2FPLACEHOLDER-{{nationalId}}"
-                alt="رمز التحقق من صحة الإفادة"
-              />
-            </div>
-          </div> -->
+        </div>
+        <div class="qr-block">
+          <div class="qr-frame">
+            <img
+              class="qr-image"
+              src="{{Picture2.png}}"
+              alt="رمز التحقق من صحة الإفادة"
+            />
+          </div>
         </div>
 
         <div class="date">تحريراً في: {{date}}</div>

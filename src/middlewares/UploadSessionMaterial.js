@@ -13,7 +13,7 @@ const uploadSessionMaterials = uploadMultipleFiles(
 const uploadReceiptImage = uploadSingleFile("receipt", {
   allowedTypes: ["image"],
   allowedExtensions: [".jpg", ".jpeg", ".png", ".webp"],
-  destination: "uploads/receipts",
+  destination: "uploads/receipt",
   maxSize: 10 * 1024 * 1024,
 });
 

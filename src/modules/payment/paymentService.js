@@ -111,7 +111,13 @@ const getPaymentsByUserId = async (userId,features) => {
       {
         model:currency,
         attributes:["code"]
-      }
+      },
+      {
+        model: userReceipts,
+        as: "receipt",
+        attributes: ["receipt"],
+        required: false,
+      },
     ],
     order: [["timestamp", "DESC"]],
   });
@@ -157,7 +163,13 @@ const getPendingPaymentsByUserId = async (userId,features) => {
       {
         model:currency,
         attributes:["code"]
-      }
+      },
+      {
+        model: userReceipts,
+        as: "receipt",
+        attributes: ["receipt"],
+        required: false,
+      },
     ],
     order: [["timestamp", "DESC"]],
   });

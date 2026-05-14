@@ -576,7 +576,7 @@ userReceipts.belongsTo(Student, {
   targetKey: 'userId',
 });
 
-Payment.hasOne(userReceipts, {
+Payment.hasMany(userReceipts, {
   foreignKey: 'paymentId',
   sourceKey: 'paymentId',
   as: "receipt",

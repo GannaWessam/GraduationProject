@@ -17,16 +17,17 @@ const {
 const { splitLang } = require("../../../Helpers/langHelper");
 const QRCode = require("qrcode");
 
-  const testQr=async() => {
-    const qr = await QRCode.toDataURL("https://web.whatsapp.com/");
+  const testQr=async(link) => {
+    const qr = await QRCode.toDataURL(link);
     return qr
   }
   
   async function createEfadaDOCX({ nationalId, date, picturePath, student, sd }) {
+    const url = `${process.env.HOST}/profile?ComesFromEfada=${true}`;
     // ── Read picture + fetch QR in parallel ──────────────────────────────────
     const [pictureBuffer, qrBuffer] = await Promise.all([
       Promise.resolve(fs.readFileSync(picturePath)),
-      testQr()
+      testQr(url)
     ]);
   
     // ── Shared style helpers ──────────────────────────────────────────────────

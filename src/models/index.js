@@ -579,6 +579,7 @@ userReceipts.belongsTo(Student, {
 Payment.hasOne(userReceipts, {
   foreignKey: 'paymentId',
   sourceKey: 'paymentId',
+  as: "receipt",
 });
 
 userReceipts.belongsTo(Payment, {

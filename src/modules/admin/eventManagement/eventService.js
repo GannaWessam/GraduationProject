@@ -218,10 +218,68 @@ const deleteEventById = async (eventId) => {
   });
 };
 
+const deleteEventService = async (eventId) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const Event = await event.findByPk(eventId, { transaction });
+
+    if (!Event) {
+      throw new Error("Event not found");
+    }
+
+    // prevent delete if registered students exist
+    if (Event.numberOfRegistered > 0) {
+      throw new Error(
+        "Cannot delete event because students are registered | لا يمكن حذف الفعالية لوجود طلاب مسجلين",
+      );
+    }
+
+    const reservationCount = await reservation.count({
+      where: { eventId },
+      transaction,
+    });
+
+    // secure validation
+    if (reservationCount > 0) {
+      throw new Error(
+        "Cannot delete event because students are registered | لا يمكن حذف الفعالية لوجود طلاب مسجلين",
+      );
+    }
+
+    // delete linked exams
+    await exam.destroy({
+      where: { eventId },
+      transaction,
+    });
+
+    // delete linked trainings
+    await training.destroy({
+      where: { eventId },
+      transaction,
+    });
+
+    // delete event
+    await Event.destroy({ transaction });
+
+    await transaction.commit();
+
+    return {
+      success: true,
+      message: "Event deleted successfully | تم حذف الفعالية بنجاح",
+    };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+
+
 module.exports = {
   getAllEvents,
   getEventById,
   closeEventById,
   updateEvent,
   deleteEventById,
+  deleteEventService
 };

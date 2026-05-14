@@ -10,4 +10,11 @@ const uploadSessionMaterials = uploadMultipleFiles(
   }
 );
 
-module.exports = {uploadSessionMaterials};
+const uploadReceiptImage = uploadSingleFile("receipt", {
+  allowedTypes: ["image"],
+  allowedExtensions: [".jpg", ".jpeg", ".png", ".webp"],
+  destination: "uploads/receipts",
+  maxSize: 10 * 1024 * 1024,
+});
+
+module.exports = {uploadSessionMaterials , uploadReceiptImage};

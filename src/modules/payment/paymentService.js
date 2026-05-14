@@ -1,4 +1,4 @@
-const {Payment , Student ,Product ,webhook ,sequelize, Service, currency , studentCourse ,Reexam , exam , Register, User} = require("../../models");
+const {Payment , Student ,Product ,webhook ,sequelize, Service, currency , studentCourse ,Reexam , exam , Register, User ,userReceipts} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
@@ -456,11 +456,88 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
   }
 }
 
+const createReceipt = async ({ userId, paymentId, receipt }) => {
+
+  const newReceipt = await userReceipts.create({
+    userId,
+    paymentId,
+    receipt,
+  });
+
+  return newReceipt;
+};
+
+const getAllReceipts = async (userId,features) => {
+
+  const page = features.page * 1 || 1;
+  const limit = features.limit * 1 || 10;
+  const offset = (page - 1) * limit;
+
+  const { rows, count } = await Payment.findAndCountAll({
+    where: {
+      userId,
+      status: {
+        [Op.ne]: "PAID",
+      },
+    },
+
+    limit,
+    offset,
+    distinct: true,
+    attributes: [
+      "paymentId",
+      "userId",
+      "productId",
+      "amount",
+      "status",
+      "timestamp",
+      "serviceId",
+    ],
+
+    include: [
+      {
+        model: Product,
+        attributes: ["courseName"],
+      },
+      {
+        model: Service,
+        attributes: ["name"],
+      },
+      {
+        model: currency,
+        attributes: ["code"],
+      },
+
+      {
+        model: userReceipts,
+        as: "receipt",
+        attributes: ["receipt"],
+        required: false,
+      },
+    ],
+
+    order: [["timestamp", "DESC"]],
+  });
+
+  return PaginatedResponse.fromApiFeature(
+    features,
+    count,
+    rows,
+    "Fees fetched successfully"
+  );
+};
+
+
+
+
+
 module.exports = {
   createPayment,
   getPaymentsByUserId,
   getAllPayments,
   processWebhook,
   handleUserPaymentAndRegistration,
-  getPendingPaymentsByUserId
+  getPendingPaymentsByUserId,
+  createReceipt,
+  getAllReceipts
 };

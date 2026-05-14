@@ -4,9 +4,15 @@ const paymentController = require('./paymentController');
 const catchError = require("../../middlewares/catchError");
 const { validateToken } = require("../../middlewares/token");
 const checkPermission = require('../../middlewares/checkPermission');
+const { uploadReceiptImage } = require("../../middlewares/UploadSessionMaterial");
 
 
 router.get("/", validateToken,checkPermission("VIEW_FINANCE"), paymentController.getAllPayments);
+
+router.get(
+  "/getAllReceipts/:userId",
+  paymentController.getAllReceiptsController
+);
 
 router.get("/:userId", paymentController.getPaymentsByUserId);
 router.get("/pending/:userId", paymentController.getPendingPaymentsByUserId);
@@ -19,5 +25,14 @@ router.post(
     "/handle-user/:paymentId",
     catchError(paymentController.handleUserPayment)
   );
+
+
+router.post(
+    "/upload",
+    uploadReceiptImage,
+    paymentController.uploadReceiptController
+  );
+  
+
 
 module.exports = router;

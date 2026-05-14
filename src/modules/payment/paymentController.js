@@ -166,11 +166,66 @@ async function handleUserPayment(req, res, next) {
 }
 
 
+const uploadReceiptController = async (req, res) => {
+  try {
+
+    const { userId, paymentId } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Receipt image is required",
+      });
+    }
+
+    const receipt = await paymentService.createReceipt({
+      userId,
+      paymentId,
+      receipt: req.file.filename,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Receipt uploaded successfully",
+      data: receipt,
+    });
+
+  } catch (error) {
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+};
+
+const getAllReceiptsController = async (req, res ,next) => {
+  try {
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
+    const { userId } = req.params;
+
+    const payments = await paymentService.getAllReceipts(userId,features);
+
+    res.status(200).json(ApiResponse.success(payments,"Payment fetched successfully"));
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createPaymentAndRedirect,
   getPaymentsByUserId,
   getAllPayments,
   handleWebhook,
   handleUserPayment,
-  getPendingPaymentsByUserId
+  getPendingPaymentsByUserId,
+  uploadReceiptController,
+  getAllReceiptsController
 };

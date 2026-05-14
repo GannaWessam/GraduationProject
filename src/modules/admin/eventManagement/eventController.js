@@ -54,10 +54,26 @@ const deleteEventById = async (req, res) => {
     .json(ApiResponse.success(result, "Event deleted successfully"));
 };
 
+const deleteEventController = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    const result = await eventService.deleteEventService(eventId);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllEvents,
   getEventById,
   closeEventById,
   updateEvent,
   deleteEventById,
+  deleteEventController
 };

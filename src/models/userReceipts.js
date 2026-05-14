@@ -19,6 +19,10 @@ module.exports = (sequelize) => {
       },
     receipt: { 
         type: DataTypes.STRING(300), 
+        get() {
+            const rawValue = this.getDataValue("receipt");
+            return rawValue ? `${process.env.HOST_BACK}/uploads/receipt/${rawValue}` : null;
+          },
     },
     
   }, {

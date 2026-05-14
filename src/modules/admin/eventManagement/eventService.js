@@ -231,7 +231,19 @@ const deleteEventService = async (eventId) => {
     // prevent delete if registered students exist
     if (Event.numberOfRegistered > 0) {
       throw new Error(
-        "Cannot delete event because students are registered",
+        "Cannot delete event because students are registered | لا يمكن حذف الفعالية لوجود طلاب مسجلين",
+      );
+    }
+
+    const reservationCount = await reservation.count({
+      where: { eventId },
+      transaction,
+    });
+
+    // secure validation
+    if (reservationCount > 0) {
+      throw new Error(
+        "Cannot delete event because students are registered | لا يمكن حذف الفعالية لوجود طلاب مسجلين",
       );
     }
 
@@ -254,7 +266,7 @@ const deleteEventService = async (eventId) => {
 
     return {
       success: true,
-      message: "Event deleted successfully",
+      message: "Event deleted successfully | تم حذف الفعالية بنجاح",
     };
   } catch (error) {
     await transaction.rollback();

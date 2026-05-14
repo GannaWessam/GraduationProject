@@ -37,6 +37,6 @@ router.delete(
   catchError(eventController.deleteEventById),
 );
 
-router.delete("/deleteEvent/:eventId",  catchError(eventController.deleteEventController));
+router.delete("/deleteEvent/:eventId",validateToken,catchError(eventController.deleteEventController));
 
 module.exports = router;

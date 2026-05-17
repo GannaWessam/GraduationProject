@@ -451,11 +451,11 @@ const ReexamService = async (userId, examId, req) => {
     }
 
     // 2️⃣ Determine service name based on student type
-    const serviceName = "Re Exam | اعادة امتحان";
+    const serviceId = process.env.RE_EXAM_ID
 
     // 3️⃣ Get service
     const service = await Service.findOne({
-      where: { name: serviceName },
+      where: { serviceId: serviceId },
       transaction: t,
     });
 
@@ -465,7 +465,7 @@ const ReexamService = async (userId, examId, req) => {
 
     // 4️⃣ Determine nationality
     const isEgyptian =
-      student.nationality === "Egyptian" || student.nationality === "مصري";
+        splitLang(student.nationality).en=== "Egyptian" || splitLang(student.nationality).ar === "مصري";
 
     let receiptId;
     let currencyId;

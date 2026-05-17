@@ -302,6 +302,14 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
           transaction: t
         }
       );
+      await Student.update({
+        status:"PAID"
+      },
+      {
+        where:{userId:paymentData.userId},
+        transaction:t
+      }
+    )
     }
 
     if (

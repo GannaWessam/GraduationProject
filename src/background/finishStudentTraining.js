@@ -21,7 +21,7 @@ class FinishStudentTrainingService {
 
   init() {
     this.cronJob = cron.schedule(
-      "53 22 * * *",
+      "0 2 * * *",
       async () => {
         await this.processStudents();
       },

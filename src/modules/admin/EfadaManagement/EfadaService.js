@@ -56,19 +56,19 @@ const efadaService = {
       }
 
       // 2️⃣ Determine service name based on student type
-      let serviceName;
+      let serviceID;
 
       if (["1", "2", "3"].includes(student.type)) {
-        serviceName = "Statement request | طلب افادة دراسات عليا";
+        serviceID = process.env.STATMENT_REQUEST_POST_GRAD_ID
       } else if (student.type === "4") {
-        serviceName = "Statement request | طلب افادة اعضاء هيئة تدريس";
+        serviceID =process.env.STATMENT_REQUEST_STUFF_ID 
       } else {
         throw new Error("Invalid student type");
       }
 
       // 3️⃣ Get service
       const service = await Service.findOne({
-        where: { name: serviceName },
+        where: { serviceId: serviceID },
         transaction: t,
       });
 
@@ -77,8 +77,9 @@ const efadaService = {
       }
 
       // 4️⃣ Determine nationality (نفس Reexam)
+      
       const isEgyptian =
-        student.nationality === "Egyptian" || student.nationality === "مصري";
+        splitLang(student.nationality).en=== "Egyptian" || splitLang(student.nationality).ar === "مصري";
 
       let receiptId;
       let currencyId;

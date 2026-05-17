@@ -192,6 +192,7 @@ const getAllUsersByStatus = async (status, features) => {
   const { count, rows: students } = await Student.findAndCountAll({
     ...features.options,
     where,
+    distinct: true,
     include: [
       {
         model: User,

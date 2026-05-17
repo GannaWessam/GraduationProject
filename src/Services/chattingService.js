@@ -50,8 +50,8 @@ class ChattingService {
     );
     await WebSocketService.notifyClients({
       type:"chat",
+      conversationId:conversationId
     },receiverIds)
-    console.log(receiverIds);
     
     const allOnline = receiverIds.every(id => WebSocketService.onlineUsers.has(id));
     if(allOnline)

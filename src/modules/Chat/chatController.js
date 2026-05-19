@@ -1,6 +1,6 @@
 const chattingService = require("../../Services/chattingService");
 const ApiResponse = require("../../Util/ApiResponse");
-const { getMyTrainers, getMyUsers ,getMessagesByConversationId,getConversationsByUserId} = require("./chatService");
+const { getMyTrainers, getMyUsers ,getMessagesByConversationId,getConversationsByUserId, getUnreadCounts} = require("./chatService");
 
 /**
  * Send a message on a conversation
@@ -303,6 +303,32 @@ const fetchConversations = async (req, res, next) => {
     return next(error);
   }
 };
+
+const getUnreadMessagesCount = async (req, res, next) => {
+  try {
+    const userId = req.userData.id;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json(ApiResponse.error(400, "User ID is required"));
+    }
+
+    const count = await getUnreadCounts(userId);
+
+    return res
+      .status(200)
+      .json(
+        ApiResponse.success(
+          { unreadCount: count },
+          "Unread messages count retrieved successfully"
+        )
+      );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   sendMessageOnConversation,
   createGroupConversation,
@@ -313,5 +339,6 @@ module.exports = {
   getMyPeople,
   fetchMessages,
   fetchConversations,
-  sendVoiceOnConversation
+  sendVoiceOnConversation,
+  getUnreadMessagesCount
 };

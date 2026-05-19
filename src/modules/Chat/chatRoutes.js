@@ -35,6 +35,7 @@ router.get(
 );
 
 router.get('/conversations', validateToken, chatController.fetchConversations);
+router.get('/unread', validateToken, chatController.getUnreadMessagesCount);
 
 
 module.exports = router;

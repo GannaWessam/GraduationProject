@@ -517,6 +517,10 @@ const errorMessages = {
     code: 400,
     msg: "You cannot reserve exams for these courses anymore (attempts >= 4)",
   },
+  "You cannot reserve this event again until your latest exam result is 'failed'.": {
+  code: 400,
+  msg: "You cannot reserve this event again until your latest exam result is failed | لا يمكنك حجز هذه الفعالية مرة أخرى حتى تكون نتيجة آخر امتحان لك راسب",
+},
 };
 
 function getErrorPayload(errorKey) {

@@ -48,6 +48,7 @@ module.exports = (sequelize) => {
       },
       receiptId: { type: DataTypes.INTEGER, allowNull: true },
       receiptIdOthers: { type: DataTypes.INTEGER, allowNull: true },
+      status:{type:DataTypes.BOOLEAN,defaultValue:true,allowNull:false},
     },
     {
       tableName: "products",

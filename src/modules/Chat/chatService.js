@@ -11,6 +11,7 @@ const {
   Message,
   trainer,
 } = require("../../models");
+const { fn, col, Op, where, cast } = require("sequelize");
 async function getMyTrainers(userId) {
   const records = await reservation.findAll({
     where: { userId },
@@ -270,10 +271,49 @@ async function getMessagesByConversationId(conversationId) {
     total: formattedMessages.length,
   };
 }
+async function getUnreadCounts(userId) {
+  try {
+    const unreadMessages = await Message.findAll({
+      attributes: [
+        "conversationId",
+        [fn("COUNT", col("messageId")), "unreadCount"],
+      ],
+
+      where: {
+        receiverIds: {
+          [Op.contains]: cast([userId], "uuid[]"),
+        },
+
+        [Op.not]: [
+          where(
+            col("seenBy"),
+            Op.contains,
+            cast([userId], "uuid[]")
+          ),
+        ],
+      },
+
+      group: ["conversationId"],
+
+      raw: true,
+    });
+
+    return unreadMessages.reduce((acc, item) => {
+      acc[item.conversationId] = Number(item.unreadCount);
+      return acc;
+    }, {});
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+
 
 module.exports = {
   getMyTrainers,
   getMyUsers,
   getConversationsByUserId,
   getMessagesByConversationId,
+  getUnreadCounts
 };

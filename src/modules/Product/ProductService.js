@@ -1,4 +1,4 @@
-const { Product, ProductAllowedUserType, currency , course ,productCourse, Receipts, Payment} = require("../../models");
+const { Product, ProductAllowedUserType, currency , course ,productCourse, Receipts, Payment, sequelize} = require("../../models");
 const ApiFeature = require("../../Util/ApiFeatures");
 const { Op } = require("sequelize");
 const { concatLang } = require("../../Helpers/langHelper");
@@ -6,6 +6,57 @@ const { formatProduct } = require("./helpers/responseHelper");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const logger = require("../../Util/logger");
 async function getAllProductsService(reqQuery = {}) {
+  const apiFeature = new ApiFeature(reqQuery)
+    .pagination()
+    .filter()
+    .sort()
+    .selectedFields()
+    .search();
+
+  if (apiFeature.options.where?.userType) {
+    delete apiFeature.options.where.userType;
+  }
+  apiFeature.options.where = {
+    ...apiFeature.options.where,
+    status: true,
+  };
+
+  let allowedUserTypeWhere = undefined;
+  if (reqQuery.userType) {
+    let types = Array.isArray(reqQuery.userType)
+      ? reqQuery.userType
+      : [reqQuery.userType];
+
+    allowedUserTypeWhere = { userType: { [Op.in]: types } };
+  }
+
+  apiFeature.options.include = [
+    {
+      model: ProductAllowedUserType,
+      as: "allowedUserTypes",
+      attributes: ["userType"],
+      where: allowedUserTypeWhere,
+      required: !!allowedUserTypeWhere,
+    },
+    {
+      model: currency,
+      attributes: ["code"],
+      required: false,
+    },
+  ];
+
+  const products = await Product.findAll(apiFeature.options);
+  const totalProducts = await Product.count();
+
+  return PaginatedResponse.fromApiFeature(
+    apiFeature,
+    totalProducts,
+    products.map(formatProduct),
+    "Products fetched successfully",
+  );
+}
+
+async function getAllProductsForViewService(reqQuery = {}) {
   const apiFeature = new ApiFeature(reqQuery)
     .pagination()
     .filter()
@@ -260,8 +311,6 @@ async function deleteProduct(id,req) {
   if (!product) throw new Error("not_found");
 const productName = product.courseName;
   await product.destroy();
-  console.log(product);
-  
   req.audit.affectedThing = {
     _id: product.dataValues.productId,
     name: productName,
@@ -271,10 +320,51 @@ const productName = product.courseName;
     "Product deleted successfully | تم حذف المنتج بنجاح";
 }
 
+async function changeProductStatus(productId,req) {
+  const transaction = await sequelize.transaction();
+  try {
+    const [updatedRows, updatedProducts] = await Product.update(
+      {
+        status: sequelize.literal('NOT "status"'),
+      },
+      {
+        where: { productId },
+        returning: true,
+      }
+    );
+
+    if (!updatedRows) {
+      await transaction.rollback();
+
+      throw new Error("id_not_found");
+    }
+
+    await transaction.commit();
+
+    req.audit.affectedThing = {
+      _id: updatedProducts[0].productId,
+      name: updatedProducts[0].courseName,
+    };
+  
+    req.audit.message =
+      "Product Status Updated Successfully | تم تغير حالة نوع الدورة بنجاح";
+
+    return {
+      success: true,
+      data: updatedProducts[0],
+    };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+}
+
 module.exports = {
   addProduct,
   getAllProductsService,
   getProductById,
   updateProduct,
   deleteProduct,
+  changeProductStatus,
+  getAllProductsForViewService
 };

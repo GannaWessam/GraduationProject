@@ -124,7 +124,7 @@ async function getMyUsers(trainerUserId) {
   };
 }
 
-async function getConversationsByUserId(userId) {
+async function getConversationsByUserId(userId, features) {
   const memberships = await ConversationUser.findAll({
     where: { userId },
     attributes: ["conversationId"],
@@ -134,8 +134,12 @@ async function getConversationsByUserId(userId) {
   if (conversationIds.length === 0) return [];
 
   const conversations = await Conversation.findAll({
-    where: { conversationId: conversationIds },
-    order: [["updatedAt", "DESC"]],
+    ...features.options,
+    where: {
+      ...features.options?.where,
+      conversationId: conversationIds,
+    },
+    order: features.options?.order ?? [["updatedAt", "DESC"]],
   });
 
   const allMembers = await ConversationUser.findAll({

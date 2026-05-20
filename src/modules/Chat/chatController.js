@@ -1,4 +1,5 @@
 const chattingService = require("../../Services/chattingService");
+const ApiFeature = require("../../Util/ApiFeatures");
 const ApiResponse = require("../../Util/ApiResponse");
 const { getMyTrainers, getMyUsers ,getMessagesByConversationId,getConversationsByUserId, getUnreadCounts} = require("./chatService");
 
@@ -53,8 +54,7 @@ const sendVoiceOnConversation = async (req, res, next) => {
 
     const type = "voice";
     const message = file.filename;
-    const fileUrl = `${req.protocol}://${req.get("host")}/uploads/voices/${message}`;
-    console.log(fileUrl);
+    const fileUrl = `/uploads/voices/${message}`;
     
 
     const result = await chattingService.sendMessageOnConversation(
@@ -282,6 +282,12 @@ const fetchMessages = async (req, res, next) => {
 const fetchConversations = async (req, res, next) => {
   try {
     const userId = req.userData.id;
+    const features = new ApiFeature(req.query)
+      .filter()
+      .search()
+      .sort()
+      .pagination()
+      .selectedFields();
 
     if (!userId) {
       return res
@@ -289,7 +295,7 @@ const fetchConversations = async (req, res, next) => {
         .json(ApiResponse.error(400, "User ID is required"));
     }
 
-    const conversations = await getConversationsByUserId(userId);
+    const conversations = await getConversationsByUserId(userId, features);
 
     return res
       .status(200)

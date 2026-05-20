@@ -152,12 +152,16 @@ async function getSupervisorExamStats(supervisorId) {
   
 
     const todayExams = await exam.count({
-      where: {
-        supervisorId,
-        date: {
-          [Op.between]: [startOfDay, endOfDay]
+      where: { supervisorId },
+      distinct: true,
+      include: [
+        {
+          model: event,
+          where: {
+            status: "opend"
+          }
         }
-      }
+      ]
     });
   
   

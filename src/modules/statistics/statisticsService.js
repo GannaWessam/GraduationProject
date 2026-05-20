@@ -174,9 +174,6 @@ async function getSupervisorExamStats(supervisorId) {
       }
     });
   
-    const finishedPercentage =
-      totalExams === 0 ? 0 : (finishedExams / totalExams) * 100;
-  
     const closedEventExams = await exam.count({
       where: { supervisorId },
       include: [
@@ -188,6 +185,9 @@ async function getSupervisorExamStats(supervisorId) {
         }
       ]
     });
+
+    const finishedPercentage =
+      totalExams === 0 ? 0 : (closedEventExams / totalExams) * 100;
 
     const studentsInExams = await examReservation.count({
       include: [

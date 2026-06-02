@@ -11,7 +11,7 @@ class ReceiptSyncService {
 
   init() {
     this.cronJob = cron.schedule(
-      "0 3 * * *",
+      "0 2 * * *",
       async () => {
         await this.syncReceipts();
       },
@@ -41,7 +41,7 @@ class ReceiptSyncService {
         `${this.baseUrl}/api/payments/receipts`,
         {
           params: {
-            connectionTypeIds: 1,
+            connectionTypeIds: 5,
           },
         },
       );

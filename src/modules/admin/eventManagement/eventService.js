@@ -157,7 +157,7 @@ const getEventById = async (eventId) => {
   }
 };
 
-const closeEventById = async (eventId) => {
+const closeEventById = async (eventId,req) => {
   const eventInstance = await event.findByPk(eventId);
   if (!eventInstance) {
     throw new Error("Event not found");
@@ -170,13 +170,19 @@ const closeEventById = async (eventId) => {
       eventInstance.eventName,
       eventInstance.type,
     );
+    if (req && req.audit) {
+      req.audit.affectedThing = { _id: eventInstance.eventId , name: eventInstance.eventName };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "Event closed successfully | تم إغلاق الفعالية بنجاح";
+    }
     return "event closed successfully";
   }
 
   throw new Error("Failed to close event");
 };
 
-const updateEvent = async (eventId, updateData) => {
+const updateEvent = async (eventId, updateData,req) => {
   return sequelize.transaction(async (t) => {
     const eventt = await event.findByPk(eventId, { transaction: t });
     if (!eventt) throw new Error("event_not_found");
@@ -200,11 +206,18 @@ const updateEvent = async (eventId, updateData) => {
 
     await eventt.save({ transaction: t });
 
+    if (req && req.audit) {
+      req.audit.affectedThing = { _id: eventt.eventId , name: eventt.eventName };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "Event updated successfully | تم تحديث الفعالية بنجاح";
+    }
+
     return eventt;
   });
 };
 
-const deleteEventById = async (eventId) => {
+const deleteEventById = async (eventId,req) => {
   return sequelize.transaction(async (t) => {
     const eventInstance = await event.findByPk(eventId, { transaction: t });
 
@@ -214,11 +227,18 @@ const deleteEventById = async (eventId) => {
 
     await eventInstance.destroy({ transaction: t });
 
+    if (req && req.audit) {
+      req.audit.affectedThing = { _id: eventInstance.eventId , name: eventInstance.eventName };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "Event deleted successfully | تم حذف الفعالية بنجاح";
+    }
+
     return "Event and all related data deleted successfully";
   });
 };
 
-const deleteEventService = async (eventId) => {
+const deleteEventService = async (eventId,req) => {
   const transaction = await sequelize.transaction();
 
   try {
@@ -263,6 +283,13 @@ const deleteEventService = async (eventId) => {
     await Event.destroy({ transaction });
 
     await transaction.commit();
+
+    if (req && req.audit) {
+      req.audit.affectedThing = { _id: Event.eventId , name: Event.eventName };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "Event deleted successfully | تم حذف الفعالية بنجاح";
+    }
 
     return {
       success: true,

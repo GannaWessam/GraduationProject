@@ -259,8 +259,9 @@ const registerForExam = async (userId, eventId, req) => {
     }
 
     if (req && req.audit) {
-      req.audit.affectedUser = {
+      req.audit.user = {
         _id: userId,
+        name:student ? student.fullName : null,
       };
       req.audit.affectedThing = {
         _id: eventData.eventId,

@@ -23,6 +23,7 @@ router.post("/Webhook",express.raw({ type: "application/json" }),paymentControll
 
 router.post(
     "/handle-user/:paymentId",
+    validateToken,
     catchError(paymentController.handleUserPayment)
   );
 
@@ -32,6 +33,10 @@ router.post(
     uploadReceiptImage,
     paymentController.uploadReceiptController
   );
+  router.get(
+    "/pay/fetch",
+    paymentController.getReceiptsfromExternal
+  )
   
 
 

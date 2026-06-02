@@ -5,6 +5,8 @@ const crypto = require("crypto");
 const secretKey = process.env.WEBHOOK_SECRET;
 const { verifySignature , validateWebhookTimestamp } = require("./helper/Webhook");
 const { Op } = require("sequelize");
+const { success } = require("../../Util/ApiResponse");
+const { update } = require("../admin/sessionManagement/sessionController");
 
 
 
@@ -13,6 +15,7 @@ const createPayment = async ({
   email,
   receiptIds,
   userId,
+  req
 }) => {
   const user = await Student.findOne({
     where: { userId },
@@ -50,11 +53,11 @@ const createPayment = async ({
     studentReferenceId,
     paymentMechanism: "NOT_SET",
     description: "string",
-    redirectUrl: "https://lms4.capu.edu.eg/pay-fees",
+    redirectUrl: "https://fdtc.capu.edu.eg/pay-fees",
   };
 
   const response = await axios.post(
-    "https://nub.capu.edu.eg/api/api/payments/eFinance/initiate",
+    "https://nbu.capu.edu.eg/api/api/payments/test/eFinance/initiate-payment",
     requestBody,
     {
       headers: {
@@ -66,7 +69,7 @@ const createPayment = async ({
 
   const data = response.data.data;
 
-  if (!data?.merchantOrderId || !data?.formData) {
+  if (!data?.merchantOrderId || !data?.html) {
     throw new Error("Invalid response from payment API");
   }
 
@@ -75,8 +78,14 @@ const createPayment = async ({
     status: "PENDING",
   });
 
+  if (req && req.audit) {
+    req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+    req.audit.message =
+      "User Redirected to payment platform successfully | تم توجيه المستخدم إلى منصة الدفع بنجاح";
+  }
+
   return {
-    formData: data.formData,
+    html: data.html,
     paymentRecord: existingPayment,
   };
 };
@@ -208,10 +217,14 @@ const getAllPayments = async (features) => {
         {
           model:Service,
           attributes:["name"]
+        },
+        {
+          model:currency,
+          attributes:["code"]
         }
       ],
       where: opts.where || {},
-      order: opts.order || [["timestamp", "DESC"]],
+      order: [["timestamp", "DESC"]],
       limit: opts.limit,
       offset: opts.offset,
       attributes: opts.attributes,
@@ -239,7 +252,7 @@ const getAllPayments = async (features) => {
 
 
 
-const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody, body }) => {
+const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody, body,req }) => {
   const t = await sequelize.transaction();
 
   try {
@@ -272,10 +285,13 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
       throw error;
     }
 
+    let student;
+
     paymentData.status = body.transaction.status;
     if (body.transaction.grossAmount !== undefined) {
       paymentData.actualAmount = body.transaction.grossAmount;
     }
+    paymentData.timestamp=timestamp;
     await paymentData.save({ transaction: t });
 
     if (
@@ -302,14 +318,16 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
           transaction: t
         }
       );
-      await Student.update({
+      const [count, updatedStudents]=await Student.update({
         status:"PAID"
       },
       {
         where:{userId:paymentData.userId},
-        transaction:t
+        transaction:t,
+        returning: true
       }
     )
+    student=updatedStudents[0];
     }
 
     if (
@@ -349,10 +367,19 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
             transaction: t
           }
         );
+        student=await Student.findOne({ where: { userId: reexamRequest.userId }, transaction: t });
       }
     }
 
     await t.commit();
+    if (req && req.audit) {
+      req.audit.affectedUser = {
+        _id: paymentData.userId,
+        name: student ? student.fullName : null,
+      };
+      req.audit.message =
+        "Webhook received and processed successfully | تم استلام الويب هوك ومعالجته بنجاح";
+    }
     return true;
   } catch (error) {
     await t.rollback();
@@ -376,7 +403,7 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
       throw error;
     }
 
-
+    let student;
 
     // ✅ Product case
     if (
@@ -386,6 +413,7 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
 
       paymentData.status = "PAID";
       paymentData.actualAmount=paymentData.amount
+      paymentData.timestamp=new Date();
       await paymentData.save({ transaction: t });
 
       const product = await Product.findByPk(paymentData.productId, {
@@ -406,14 +434,16 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
           transaction: t
         }
       );
-      await Student.update({
+      const [count, updatedStudents] =await Student.update({
         status:"PAID"
       },
       {
         where:{userId:paymentData.userId},
-        transaction:t
+        transaction:t,
+        returning: true
       }
     )
+    student=updatedStudents[0];
     await User.increment("tokenVersion", { where: { userId: paymentData.userId } });
     }
 
@@ -426,6 +456,7 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
       
       paymentData.status = "PAID";
       paymentData.actualAmount=paymentData.amount
+      paymentData.timestamp=new Date();
       await paymentData.save({ transaction: t });
       const reexamRequest = await Reexam.findOne({
         where: { paymentId: paymentData.paymentId },
@@ -453,14 +484,16 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
             transaction: t
           }
         );
+        student=await Student.findOne({ where: { userId: reexamRequest.userId }, transaction: t });
       }
     }
 
 
     if (req) {
       req.audit = req.audit || {};
-      req.audit.affectedThing = {
-        userId: paymentData.userId,
+      req.audit.affectedUser = {
+        _id: paymentData.userId,
+        name:student.fullName,
       };
       req.audit.message =
         "User payment handled and course registered successfully | تم تأكيد الدفع للمستخدم بنجاح";
@@ -547,6 +580,24 @@ const getAllReceipts = async (userId,features) => {
   );
 };
 
+const manualFetchReceipts=async() => {
+  try {
+    const response = await axios.get(`${process.env.RECEIPTS_BASE_URL}/api/payments/receipts`, {
+      params: {
+        connectionTypeIds: 5,
+      },
+    });
+    return {
+      success: true,
+      data: response.data,
+    }
+  } catch (error) {
+    console.log(error);
+    
+    throw new Error("Failed to fetch receipts from external API");
+  }
+}
+
 
 
 
@@ -559,5 +610,6 @@ module.exports = {
   handleUserPaymentAndRegistration,
   getPendingPaymentsByUserId,
   createReceipt,
-  getAllReceipts
+  getAllReceipts,
+  manualFetchReceipts
 };

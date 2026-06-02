@@ -25,7 +25,7 @@ const updateSystemDataController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const updateInfo = req.body;
-    const updatedData = await updateSystemDataById(id, updateInfo);
+    const updatedData = await updateSystemDataById(id, updateInfo,req);
 
     res.status(200).json({
       status: 200,

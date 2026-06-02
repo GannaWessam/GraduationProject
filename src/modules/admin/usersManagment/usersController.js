@@ -48,7 +48,7 @@ const updateUser = async (req, res) => {
     const payload = req.body;
     const idImage = req.file?.filename // ******* zy el register
     
-    const result = await userServices.updateUser(id, payload, idImage);
+    const result = await userServices.updateUser(id, payload, idImage,req);
     res.status(200).json(ApiResponse.success(result));
 }
 
@@ -61,7 +61,7 @@ const deleteUserById = async (req,res) =>{ //btrga3 num of deleted rows
 
 const approveStudentByUserId = async (req, res) => {
   const { id } = req.params; 
-  const result = await userServices.approveStudentByUserId(id);
+  const result = await userServices.approveStudentByUserId(id,req);
   res.status(200).json(ApiResponse.success(result));
 };
 
@@ -79,7 +79,7 @@ const updateStudentNationalIdController = async (req, res, next) => {
     const userId = req.params.id;
     const { nationalId } = req.body;
 
-    const result = await userServices.updateStudentNationalId(userId, nationalId);
+    const result = await userServices.updateStudentNationalId(userId, nationalId,req);
 
     return res.status(200).json(ApiResponse.success(result));
   } catch (error) {
@@ -154,7 +154,8 @@ const assignPermissionsToUserController = async (req, res, next) => {
 
     const result = await userServices.assignPermissionsToUser(
       id,
-      permissions
+      permissions,
+      req
     );
 
     return res.status(200).json(

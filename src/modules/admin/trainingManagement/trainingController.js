@@ -5,7 +5,7 @@ const ApiResponse = require("../../../Util/ApiResponse");
 // Create a new training (creates both training and event)
 const createTraining = async (req, res,next) => {
   try {
-    const result = await trainingService.createTraining(req.body);
+    const result = await trainingService.createTraining(req.body,req);
     res.status(201).json(ApiResponse.success(result, "Training and event created successfully"));
   } catch (error) {
     return next(error);
@@ -60,7 +60,7 @@ const getAllTrainingsForTrainer = async (req, res, next) => {
 const updateTraining = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await trainingService.updateTraining(id, req.body);
+    const result = await trainingService.updateTraining(id, req.body,req);
     res.status(200).json(ApiResponse.success(result, "Training updated successfully"));
   } catch (error) {
     return next(error);

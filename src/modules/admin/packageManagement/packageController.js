@@ -5,7 +5,7 @@ const ApiResponse = require("../../../Util/ApiResponse");
 
 const packageController = {
   async create(req, res) {
-      const pkg = await packageService.createPackage(req.body);
+      const pkg = await packageService.createPackage(req.body,req);
       res.status(201).json(ApiResponse.success(pkg));
   },
 
@@ -26,12 +26,12 @@ const packageController = {
   },
 
   async update(req, res) {
-      const pkg = await packageService.updatePackage(req.params.id, req.body);
+      const pkg = await packageService.updatePackage(req.params.id, req.body,req);
       res.status(200).json(ApiResponse.success(pkg));
   },
 
   async delete(req, res, next) {
-      const result = await packageService.deletePackage(req.params.id);
+      const result = await packageService.deletePackage(req.params.id,req);
       res.status(200).json(ApiResponse.success(result));
   },
 };

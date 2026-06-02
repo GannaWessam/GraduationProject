@@ -4,7 +4,7 @@ const { package: Package, Product, course: Course, packageProduct, packageCourse
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
 
 const packageService = {
-  async createPackage(data) {
+  async createPackage(data,req) {
     const { packageName, size, courseIds } = data;
 
     if(!packageName || !size)
@@ -22,6 +22,13 @@ const packageService = {
         await packageCourse.bulkCreate(packageCourses, { transaction: t });
       }else
         throw new Error("course_id_is_null");
+
+        if (req && req.audit) {
+          req.audit.affectedThing = { name: eventInstance.eventName };
+          req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+          req.audit.message =
+            "Package created successfully | تم إنشاء الحزمة بنجاح";
+        }
 
       return newPackage;
     });
@@ -56,7 +63,7 @@ const packageService = {
   },
 
   // Update package
-  async updatePackage(packageId, data) {
+  async updatePackage(packageId, data,req) {
     const { packageName, size, courseIds } = data;
 
     return sequelize.transaction(async (t) => {
@@ -78,6 +85,12 @@ const packageService = {
           throw error;
         }
       }
+      if (req && req.audit) {
+        req.audit.affectedThing = { name: packageName };
+        req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+        req.audit.message =
+          "Package updated successfully | تم تحديث الحزمة بنجاح";
+      }
       
 
       return pkg;
@@ -85,12 +98,19 @@ const packageService = {
   },
 
   // Delete package
-  async deletePackage(packageId) {
+  async deletePackage(packageId,req) {
     return sequelize.transaction(async (t) => {
       const pkg = await Package.findByPk(packageId, { transaction: t });
       if (!pkg) throw new Error("package_not_found");
       await packageCourse.destroy({ where: { packageId }, transaction: t });
       await pkg.destroy({ transaction: t });
+
+      if (req && req.audit) {
+        req.audit.affectedThing = { name: pkg.packageName };
+        req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+        req.audit.message =
+          "Package deleted successfully | تم حذف الحزمة بنجاح";
+      }
 
       return { message: "Package deleted successfully" };
     });

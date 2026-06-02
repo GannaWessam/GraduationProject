@@ -229,7 +229,7 @@ const deleteUserById = async (id) => {
   else throw new Error("id_not_found");
 };
 
-async function updateUser(userId, payload, idImage) {
+async function updateUser(userId, payload, idImage,req) {
   if (payload.name_ar) validateName(payload.name_ar);
 
   const [hashedPassword, qr] = await Promise.all([
@@ -276,6 +276,13 @@ async function updateUser(userId, payload, idImage) {
       WebSocket.notifyClients("message",userId)
       sendNotificationToUser(userId, message, translation)
       .catch(err => console.error("Push error:", err));
+
+      if (req && req.audit) {
+        req.audit.affectedThing = { name: payload.name_ar };
+        req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+        req.audit.message =
+          "User updated successfully | تم تحديث المستخدم بنجاح";
+      }
       
 
     return createStudentSuccessResponse(
@@ -286,7 +293,7 @@ async function updateUser(userId, payload, idImage) {
   });
 }
 
-const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||  ysma3 m3 elnas elly msgla real time
+const approveStudentByUserId = async (userId,req) => { //ysma3 fe profile el user ||  ysma3 m3 elnas elly msgla real time
   const student = await Student.findOne({ where: { userId } });
   if (!student) throw new Error("student_not_found");
 
@@ -309,6 +316,13 @@ const approveStudentByUserId = async (userId) => { //ysma3 fe profile el user ||
    WebSocket.notifyClients("message",userId)
       sendNotificationToUser(userId, payload, translation)
       .catch(err => console.error("Push error:", err));
+
+      if (req && req.audit) {
+        req.audit.affectedThing = { name: student.fullName };
+        req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+        req.audit.message =
+          "User Approved successfully | تم قبول المستخدم بنجاح";
+      }
       
 
   return { message: "Student approved successfully", student };
@@ -329,7 +343,7 @@ const getAllUserss = async () => {
 
 
 
-async function updateStudentNationalId(userId, nationalId) {
+async function updateStudentNationalId(userId, nationalId,req) {
   if (!nationalId) throw new Error("nationalId_required");
 
  
@@ -359,6 +373,13 @@ async function updateStudentNationalId(userId, nationalId) {
     .catch(err => console.error("Push error:", err));
     
     WebSocket.notifyClients("message",userId)
+    if (req && req.audit) {
+      req.audit.affectedThing = { name: student.fullName };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "User updated successfully | تم تحديث المستخدم بنجاح";
+    }
+    
     return {
       updated,
       student: updatedStudent,
@@ -503,7 +524,7 @@ const getUsersByExamId = async (examId, features) => {
   }
 };
 
-const assignPermissionsToUser = async (userId, permissionNames = []) => {
+const assignPermissionsToUser = async (userId, permissionNames = [],req) => {
   if (!Array.isArray(permissionNames) || permissionNames.length === 0) {
     throw new Error("permissions_array_required");
   }
@@ -530,6 +551,12 @@ const assignPermissionsToUser = async (userId, permissionNames = []) => {
     // Assign (this auto-handles duplicates)
     await user.setPermissions(permissions, { transaction: t });
     await User.increment("tokenVersion", { where: { userId: userId } });
+    if (req && req.audit) {
+      req.audit.affectedThing = { email: user.email };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "User Permissions updated successfully | تم تحديث صلاحيات المستخدم بنجاح";
+    }
 
     return {
       userId,

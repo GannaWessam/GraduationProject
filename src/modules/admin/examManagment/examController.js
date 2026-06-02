@@ -6,7 +6,7 @@ const ApiResponse = require("../../../Util/ApiResponse");
 const createExam = async (req, res) => {
   // const examData = req.body.examData;
   // const packageId = req.body.packageId;
-  const result = await examService.createExam(req.body);
+  const result = await examService.createExam(req.body,req);
   res.status(201).json(ApiResponse.success(result, "Exam and event created successfully"));
 };
 
@@ -35,13 +35,13 @@ const updateExam = async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
   
-  const result = await examService.updateExam(id, updateData);
+  const result = await examService.updateExam(id, updateData,req);
   res.status(200).json(ApiResponse.success(result, "Exam and linked event updated successfully"));
 };
 
 const deleteExam = async (req, res) => {
   const { id } = req.params;
-  const result = await examService.deleteExam(id);
+  const result = await examService.deleteExam(id,req);
   res.status(200).json(ApiResponse.success(result));
 };
 
@@ -75,7 +75,7 @@ const ReexamController = async (req, res) => {
 try {
   const userId = req.userData.id;
     if (!userId) {
-      return res.status(400).json({ success: false, message: 'Date is required' });
+      return res.status(400).json({ success: false, message: 'User Id is required' });
     }
 
     const newExam = await examService.ReexamService(userId,req.params.courseId,req);

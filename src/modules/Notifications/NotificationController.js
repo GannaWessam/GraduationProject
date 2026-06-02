@@ -14,6 +14,7 @@ exports.subscribeUser = async (req, res, next) => {
     if (req.audit) {
       req.audit.message =
         "User subscribed to notifications successfully | تم اشتراك المستخدم في الإشعارات بنجاح";
+      req.audit.user={_id:userId,name:req.userData.name,email:req.userData.email};
     }
 
     res.json({ success: true });

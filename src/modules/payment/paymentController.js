@@ -13,33 +13,13 @@ const createPaymentAndRedirect = async (req, res) => {
       paymentId,
       email,
       receiptIds,
-      userId
+      userId,
+      req
     });
 
-    const { SenderID, RandomSecret, HashedRequestObject , RequestObject } = paymentData.formData;
+    const html = paymentData.html;
 
-    return res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Redirecting...</title>
-        <script>
-          function submitForm() {
-            document.getElementById('efinanceForm').submit();
-          }
-        </script>
-      </head>
-      <body onload='submitForm()'>
-        <h3>Redirecting to Payment Gateway...</h3>
-        <form id='efinanceForm' method='POST' action='https://test-payment.efinance.com.eg/CardPaymentRequestIntiation/index'>
-          <input type='hidden' name='SenderID' value='${SenderID}' />
-          <input type='hidden' name='RandomSecret' value='${RandomSecret}' />
-          <input type='hidden' name='RequestObject' value='${RequestObject}' />
-          <input type='hidden' name='HashedRequestObject' value='${HashedRequestObject}' />
-        </form>
-      </body>
-      </html>
-    `);
+    return res.send(html);
 
   } catch (error) {
     console.error(error);
@@ -140,6 +120,7 @@ const handleWebhook = async (req, res, next) => {
       timestamp,
       rawBody,
       body: req.body,
+      req
     });
 
     return res.status(200).json({
@@ -219,6 +200,15 @@ const getAllReceiptsController = async (req, res ,next) => {
   }
 };
 
+const getReceiptsfromExternal=async(req,res,next) => {
+  try {
+    const result=await paymentService.manualFetchReceipts();
+    res.status(200).json(ApiResponse.success(result,"Payment fetched successfully"));
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   createPaymentAndRedirect,
   getPaymentsByUserId,
@@ -227,5 +217,6 @@ module.exports = {
   handleUserPayment,
   getPendingPaymentsByUserId,
   uploadReceiptController,
-  getAllReceiptsController
+  getAllReceiptsController,
+  getReceiptsfromExternal
 };

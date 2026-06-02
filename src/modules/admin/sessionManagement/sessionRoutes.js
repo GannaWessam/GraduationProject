@@ -104,6 +104,7 @@ router.get(
 );
 router.get(
   "/sessions/:sessionId/attendance-excel/:lang",
+  validateToken,
   catchError(sessionController.exportAttendanceExcel)
 );
 

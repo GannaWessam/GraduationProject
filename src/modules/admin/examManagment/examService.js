@@ -123,9 +123,15 @@ const { Op } = require("sequelize");
 
 // };
 
-const createExam = async (examData) => {
+const createExam = async (examData,req) => {
   if (examData.packageId) await createExamPackage(examData);
   else if (examData.courseId) await createOneExam(examData, true);
+  if (req && req.audit) {
+    req.audit.affectedThing = { name: examData.eventName };
+    req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+    req.audit.message =
+      "Exam created successfully | تم إنشاء الامتحان بنجاح";
+  }
   else throw new Error("packageId or courseId is required");
 };
 
@@ -320,16 +326,19 @@ const getAllExams = async (features) => {
 };
 
 // Update exam by ID
-const updateExam = async (examId, updateData) => {
+const updateExam = async (examId, updateData,req) => {
   return sequelize.transaction(async (t) => {
     const examm = await exam.findByPk(examId, { transaction: t });
     if (!examm) throw new Error("exam_not_found");
+
+    let courseName;
 
     // Validate course
     if (updateData.courseId) {
       const coursee = await course.findByPk(updateData.courseId, {
         transaction: t,
       });
+        courseName = coursee ? coursee.name : null;
       if (!coursee) throw new Error("course_not_found");
     }
 
@@ -352,6 +361,13 @@ const updateExam = async (examId, updateData) => {
       },
       { transaction: t }
     );
+
+    if (req && req.audit) {
+      req.audit.affectedThing = { _id: examId, name: courseName };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "Exam updated successfully | تم تحديث الامتحان بنجاح";
+    }
 
     return examm;
   });
@@ -523,7 +539,8 @@ const ReexamService = async (userId, examId, req) => {
 
     // 7️⃣ Audit log (optional)
     if (req && req.audit) {
-      req.audit.affectedUser = { _id: userId };
+      req.audit.affectedUser = { _id: userId, name: student.name, email: student.email };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
       req.audit.message =
         "Reexam created with payment & currency successfully | تم إنشاء طلب إعادة امتحان وربطه بعملية دفع وعملة بنجاح";
     }

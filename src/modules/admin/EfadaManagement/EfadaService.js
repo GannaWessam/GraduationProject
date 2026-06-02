@@ -49,13 +49,11 @@ const efadaService = {
     const t = await sequelize.transaction();
 
     try {
-      // 1️⃣ Get student
       const student = await Student.findByPk(userId, { transaction: t });
       if (!student) {
         throw new Error("Student not found");
       }
 
-      // 2️⃣ Determine service name based on student type
       let serviceID;
 
       if (["1", "2", "3"].includes(student.type)) {
@@ -74,6 +72,7 @@ const efadaService = {
 
       if (!service) {
         throw new Error("Service not found");
+        
       }
 
       // 4️⃣ Determine nationality (نفس Reexam)
@@ -138,9 +137,8 @@ const efadaService = {
 
       await t.commit();
 
-      // 7️⃣ Audit
       if (req && req.audit) {
-        req.audit.affectedUser = { _id: userId };
+        req.audit.user = { _id: userId , name: student.fullName, email: student.email };
         req.audit.message =
           "Efada created with payment & currency successfully | تم إنشاء إفادة وربطها بعملية دفع وعملة بنجاح";
       }
@@ -151,7 +149,7 @@ const efadaService = {
       throw error;
     }
   },
-  createEfadaPDF: async ({ nationalId, date, picturePath }) => {
+  createEfadaPDF: async ({ nationalId, date, picturePath,req }) => {
     // Get student by nationalId
     const student = await Student.findOne({ where: { nationalId } });
     if (!student) throw new Error("student_not_found");
@@ -201,16 +199,29 @@ const efadaService = {
       margin: { top: "2.2cm", right: "2.2cm", bottom: "2.2cm", left: "2.5cm" },
     });
 
+    if (req && req.audit) {
+      req.audit.affectedUser = { _id: student.userId , name: student.fullName, email: student.email };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "Efada pdf generated successfully | تم إنشاء إفادة بصيغة PDF بنجاح";
+    }
+
     await browser.close();
     return pdf;
   },
-  createEfadaDOCX: async ({ nationalId, date, picturePath }) => {
+  createEfadaDOCX: async ({ nationalId, date, picturePath,req }) => {
     const student = await Student.findOne({ where: { nationalId } });
     if (!student) throw new Error("student_not_found");
   
     const sd = await systemdata.findOne();
   
     const buffer = await createEfadaDOCX({ nationalId, date, picturePath, student, sd });
+    if (req && req.audit) {
+      req.audit.affectedUser = { _id: student.userId , name: student.fullName, email: student.email };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "Efada word generated successfully | تم إنشاء إفادة بصيغة Word بنجاح";
+    }
     return buffer;
   },
 

@@ -11,9 +11,11 @@ function errorHandler(err, req, res, next) {
 
   const errorKey = err && err.message ? String(err.message).trim() : "internal_server_error";
   const { code, msg } = getErrorPayload(errorKey);
+  const isLoginRoute =req.originalUrl.includes("/login")
 
-  if (req && req.audit) {
+  if (req && req.audit && !isLoginRoute) {
     req.audit.message = msg;
+    // req.audit.user= req.userData ? { _id: req.userData.id, name: req.userData.name, email: req.userData.email } : null;
   }
 
   const response = ApiResponse.error(code, msg, [msg]);

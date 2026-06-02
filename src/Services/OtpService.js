@@ -26,7 +26,7 @@ class OtpService {
     return true;
   }
 
-  async verifyOTP(email, otp) {
+  async verifyOTP(email, otp,req) {
     if (!email || !otp) throw new Error("missing_required");
 
     const storedOtp = await this.redis.get(`otp:${email}`);
@@ -35,6 +35,12 @@ class OtpService {
     if (storedOtp !== otp) throw new Error("otp_invalid");
 
     await this.redis.del(`otp:${email}`); 
+
+    if (req && req.audit) {
+      req.audit.user = {email: email };
+      req.audit.message =
+        "OTP Verified Successfully | تم التحقق من الرقم السري لمرة واحدة بنجاح";
+    }
     return true;
   }
 }

@@ -19,12 +19,18 @@ const getAllSystemData = async (features = {}) => {
 };
 
 
-const updateSystemDataById = async (systemDataId, updateInfo) => {
+const updateSystemDataById = async (systemDataId, updateInfo,req) => {
     const systemData = await systemdata.findByPk(systemDataId);
     if (!systemData) {
       throw new Error("system_data_not_found");
     }
     await systemData.update(updateInfo);
+    if (req && req.audit) {
+      req.audit.affectedThing = { name: "System Data | بيانات النظام" };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "System Data Updated Successfully | تم تحديث بيانات النظام بنجاح";
+    }
     return systemData;
   };
   

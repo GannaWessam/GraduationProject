@@ -52,7 +52,7 @@ exports.sendOtp = async (req, res) => {
 };
 
 exports.verifyOTP = async (req, res) => {
-  await OTP.verifyOTP(req.body.email, req.body.otp);
+  await OTP.verifyOTP(req.body.email, req.body.otp,req);
   return res
     .status(200)
     .json(ApiResponse.success("تم التأكد من الايميل بنجاح"));

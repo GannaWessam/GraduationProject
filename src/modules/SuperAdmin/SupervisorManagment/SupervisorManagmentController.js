@@ -10,7 +10,7 @@ const permissionService = require("../../admin/usersManagment/usersServices.js")
 exports.register = async (req, res, next) => {
     try {
       const result = await addSupervisor(req.body,req);
-      const per = await permissionService.assignPermissionsToUser(result.data.user.userId,req.body.permissionList);
+      const per = await permissionService.assignPermissionsToUser(result.data.user.userId,req.body.permissionList,req);
       return res.status(201).json(ApiResponse.created(result));
     } catch (error) {
       return next(error);

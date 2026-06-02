@@ -226,7 +226,7 @@ const sessionService = {
     if (!files || files.length === 0) {
       throw new Error("No files uploaded");
     }
-
+    let name;
   
     const materials = files.map((file) => {
       const ext = file.originalname.split(".").pop().toLowerCase();
@@ -234,6 +234,7 @@ const sessionService = {
         throw new Error("invalid_file_type");
       }
       const originalName = Buffer.from(file.originalname, "latin1").toString("utf8");
+      name=originalName
       return {
         sessionId,
         file: `sessions/${file.filename}`,
@@ -247,6 +248,7 @@ const sessionService = {
     if (req && req.audit) {
       req.audit.affectedThing = {
         _id: sessionId,
+        name:name
       };
       req.audit.message =
         "Session materials uploaded successfully | تم رفع مواد الجلسة بنجاح";
@@ -337,11 +339,10 @@ const sessionService = {
         archive.file(filePath, { name: fileNameInZip });
       }
     });
-
     await archive.finalize(); // مهم جدًا لإنهاء الـ zip
   },
 
-   async QRservice(sessionId) {
+   async QRservice(sessionId,req) {
 
     const session = await Session.findByPk(sessionId);
 
@@ -354,6 +355,12 @@ const sessionService = {
     const url = `${process.env.HOST}/Attendance?token=${token}`;
 
     const qr = await QRCode.toDataURL(url);
+    if (req && req.audit) {
+      req.audit.affectedThing = { name: session.name };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "Attendance QR created successfully | تم إنشاء رمز الحضور بنجاح";
+    }
 
     return {qr, url};
   },
@@ -455,7 +462,7 @@ const sessionService = {
     };
   },
 
-  async exportSessionAttendanceExcel(sessionId, res,lang) {
+  async exportSessionAttendanceExcel(sessionId, res,lang,req) {
       // 1️⃣ هات السيشن
   const session = await Session.findByPk(sessionId);
   if (!session) throw new Error("session_not_found");
@@ -576,6 +583,12 @@ const sessionService = {
   // 🟢 إرسال
   // =============================
   await workbook.xlsx.write(res);
+  if (req && req.audit) {
+    req.audit.affectedThing = { name: session.name };
+    req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+    req.audit.message =
+      "Attendance report exported successfully | تم تصدير تقرير الحضور بنجاح";
+  }
   res.end();
 }
 

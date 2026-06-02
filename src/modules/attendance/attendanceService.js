@@ -2,6 +2,7 @@ const {session, User, attendance ,Student} =
 require("../../models/index");
 const { Op } = require("sequelize");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
+const { emit } = require("pdfkit");
 
 const attendanceService = {
 
@@ -23,8 +24,10 @@ const attendanceService = {
     });
     
     if (req && req.audit) {
-      req.audit.affectedUser = {
+      req.audit.user = {
         _id: userId,
+        name: req.userData.name,
+        email: req.userData.email,
       };
       req.audit.message =
         "Attendance created successfully | تم تسجيل الحضور بنجاح";

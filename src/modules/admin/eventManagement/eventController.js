@@ -28,7 +28,7 @@ const getEventById = async (req, res) => {
 
 const closeEventById = async (req, res) => {
   const { eventId } = req.params;
-  const result = await eventService.closeEventById(eventId);
+  const result = await eventService.closeEventById(eventId,req);
   res.status(200).json(ApiResponse.success(result));
 };
 
@@ -36,7 +36,7 @@ const updateEvent = async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
 
-  const result = await eventService.updateEvent(id, updateData);
+  const result = await eventService.updateEvent(id, updateData,req);
   res
     .status(200)
     .json(
@@ -47,7 +47,7 @@ const updateEvent = async (req, res) => {
 const deleteEventById = async (req, res) => {
   const { id } = req.params;
 
-  const result = await eventService.deleteEventById(id);
+  const result = await eventService.deleteEventById(id,req);
 
   res
     .status(200)
@@ -58,7 +58,7 @@ const deleteEventController = async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    const result = await eventService.deleteEventService(eventId);
+    const result = await eventService.deleteEventService(eventId,req);
 
     return res.status(200).json(result);
   } catch (error) {

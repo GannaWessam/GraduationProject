@@ -31,14 +31,13 @@ async function saveSubscription(userId, subscription) {
 }
 
 async function sendNotificationToUser(userId, payload,translation) {
-
+  let sentCount = 0;
  try {
   await addNotification(userId,payload,translation);
   const subscriptions = await Subscription.findAll({ where: { userId } });
   if (subscriptions.length === 0) {
     return { success: false, message: `No subscription found for user ${userId}` };
   }
-  let sentCount = 0;
   for (const sub of subscriptions) {
     try {
       await webpush.sendNotification(

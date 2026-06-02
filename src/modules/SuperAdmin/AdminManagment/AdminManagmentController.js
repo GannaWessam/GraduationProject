@@ -17,7 +17,8 @@ exports.register = async (req, res, next) => {
     if (req.body.permissionList?.length > 0) {
       await permissionService.assignPermissionsToUser(
         result.data.user.userId,
-        req.body.permissionList
+        req.body.permissionList,
+        req
       );
     }
 

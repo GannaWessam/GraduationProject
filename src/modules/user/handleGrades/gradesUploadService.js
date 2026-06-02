@@ -119,7 +119,7 @@ async function getEventExamsWithCourses(eventId, t) {
     }
   }
 
-  return { courseTitleToExam };
+  return { courseTitleToExam,eventExists };
 }
 
 async function handleFailedExam(courseTitle, userId) {
@@ -358,7 +358,7 @@ async function uploadFromExcel(parsedData, eventId) {
     throw new Error("eventId is required");
   }
   // Resolve event and build courseTitle -> exam map once (read-only, no transaction)
-  const { courseTitleToExam } = await getEventExamsWithCourses(eventId);
+  const { courseTitleToExam,eventExists } = await getEventExamsWithCourses(eventId);
   // Resolve how many exams must be passed for this event (product.requirdCourses or fallback)
   const requiredExamsPassed = await getRequiredExamsPassedForEvent(eventId);
 
@@ -392,6 +392,7 @@ async function uploadFromExcel(parsedData, eventId) {
     studentsProcessed,
     examsUpdated,
     studentsSucceeded,
+    eventExists
   };
 }
 

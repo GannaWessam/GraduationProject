@@ -58,6 +58,7 @@ const uploadGrades = async (req, res, next) => {
       );
 
       if (req.audit) {
+        req.audit.affectedThing={_id:eventId,name:summary.eventExists.eventName}
         req.audit.message =
           "Grades uploaded from Excel successfully | تم رفع الدرجات من ملف إكسل بنجاح";
       }

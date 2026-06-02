@@ -127,7 +127,6 @@ async function registerUser(payload, idImage, req) {
     }
 
     await RegisterService(user.userId,product.productId,req ,t);
-    // ✅ Set audit log context
     if (req && req.audit) {
       req.audit.user = {
         _id: user.userId,
@@ -163,6 +162,8 @@ async function loginUser(email, password, rememberMe = false, req) {
       req.audit.user = {
         email: email,
       };
+      req.audit.message =
+        "Failed login attempt (user not found) | محاولة تسجيل دخول فاشلة (المستخدم غير موجود)";
     }
 
     throw new Error("Failed login attempt");
@@ -190,6 +191,7 @@ async function loginUser(email, password, rememberMe = false, req) {
   try {
     await comparePassword(password, user.passwordHash);
   } catch (err) {
+    
     if (req?.audit) {
       req.audit.user = {
         _id: user.userId,
@@ -199,7 +201,6 @@ async function loginUser(email, password, rememberMe = false, req) {
       req.audit.message =
         "Failed login attempt (wrong password) | محاولة تسجيل دخول فاشلة (كلمة مرور خاطئة)";
     }
-
     throw new Error("Failed login attempt");
   }
   const permissions = await user.getPermissions({

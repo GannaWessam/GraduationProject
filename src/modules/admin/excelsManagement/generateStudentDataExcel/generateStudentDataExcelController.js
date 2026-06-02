@@ -5,7 +5,7 @@ const generateStudentDataExcelService = require('./generateStudentDataExcelServi
  */
 async function downloadSheet(req, res) {
   const { eventId } = req.params;
-  const { workbook, eventName } = await generateStudentDataExcelService.generateStudentDataExcel(eventId);
+  const { workbook, eventName } = await generateStudentDataExcelService.generateStudentDataExcel(eventId,req);
 
   // const safeName = String(eventName).replace(/[^a-z0-9-_]/gi, '_');
   const safeName = String(eventName);

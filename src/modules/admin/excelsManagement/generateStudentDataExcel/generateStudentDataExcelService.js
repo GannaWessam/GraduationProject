@@ -161,7 +161,7 @@ async function buildWorkbook(eventName, language, dataRows) {
 }
 
 
-async function generateStudentDataExcel(eventId) {
+async function generateStudentDataExcel(eventId,req) {
   validateEventId(eventId);
 
   let eventName, language, rows;
@@ -198,6 +198,12 @@ async function generateStudentDataExcel(eventId) {
     workbook = await buildWorkbook(eventName, language, dataRows);
   } catch (err) {
     throw new Error('excel_generation_failed');
+  }
+  if (req && req.audit) {
+    req.audit.affectedThing = { _id: eventId , name: eventName };
+    req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+    req.audit.message =
+      "Event excel sheet exported successfully| تم تصدير ملف إكسل الخاص بالمسجلين فى الفاعلية بنجاح";
   }
 
   return { workbook, eventName };

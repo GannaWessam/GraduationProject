@@ -46,8 +46,8 @@ const sessionController = {
 
   async delete(req, res ,next) {
     try {
-      const { materialId } = req.params;
-      const result = await sessionService.deleteSessionMaterial(materialId, req);
+      const { id } = req.params;
+      const result = await sessionService.deleteSession(id, req);
   
       res.status(200).json({
         status: "success",
@@ -104,7 +104,7 @@ const sessionController = {
     try {
       const { sessionId } = req.params;
 
-      const QR = await sessionService.QRservice(sessionId);
+      const QR = await sessionService.QRservice(sessionId,req);
         
       res.status(200).json(ApiResponse.success(QR));
 
@@ -177,7 +177,7 @@ const sessionController = {
         );
       }
   
-      await sessionService.exportSessionAttendanceExcel(sessionId, res,lang);
+      await sessionService.exportSessionAttendanceExcel(sessionId, res,lang,req);
   
     } catch (error) {
       next(error);

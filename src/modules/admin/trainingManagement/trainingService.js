@@ -22,9 +22,15 @@ const packageService = require("../../admin/packageManagement/packageService.js"
 const { where, Op } = require("sequelize");
 const { splitLang } = require("../../../Helpers/langHelper.js");
 
-const createTraining = async (trainingData) => {
+const createTraining = async (trainingData,req) => {
   if (trainingData.packageId) await createTrainingPackage(trainingData);
   else if (trainingData.courseId) await createOneTraining(trainingData, true);
+  if (req && req.audit) {
+    req.audit.affectedThing = { name: trainingData.eventName };
+    req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+    req.audit.message =
+      "Training created successfully | تم إنشاء التدريب بنجاح";
+  }
   else throw new Error("packageId or courseId is required");
 };
 
@@ -220,16 +226,17 @@ const getAllTrainings = async (features) => {
   );
 };
 
-const updateTraining = async (trainingId, updateData) => {
+const updateTraining = async (trainingId, updateData,req) => {
   return sequelize.transaction(async (t) => {
     const trainingg = await training.findByPk(trainingId, { transaction: t });
     if (!trainingg) throw new Error("training_not_found");
-
+    let name;
     // Validate Course
     if (updateData.courseId) {
       const coursee = await course.findByPk(updateData.courseId, {
         transaction: t,
       });
+      name=coursee?.name
       if (!coursee) throw new Error("course_not_found");
     }
 
@@ -248,6 +255,12 @@ const updateTraining = async (trainingId, updateData) => {
       },
       { transaction: t }
     );
+    if (req && req.audit) {
+      req.audit.affectedThing = { name: name };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "Training updated successfully | تم تحديث التدريب بنجاح";
+    }
 
     return trainingg;
   });
@@ -268,6 +281,7 @@ const deleteTraining = async (trainingId) => {
     await training.event.destroy({ transaction: t });
 
     await training.destroy({ transaction: t });
+    
 
     return { message: "Training deleted successfully" };
   });

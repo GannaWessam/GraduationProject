@@ -6,7 +6,7 @@ const secretKey = process.env.WEBHOOK_SECRET;
 const { verifySignature , validateWebhookTimestamp } = require("./helper/Webhook");
 const { Op } = require("sequelize");
 const SYSTEM_IDENTIFIER = process.env.TREASURY_SYSTEM_IDENTIFIER;
-const BASE_URL = "https://nbu.capu.edu.eg";
+const BASE_URL = "https://nub.capu.edu.eg";
 
 
 

@@ -3,23 +3,14 @@ const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
 const secretKey = process.env.WEBHOOK_SECRET;
-const { verifySignature , validateWebhookTimestamp } = require("./helper/Webhook");
+const { verifySignature , validateWebhookTimestamp, signRequest } = require("./helper/Webhook");
 const { Op } = require("sequelize");
 const SYSTEM_IDENTIFIER = process.env.TREASURY_SYSTEM_IDENTIFIER;
-const BASE_URL = "https://nub.capu.edu.eg";
+const BASE_URL = process.env.RECEIPTS_BASE_URL;
 
 
 
-const signRequest = (method, path, query, body) => {
-  const timestamp = Date.now().toString();
-  const canonical = [method, path, query, timestamp, body].join("\n");
-  const signature = crypto
-    .createHmac("sha256", secretKey)
-    .update(canonical, "utf8")
-    .digest("base64");
 
-  return { timestamp, signature };
-};
 
 const createPayment = async ({
   paymentId,
@@ -54,7 +45,7 @@ const createPayment = async ({
   };
 
   const bodyString = JSON.stringify(requestBody);
-  const path = "/api/api/payments/test/eFinance/initiate-payment";
+  const path = "/api/payments/test/eFinance/initiate-payment";
 
   const { timestamp, signature } = signRequest("POST", path, "", bodyString);
 

@@ -1,6 +1,10 @@
 const cron = require("node-cron");
 const axios = require("axios");
 const { Receipts } = require("../models");
+const { signRequest } = require("../modules/payment/helper/Webhook");
+
+const SYSTEM_IDENTIFIER = process.env.TREASURY_SYSTEM_IDENTIFIER;
+const SECRET_KEY = process.env.WEBHOOK_SECRET;
 
 class ReceiptSyncService {
   constructor() {
@@ -37,11 +41,16 @@ class ReceiptSyncService {
     console.log("\n=========== RECEIPTS SYNC STARTED ===========");
 
     try {
+      const path = "/api/payments/receipts";
+      const query = "connectionTypeIds=5";
+      const { timestamp, signature } = signRequest("GET", path, query);
       const response = await axios.get(
-        `${this.baseUrl}/api/payments/receipts`,
+        `${this.baseUrl}${path}?${query}`,
         {
-          params: {
-            connectionTypeIds: 5,
+          headers: {
+            "X-System-Identifier": SYSTEM_IDENTIFIER,
+            "X-Timestamp": timestamp,
+            "X-Signature": signature,
           },
         },
       );

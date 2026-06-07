@@ -40,8 +40,20 @@ const validateWebhookTimestamp = (timestampHeader) => {
   return true;
 };
 
+const signRequest = (method, path, query, body) => {
+  const timestamp = Date.now().toString();
+  const canonical = [method, path, query, timestamp, body].join("\n");
+  const signature = crypto
+    .createHmac("sha256", secretKey)
+    .update(canonical, "utf8")
+    .digest("base64");
+
+  return { timestamp, signature };
+};
+
 
 module.exports = {
   verifySignature,
   validateWebhookTimestamp,
+  signRequest
 };

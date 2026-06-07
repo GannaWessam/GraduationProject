@@ -5,10 +5,21 @@ const crypto = require("crypto");
 const secretKey = process.env.WEBHOOK_SECRET;
 const { verifySignature , validateWebhookTimestamp } = require("./helper/Webhook");
 const { Op } = require("sequelize");
-const { success } = require("../../Util/ApiResponse");
-const { update } = require("../admin/sessionManagement/sessionController");
+const SYSTEM_IDENTIFIER = process.env.TREASURY_SYSTEM_IDENTIFIER;
+const BASE_URL = "https://nbu.capu.edu.eg";
 
 
+
+const signRequest = (method, path, query, body) => {
+  const timestamp = Date.now().toString();
+  const canonical = [method, path, query, timestamp, body].join("\n");
+  const signature = crypto
+    .createHmac("sha256", secretKey)
+    .update(canonical, "utf8")
+    .digest("base64");
+
+  return { timestamp, signature };
+};
 
 const createPayment = async ({
   paymentId,
@@ -17,77 +28,68 @@ const createPayment = async ({
   userId,
   req
 }) => {
-  const user = await Student.findOne({
-    where: { userId },
-  });
+  const user = await Student.findOne({ where: { userId } });
+  if (!user) throw new Error("User not found");
 
-  if (!user) {
-    throw new Error("User not found");
-  }
+  const existingPayment = await Payment.findOne({ where: { paymentId, userId } });
+  if (!existingPayment) throw new Error("Payment not found");
 
-  const existingPayment = await Payment.findOne({
-    where: { paymentId, userId },
-  });
-
-  if (!existingPayment) {
-    throw new Error("Payment not found");
-  }
-  const fullName = user.fullName;
-  const nameParts = fullName.trim().split(" ");
+  const nameParts = user.fullName.trim().split(" ");
   const firstName = nameParts[0];
   const lastName = nameParts[nameParts.length - 1];
 
-  const billingDetails = {
-    firstName,
-    lastName,
-    emailAddress: email,
-    mobileNumber: user.Mobile,
-    currency: "EGP",
-  };
-
-  const studentReferenceId = user.nationalId;
-
   const requestBody = {
-    billingDetails,
+    billingDetails: {
+      firstName,
+      lastName,
+      emailAddress: email,
+      mobileNumber: user.Mobile,
+      currency: "EGP",
+    },
     receiptIds,
-    studentReferenceId,
+    studentReferenceId: user.nationalId,
     paymentMechanism: "NOT_SET",
     description: "string",
     redirectUrl: "https://fdtc.capu.edu.eg/pay-fees",
   };
 
+  const bodyString = JSON.stringify(requestBody);
+  const path = "/api/api/payments/test/eFinance/initiate-payment";
+
+  const { timestamp, signature } = signRequest("POST", path, "", bodyString);
+
   const response = await axios.post(
-    "https://nbu.capu.edu.eg/api/api/payments/test/eFinance/initiate-payment",
-    requestBody,
+    BASE_URL + path,
+    bodyString,
     {
       headers: {
         "Content-Type": "application/json",
         Accept: "*/*",
+        "X-System-Identifier": SYSTEM_IDENTIFIER,
+        "X-Timestamp": timestamp,
+        "X-Signature": signature,
       },
     }
   );
 
   const data = response.data.data;
-
   if (!data?.merchantOrderId || !data?.html) {
     throw new Error("Invalid response from payment API");
   }
 
-  await existingPayment.update({
-    orderId: data.merchantOrderId,
-    status: "PENDING",
-  });
+  await existingPayment.update({ orderId: data.merchantOrderId, status: "PENDING" });
 
-  if (req && req.audit) {
-    req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+  if (req?.audit) {
+    req.audit.user = {
+      _id: req.userData.id,
+      name: req.userData.name,
+      email: req.userData.email,
+    };
     req.audit.message =
       "User Redirected to payment platform successfully | تم توجيه المستخدم إلى منصة الدفع بنجاح";
   }
 
-  return {
-    html: data.html,
-    paymentRecord: existingPayment,
-  };
+  return { html: data.html, paymentRecord: existingPayment };
 };
 
 const getPaymentsByUserId = async (userId,features) => {

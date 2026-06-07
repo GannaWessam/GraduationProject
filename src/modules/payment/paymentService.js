@@ -47,7 +47,7 @@ const createPayment = async ({
   const bodyString = JSON.stringify(requestBody);
   const path = "/api/payments/test/eFinance/initiate-payment";
 
-  const { timestamp, signature } = signRequest("POST", path, "", bodyString);
+  const { timestamp, signature } = signRequest("POST", path, "", bodyString,secretKey);
 
   const response = await axios.post(
     BASE_URL + path,

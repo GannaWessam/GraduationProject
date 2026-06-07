@@ -15,7 +15,7 @@ class ReceiptSyncService {
 
   init() {
     this.cronJob = cron.schedule(
-      "0 2 * * *",
+      "16 15 * * *",
       async () => {
         await this.syncReceipts();
       },
@@ -43,7 +43,7 @@ class ReceiptSyncService {
     try {
       const path = "/api/payments/receipts";
       const query = "connectionTypeIds=5";
-      const { timestamp, signature } = signRequest("GET", path, query);
+      const { timestamp, signature } = signRequest("GET", path, query,"",SECRET_KEY);
       const response = await axios.get(
         `${this.baseUrl}${path}?${query}`,
         {

@@ -40,7 +40,7 @@ const validateWebhookTimestamp = (timestampHeader) => {
   return true;
 };
 
-const signRequest = (method, path, query, body) => {
+const signRequest = (method, path, query, body,secretKey) => {
   const timestamp = Date.now().toString();
   const canonical = [method, path, query, timestamp, body].join("\n");
   const signature = crypto

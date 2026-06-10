@@ -114,6 +114,18 @@ router.get(
   "/users/registration",
   validateToken,
   catchError(usersController.getAllReservationsForUser)
-)
+) 
+
+router.get(
+  "/paid/excel",
+  //validateToken,
+  catchError(usersController.exportPaidStudentsExcelController)
+);
+
+router.get(
+  "/export/excel",
+  //validateToken,
+  catchError(usersController.exportUsersExcel)
+);
 
 module.exports = router;    

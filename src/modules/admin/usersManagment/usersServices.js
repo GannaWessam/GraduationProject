@@ -1,4 +1,5 @@
 const { Error } = require("sequelize");
+const ExcelJS = require("exceljs");
 // const { User, Student, sequelize ,Payment ,Product } = require("../../../models");
 const {
   Student,
@@ -653,7 +654,93 @@ const getUserReservations=async(userId) => {
     ]
   })
   return data
-}
+}  
+
+const exportPaidStudentsExcel = async () => {
+  const students = await Student.findAll({
+    where: {
+      status: "paid",
+    },
+    attributes: [
+      "fullName",
+      "nationalId",
+      "Mobile",
+    ],
+    order: [["fullName", "ASC"]],
+  });
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Paid Students");
+
+  worksheet.columns = [
+    {
+      header: "Full Name",
+      key: "fullName",
+      width: 35,
+    },
+    {
+      header: "National ID",
+      key: "nationalId",
+      width: 25,
+    },
+    {
+      header: "Mobile",
+      key: "mobile",
+      width: 20,
+    },
+  ];
+
+  students.forEach((student) => {
+    worksheet.addRow({
+      fullName: student.fullName,
+      nationalId: student.nationalId,
+      mobile: student.Mobile,
+    });
+  });
+
+  worksheet.getRow(1).font = {
+    bold: true,
+  };
+
+  return workbook;
+};
+
+const exportUsersExcel = async (features) => {
+  const { rows: students } = await Student.findAndCountAll({
+    ...features.options,
+    include: [
+      {
+        model: User,
+        attributes: ["email"],
+      },
+    ],
+  });
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Students");
+
+  worksheet.columns = [
+    { header: "Full Name", key: "fullName", width: 35 },
+    { header: "National ID", key: "nationalId", width: 25 },
+    { header: "Mobile", key: "mobile", width: 20 },
+    { header: "Email", key: "email", width: 35 },
+    { header: "Status", key: "status", width: 20 },
+  ];
+
+  students.forEach((student) => {
+    worksheet.addRow({
+      fullName: student.fullName,
+      nationalId: student.nationalId,
+      mobile: student.Mobile,
+      email: student.User?.email || "",
+      status: student.status,
+    });
+  });
+
+  worksheet.getRow(1).font = { bold: true };
+
+  return workbook;
+};
 
 
 
@@ -672,5 +759,7 @@ module.exports = {
   getUsersByExamId,
   assignPermissionsToUser,
   getUserExams,
-  getUserReservations
+  getUserReservations,
+  exportPaidStudentsExcel,
+  exportUsersExcel
 };

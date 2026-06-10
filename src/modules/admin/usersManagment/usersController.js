@@ -198,7 +198,51 @@ const getAllReservationsForUser=async(req,res,next) => {
   }
 
 }
+const exportPaidStudentsExcelController = async (req, res, next) => {
+  try {
+    const workbook = await userServices.exportPaidStudentsExcel();
 
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="PaidStudents.xlsx"'
+    );
+
+    await workbook.xlsx.write(res);
+
+    res.end();
+  } catch (err) {
+    next(err);
+  }
+};
+
+const exportUsersExcel = async (req, res) => {
+  const features = new ApiFeature(req.query)
+    .filter()
+    .search()
+    .sort()
+    .selectedFields();
+
+  const workbook = await userServices.exportUsersExcel(features);
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+
+  res.setHeader(
+    "Content-Disposition",
+    'attachment; filename="students.xlsx"'
+  );
+
+  await workbook.xlsx.write(res);
+
+  res.end();
+};
 
 module.exports = {
     getAllUsers,
@@ -215,5 +259,7 @@ module.exports = {
     getUsersByExamIdController,
     assignPermissionsToUserController,
     getUserExamsController,
-    getAllReservationsForUser
+    getAllReservationsForUser,
+    exportPaidStudentsExcelController,
+    exportUsersExcel
 }

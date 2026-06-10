@@ -118,14 +118,20 @@ router.get(
 
 router.get(
   "/paid/excel",
-  //validateToken,
+  validateToken,
   catchError(usersController.exportPaidStudentsExcelController)
 );
 
 router.get(
   "/export/excel",
-  //validateToken,
+  validateToken,
   catchError(usersController.exportUsersExcel)
+);
+
+router.get(
+  "/:eventId/users",
+  validateToken,
+  catchError(usersController.getUsersByEventId)
 );
 
 module.exports = router;    

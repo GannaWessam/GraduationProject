@@ -244,6 +244,24 @@ const exportUsersExcel = async (req, res) => {
   res.end();
 };
 
+const getUsersByEventId = async (req, res) => {
+  const features = new ApiFeature(req.query)
+    .filter()
+    .search()
+    .sort()
+    .pagination()
+    .selectedFields();
+
+  const { eventId } = req.params;
+
+  const result = await userServices.getUsersByEventIdService(
+    eventId,
+    features
+  );
+
+  res.status(200).json(ApiResponse.success(result));
+};
+
 module.exports = {
     getAllUsers,
     getAllUsersByStatus,
@@ -261,5 +279,6 @@ module.exports = {
     getUserExamsController,
     getAllReservationsForUser,
     exportPaidStudentsExcelController,
-    exportUsersExcel
+    exportUsersExcel,
+    getUsersByEventId
 }

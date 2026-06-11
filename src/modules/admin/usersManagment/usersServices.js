@@ -745,6 +745,55 @@ const exportUsersExcel = async (features) => {
   return workbook;
 };
 
+const getUsersByEventIdService = async (eventId, features) => {
+  const options = features.options || {};
+
+  const { count, rows } = await reservation.findAndCountAll({
+    where: {
+      eventId,
+    },
+    attributes: [],
+    include: [
+      {
+        model: Student,
+        attributes: [
+          "userId",
+          "fullName",
+          "Mobile",
+          "nationalId",
+          "college",
+        ],
+        include: [
+          {
+            model: User,
+            attributes: ["email"],
+          },
+        ],
+        where: options.where || {},
+      },
+    ],
+    limit: options.limit,
+    offset: options.offset,
+    order: options.order,
+    distinct: true,
+  });
+
+  const users = rows.map((item) => ({
+    userId: item.Student.userId,
+    name: item.Student.fullName,
+    email: item.Student.User?.email,
+    mobile: item.Student.Mobile,
+    nationalId: item.Student.nationalId,
+    college: item.Student.college,
+  }));
+
+  return PaginatedResponse.fromApiFeature(
+    features,
+    count,
+    users,
+    "Event users fetched successfully"
+  );
+};
 
 
 module.exports = {
@@ -764,5 +813,6 @@ module.exports = {
   getUserExams,
   getUserReservations,
   exportPaidStudentsExcel,
-  exportUsersExcel
+  exportUsersExcel,
+  getUsersByEventIdService
 };

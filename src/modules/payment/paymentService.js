@@ -36,6 +36,7 @@ const createPayment = async ({
       emailAddress: email,
       mobileNumber: user.Mobile,
       currency: "EGP",
+      paymentId:paymentId
     },
     receiptIds,
     studentReferenceId: user.nationalId,
@@ -68,7 +69,10 @@ const createPayment = async ({
     throw new Error("Invalid response from payment API");
   }
 
-  await existingPayment.update({ orderId: data.merchantOrderId, status: "PENDING" });
+  await existingPayment.update({
+    orderId: sequelize.fn('array_append', sequelize.col('orderId'), data.merchantOrderId),
+    status: "PENDING"
+  });
 
   if (req?.audit) {
     req.audit.user = {
@@ -271,7 +275,10 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
     await webhook.create({ webhookId, webhookEvent: event }, { transaction: t });
 
     // تحديث بيانات الدفع
-    const paymentData = await Payment.findOne({ where: { orderId: body.transaction.merchantOrderId }, transaction: t });
+    const paymentData = await Payment.findOne({
+      where: sequelize.literal(`'${body.transaction.merchantOrderId}' = ANY("orderId")`),
+      transaction: t
+    });
     if (!paymentData) {
       const error = new Error("Bad request - Invalid payload format");
       error.statusCode = 400;
@@ -284,7 +291,7 @@ const processWebhook = async ({ signature, webhookId, event, timestamp, rawBody,
     if (body.transaction.grossAmount !== undefined) {
       paymentData.actualAmount = body.transaction.grossAmount;
     }
-    paymentData.timestamp=timestamp;
+    paymentData.timestamp=body.transaction.paymentDate;
     await paymentData.save({ transaction: t });
 
     if (

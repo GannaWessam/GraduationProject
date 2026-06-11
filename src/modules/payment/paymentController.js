@@ -108,10 +108,7 @@ const handleWebhook = async (req, res, next) => {
     }
 
     
-    const rawBody = req.body instanceof Buffer ? req.body.toString("utf8") : JSON.stringify(req.body);
-
-    
-
+    const rawBody = req.body instanceof Buffer ? req.body.toString("utf8") : JSON.stringify(req.body)
     
     await paymentService.processWebhook({
       signature,

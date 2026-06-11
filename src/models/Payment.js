@@ -5,7 +5,11 @@ module.exports = (sequelize) => {
     paymentId: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4, },
     userId: { type: DataTypes.UUID, allowNull: false,},
     receiptId: { type: DataTypes.INTEGER, allowNull: true },
-    orderId: { type: DataTypes.STRING(100), allowNull: true,},
+    orderId: {
+      type: DataTypes.ARRAY(DataTypes.STRING(100)),
+      allowNull: true,
+      defaultValue: [],
+    },
     currencyId: {type: DataTypes.UUID,allowNull: true,},
     productId: { type: DataTypes.UUID, allowNull: true,},
     serviceId: { type: DataTypes.UUID, allowNull: true,},

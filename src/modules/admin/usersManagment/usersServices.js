@@ -19,7 +19,8 @@ const {
   package,
   packageCourse,
   trainer,
-  supervisor
+  supervisor,
+  college
 } = require("../../../models");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
@@ -175,6 +176,7 @@ const getAllUsers = async (features) => {
 // };
 //----------------------------------------------------------------------
 const { Op } = require("sequelize");
+const { splitLang } = require("../../../Helpers/langHelper");
 
 const getAllUsersByStatus = async (status, features) => {
   const where = { ...(features.options?.where || {}) };
@@ -194,6 +196,7 @@ const getAllUsersByStatus = async (status, features) => {
     ...features.options,
     where,
     distinct: true,
+    subQuery: false,
     include: [
       {
         model: User,
@@ -202,15 +205,13 @@ const getAllUsersByStatus = async (status, features) => {
           {
             model: Payment,
             attributes: ["amount", "status", "timestamp"],
-            include: [
-              {
-                model: Product,
-                attributes: ["courseName"],
-              },
-            ],
           },
         ],
       },
+      {
+        model:Product,
+        attributes:["courseName"],
+      }
     ],
   });
 
@@ -297,7 +298,7 @@ async function updateUser(userId, payload, idImage,req) {
 const approveStudentByUserId = async (userId,req) => { //ysma3 fe profile el user ||  ysma3 m3 elnas elly msgla real time
   const student = await Student.findOne({ where: { userId } });
   if (!student) throw new Error("student_not_found");
-
+  await User.increment("tokenVersion", { where: { userId: student.userId } });
   student.status = "approved";
   await student.save();
   
@@ -723,6 +724,7 @@ const exportUsersExcel = async (features) => {
     { header: "Full Name", key: "fullName", width: 35 },
     { header: "National ID", key: "nationalId", width: 25 },
     { header: "Mobile", key: "mobile", width: 20 },
+    { header: "College", key: "college", width: 35 },
     { header: "Email", key: "email", width: 35 },
     { header: "Status", key: "status", width: 20 },
   ];
@@ -732,6 +734,7 @@ const exportUsersExcel = async (features) => {
       fullName: student.fullName,
       nationalId: student.nationalId,
       mobile: student.Mobile,
+      college: splitLang(student.college).ar,
       email: student.User?.email || "",
       status: student.status,
     });

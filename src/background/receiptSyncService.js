@@ -15,7 +15,7 @@ class ReceiptSyncService {
 
   init() {
     this.cronJob = cron.schedule(
-      "16 15 * * *",
+      "0 2 * * *",
       async () => {
         await this.syncReceipts();
       },

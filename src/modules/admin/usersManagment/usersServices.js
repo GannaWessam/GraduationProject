@@ -1,5 +1,6 @@
 const { Error } = require("sequelize");
 const ExcelJS = require("exceljs");
+const ReportService = require("../../../Services/ReportService");
 // const { User, Student, sequelize ,Payment ,Product } = require("../../../models");
 const {
   Student,
@@ -796,6 +797,98 @@ const getUsersByEventIdService = async (eventId, features) => {
 };
 
 
+const exportUsers = async (features, status, type = "excel") => {
+  const where = { ...(features.options?.where || {}) };
+
+  if (status) {
+    if (status.startsWith("!")) {
+      where.status = {
+        [Op.ne]: status.substring(1),
+      };
+    } else {
+      where.status = status;
+    }
+  }
+
+  const students = await Student.findAll({
+    ...features.options,
+    where,
+    include: [
+      {
+        model: User,
+        attributes: ["email"],
+        include: [
+          {
+            model: Payment,
+            attributes: ["amount", "status", "timestamp"],
+          },
+        ],
+      },
+      {
+        model: Product,
+        attributes: ["courseName"],
+      },
+    ],
+  });
+
+  if (!students.length) throw new Error("not_found");
+
+  if (type === "pdf") {
+    const reportService = new ReportService();
+
+    const columns = [
+      { title: "Name", width: "*" },
+      { title: "National ID", width: "*" },
+      { title: "Mobile", width: 50 },
+      { title: "College", width: 50 },
+      { title: "Email", width: "*" },
+      { title: "Status", width: "*" },
+    ];
+
+    const rows = students.map((student) => [
+      student.fullName,
+      student.nationalId,
+      student.Mobile,
+      splitLang(student.college).ar,
+      student.User?.email || "",
+      student.status,
+    ]);
+
+    return reportService.generate({
+      title: "تقرير الطلاب",
+      columns,
+      rows,
+    });
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Students");
+
+  worksheet.columns = [
+    { header: "Full Name", key: "fullName", width: 35 },
+    { header: "National ID", key: "nationalId", width: 25 },
+    { header: "Mobile", key: "mobile", width: 20 },
+    { header: "College", key: "college", width: 35 },
+    { header: "Email", key: "email", width: 35 },
+    { header: "Status", key: "status", width: 20 },
+  ];
+
+  students.forEach((student) => {
+    worksheet.addRow({
+      fullName: student.fullName,
+      nationalId: student.nationalId,
+      mobile: student.Mobile,
+      college: splitLang(student.college).ar,
+      email: student.User?.email || "",
+      status: student.status,
+    });
+  });
+
+  worksheet.getRow(1).font = { bold: true };
+
+  return workbook;
+};
+
 module.exports = {
   getAllUsers,
   getAllUsersByStatus,
@@ -814,5 +907,6 @@ module.exports = {
   getUserReservations,
   exportPaidStudentsExcel,
   exportUsersExcel,
-  getUsersByEventIdService
+  getUsersByEventIdService,
+  exportUsers
 };

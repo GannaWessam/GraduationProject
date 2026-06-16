@@ -134,4 +134,9 @@ router.get(
   catchError(usersController.getUsersByEventId)
 );
 
+router.get(
+  "/export/pdfExcel",
+  catchError(usersController.exportUsersController)
+);
+
 module.exports = router;    

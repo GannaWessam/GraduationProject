@@ -38,6 +38,7 @@
     "nodemailer": "^7.0.6",
     "nodemon": "^3.1.10",
     "pdfkit": "^0.17.2",
+    "pdfmake": "^0.2.10",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "puppeteer": "^24.37.5",

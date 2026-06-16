@@ -262,6 +262,53 @@ const getUsersByEventId = async (req, res) => {
   res.status(200).json(ApiResponse.success(result));
 };
 
+
+const exportUsersController = async (req, res) => {
+  const { status, type = "excel" } = req.query;
+
+  // Remove only "type" from filters
+  const query = { ...req.query };
+  delete query.type;
+
+  const features = new ApiFeature(query)
+    .filter()
+    .search()
+    .sort()
+    .selectedFields();
+
+  const result = await userServices.exportUsers(
+    features,
+    status,
+    type
+  );
+
+  if (type === "pdf") {
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="students.pdf"'
+    );
+
+    result.pipe(res);
+    result.end();
+    return;
+  }
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+
+  res.setHeader(
+    "Content-Disposition",
+    'attachment; filename="students.xlsx"'
+  );
+
+  await result.xlsx.write(res);
+  res.end();
+};
+
+
 module.exports = {
     getAllUsers,
     getAllUsersByStatus,
@@ -280,5 +327,6 @@ module.exports = {
     getAllReservationsForUser,
     exportPaidStudentsExcelController,
     exportUsersExcel,
-    getUsersByEventId
+    getUsersByEventId,
+    exportUsersController
 }

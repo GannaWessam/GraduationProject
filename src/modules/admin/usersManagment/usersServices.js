@@ -848,32 +848,30 @@ const exportUsers = async (features, status, type = "excel") => {
   }
 
     const columns = [
-      { title: reverseWords("الاسم"), width: "*" },
-      { title: reverseWords("الرقم القومي"), width: "*" },
-      { title: reverseWords("الهاتف"), width: 50 },
-      { title: reverseWords("الكلية"), width: 50 },
+      { title: reverseWords("الكلية"), width: 100 },
       { title: reverseWords("البريد الالكتروني"), width: "*" },
-      { title: reverseWords("الحالة"), width: "*" },
+      { title: reverseWords("الهاتف"), width: 80 },
+      { title: reverseWords("الرقم القومي"), width: 70 },
+      { title: reverseWords("الاسم"), width: 120 },
     ];
 
-    const statusMap = {
-      approved:reverseWords( "قيد انتظار عملية الدفع"),
-      pending:reverseWords( "قيد انتظار مراجعة البيانات"),
-      paid: reverseWords("تم الدفع بنجاح"),
-      succeeded:reverseWords( "انتهى من أداء الدورة"),
-      "reserved training": reverseWords("تم حجز التدريب"),
-      "reserved exam":reverseWords( "تم حجز الامتحان"),
-      "finish training":reverseWords( "تم الانتهاء من التدريب"),
-      failed: reverseWords("راسب"),
-    };
+    // const statusMap = {
+    //   approved:reverseWords( "قيد انتظار عملية الدفع"),
+    //   pending:reverseWords( "قيد انتظار مراجعة البيانات"),
+    //   paid: reverseWords("تم الدفع بنجاح"),
+    //   succeeded:reverseWords( "انتهى من أداء الدورة"),
+    //   "reserved training": reverseWords("تم حجز التدريب"),
+    //   "reserved exam":reverseWords( "تم حجز الامتحان"),
+    //   "finish training":reverseWords( "تم الانتهاء من التدريب"),
+    //   failed: reverseWords("راسب"),
+    // };
 
     const rows = students.map((student) => [
-      student.fullName,
-      student.nationalId,
-      student.Mobile,
-      splitLang(student.college).ar,
+      reverseWords(splitLang(student.college).ar),
       student.User?.email || "",
-      statusMap[student.status] || student.status, // fallback لو مش موجود
+      student.Mobile,
+      student.nationalId,
+      reverseWords(student.fullName),
     ]);
 
     return reportService.generate({

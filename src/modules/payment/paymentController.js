@@ -1,6 +1,7 @@
 const paymentService = require('./paymentService');
 const ApiFeature = require("../../Util/ApiFeatures");
 const ApiResponse = require("../../Util/ApiResponse");
+const ReportService = require("../../Services/ReportService");
 
 const createPaymentAndRedirect = async (req, res) => {
   try {
@@ -206,6 +207,50 @@ const getReceiptsfromExternal=async(req,res,next) => {
   }
 }
 
+const exportPaymentsController = async (req, res) => {
+  const { status, type = "excel" } = req.query;
+
+  const query = { ...req.query };
+  delete query.type;
+
+  const features = new ApiFeature(query)
+    .filter()
+    .search()
+    .sort()
+    .selectedFields();
+
+  const result = await paymentService.exportPayments(
+    features,
+    status,
+    type
+  );
+
+  if (type === "pdf") {
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="payments.pdf"'
+    );
+
+    result.pipe(res);
+    result.end();
+    return;
+  }
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+
+  res.setHeader(
+    "Content-Disposition",
+    'attachment; filename="payments.xlsx"'
+  );
+
+  await result.xlsx.write(res);
+  res.end();
+};
+
 module.exports = {
   createPaymentAndRedirect,
   getPaymentsByUserId,
@@ -215,5 +260,6 @@ module.exports = {
   getPendingPaymentsByUserId,
   uploadReceiptController,
   getAllReceiptsController,
-  getReceiptsfromExternal
+  getReceiptsfromExternal,
+  exportPaymentsController
 };

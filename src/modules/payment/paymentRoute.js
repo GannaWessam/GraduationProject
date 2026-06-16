@@ -37,6 +37,11 @@ router.post(
     "/pay/fetch",
     paymentController.getReceiptsfromExternal
   )
+
+  router.get(
+    "/export/pdfExcel",
+    catchError(paymentController.exportPaymentsController)
+  );
   
 
 

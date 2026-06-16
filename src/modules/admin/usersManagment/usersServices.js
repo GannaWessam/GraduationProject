@@ -882,16 +882,30 @@ const exportUsers = async (features, status, type = "excel") => {
   }
 
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet("Students");
+  const worksheet = workbook.addWorksheet("Students", {
+    views: [{ rightToLeft: true }],
+  });
 
   worksheet.columns = [
-    { header: "Full Name", key: "fullName", width: 35 },
-    { header: "National ID", key: "nationalId", width: 25 },
-    { header: "Mobile", key: "mobile", width: 20 },
-    { header: "College", key: "college", width: 35 },
-    { header: "Email", key: "email", width: 35 },
-    { header: "Status", key: "status", width: 20 },
+
+    { header: "الاسم", key: "fullName", width: 35 },
+    { header: "الرقم القومي", key: "nationalId", width: 25 },
+    { header: "البريد الإلكتروني", key: "email", width: 35 },
+    { header: "الهاتف", key: "mobile", width: 20 },
+    { header: "الكلية", key: "college", width: 35 },
+    { header: "الحالة", key: "status", width: 30 },
   ];
+
+  const statusMap = {
+    approved: "قيد انتظار عملية الدفع",
+    pending: "قيد انتظار مراجعة البيانات",
+    paid: "تم الدفع بنجاح",
+    succeeded: "انتهى من أداء الدورة",
+    "reserved training": "تم حجز التدريب",
+    "reserved exam": "تم حجز الامتحان",
+    "finish training": "تم الانتهاء من التدريب",
+    failed: "راسب",
+  };
 
   students.forEach((student) => {
     worksheet.addRow({
@@ -900,10 +914,19 @@ const exportUsers = async (features, status, type = "excel") => {
       mobile: student.Mobile,
       college: splitLang(student.college).ar,
       email: student.User?.email || "",
-      status: student.status,
+      status: statusMap[student.status] || student.status,
     });
   });
 
+  worksheet.eachRow((row, rowNumber) => {
+    row.eachCell((cell) => {
+      cell.alignment = {
+        vertical: "middle",
+        horizontal: "center",
+      };
+    });
+  });
+  
   worksheet.getRow(1).font = { bold: true };
 
   return workbook;

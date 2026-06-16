@@ -7,6 +7,7 @@ const { verifySignature , validateWebhookTimestamp, signRequest } = require("./h
 const { Op } = require("sequelize");
 const SYSTEM_IDENTIFIER = process.env.TREASURY_SYSTEM_IDENTIFIER;
 const BASE_URL = process.env.RECEIPTS_BASE_URL;
+const ReportService = require("../../Services/ReportService");
 
 
 
@@ -598,6 +599,120 @@ const manualFetchReceipts=async() => {
   }
 }
 
+const exportPayments = async (features, status, type = "excel") => {
+  const where = { ...(features.options?.where || {}) };
+
+  if (status) {
+    if (status.startsWith("!")) {
+      where.status = { [Op.ne]: status.substring(1) };
+    } else {
+      where.status = status;
+    }
+  }
+
+  const payments = await Payment.findAll({
+    ...features.options,
+    where,
+    order: [["timestamp", "DESC"]],
+    include: [
+      {
+        model: Student,
+        attributes: ["fullName", "Mobile", "NameEn", "nationalId"],
+      },
+      {
+        model: Product,
+        attributes: ["courseName"],
+      },
+      {
+        model: Service,
+        attributes: ["name"],
+      },
+      {
+        model: currency,
+        attributes: ["code"],
+      },
+    ],
+  });
+
+  if (!payments.length) throw new Error("not_found");
+
+  const statusMap = {
+    pending: "قيد الانتظار",
+    succeeded: "تم الدفع بنجاح",
+    failed: "فشل الدفع",
+    refunded: "تم الاسترجاع",
+  };
+
+  if (type === "pdf") {
+    const reportService = new ReportService();
+
+    function reverseWords(text) {
+      if (!text) return "";
+      return text.toString().trim().split(/\s+/).reverse().join(" ");
+    }
+
+    const columns = [
+      { title: reverseWords("الطالب"), width: 120 },
+      { title: reverseWords("المنتج"), width: 120 },
+      { title: reverseWords("الخدمة"), width: 100 },
+      { title: reverseWords("المبلغ"), width: 70 },
+      { title: reverseWords("الحالة"), width: 90 },
+      { title: reverseWords("التاريخ"), width: "*" },
+    ];
+
+    const rows = payments.map((p) => [
+      reverseWords(p.Student?.fullName || ""),
+      reverseWords(p.Product?.courseName || ""),
+      reverseWords(p.Service?.name || ""),
+      p.actualAmount,
+      reverseWords(statusMap[p.status] || p.status),
+      p.timestamp,
+    ]);
+
+    return reportService.generate({
+      title: "تقرير المدفوعات",
+      columns,
+      rows,
+    });
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Payments", {
+    views: [{ rightToLeft: true }],
+  });
+
+  worksheet.columns = [
+    { header: "الطالب", key: "student", width: 30 },
+    { header: "المنتج", key: "product", width: 25 },
+    { header: "الخدمة", key: "service", width: 20 },
+    { header: "المبلغ", key: "amount", width: 15 },
+    { header: "العملة", key: "currency", width: 15 },
+    { header: "الحالة", key: "status", width: 25 },
+    { header: "التاريخ", key: "timestamp", width: 25 },
+  ];
+
+  payments.forEach((p) => {
+    worksheet.addRow({
+      student: p.Student?.fullName || "",
+      product: p.Product?.courseName || "",
+      service: p.Service?.name || "",
+      amount: p.actualAmount,
+      currency: p.currency?.code || "",
+      status: statusMap[p.status] || p.status,
+      timestamp: p.timestamp,
+    });
+  });
+
+  worksheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.alignment = { vertical: "middle", horizontal: "center" };
+    });
+  });
+
+  worksheet.getRow(1).font = { bold: true };
+
+  return workbook;
+};
 
 
 
@@ -611,5 +726,6 @@ module.exports = {
   getPendingPaymentsByUserId,
   createReceipt,
   getAllReceipts,
-  manualFetchReceipts
+  manualFetchReceipts,
+  exportPayments
 };

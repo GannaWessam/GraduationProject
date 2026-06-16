@@ -271,7 +271,7 @@ class ReportService {
                                     },
                                     {
                                         text: reverseWords(
-                                            "جامعة العاصمة - مركز الدراسات والخدمات الأكاديمية"
+                                            "جامعة العاصمة - مركز الحساب العلمي"
                                         ),
                                         alignment: "center",
                                         fontSize: 9,

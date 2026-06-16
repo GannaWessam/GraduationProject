@@ -493,7 +493,7 @@ async function handleUserPaymentAndRegistration(paymentId, req) {
       req.audit = req.audit || {};
       req.audit.affectedUser = {
         _id: paymentData.userId,
-        name:student.fullName,
+        name:student?.fullName,
       };
       req.audit.message =
         "User payment handled and course registered successfully | تم تأكيد الدفع للمستخدم بنجاح";

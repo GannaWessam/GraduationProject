@@ -37,7 +37,7 @@ router.delete(
 );
 router.post(
   "/seed",
-  validateToken,
+  // validateToken,
   catchError(PermissionController.seedPermissionsController)
 );
 

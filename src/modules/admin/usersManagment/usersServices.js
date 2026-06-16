@@ -836,14 +836,36 @@ const exportUsers = async (features, status, type = "excel") => {
   if (type === "pdf") {
     const reportService = new ReportService();
 
+    function reverseWords(text) {
+      if (!text) return "";
+  
+      return text
+          .toString()
+          .trim()
+          .split(/\s+/)
+          .reverse()
+          .join("  ");
+  }
+
     const columns = [
-      { title: "Name", width: "*" },
-      { title: "National ID", width: "*" },
-      { title: "Mobile", width: 50 },
-      { title: "College", width: 50 },
-      { title: "Email", width: "*" },
-      { title: "Status", width: "*" },
+      { title: reverseWords("الاسم"), width: "*" },
+      { title: reverseWords("الرقم القومي"), width: "*" },
+      { title: reverseWords("الهاتف"), width: 50 },
+      { title: reverseWords("الكلية"), width: 50 },
+      { title: reverseWords("البريد الالكتروني"), width: "*" },
+      { title: reverseWords("الحالة"), width: "*" },
     ];
+
+    const statusMap = {
+      approved:reverseWords( "قيد انتظار عملية الدفع"),
+      pending:reverseWords( "قيد انتظار مراجعة البيانات"),
+      paid: reverseWords("تم الدفع بنجاح"),
+      succeeded:reverseWords( "انتهى من أداء الدورة"),
+      "reserved training": reverseWords("تم حجز التدريب"),
+      "reserved exam":reverseWords( "تم حجز الامتحان"),
+      "finish training":reverseWords( "تم الانتهاء من التدريب"),
+      failed: reverseWords("راسب"),
+    };
 
     const rows = students.map((student) => [
       student.fullName,
@@ -851,7 +873,7 @@ const exportUsers = async (features, status, type = "excel") => {
       student.Mobile,
       splitLang(student.college).ar,
       student.User?.email || "",
-      student.status,
+      statusMap[student.status] || student.status, // fallback لو مش موجود
     ]);
 
     return reportService.generate({

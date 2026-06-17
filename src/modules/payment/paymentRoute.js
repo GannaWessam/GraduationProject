@@ -40,6 +40,7 @@ router.post(
 
   router.get(
     "/export/pdfExcel",
+    validateToken,
     catchError(paymentController.exportPaymentsController)
   );
   

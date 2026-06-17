@@ -8,6 +8,9 @@ const { Op } = require("sequelize");
 const SYSTEM_IDENTIFIER = process.env.TREASURY_SYSTEM_IDENTIFIER;
 const BASE_URL = process.env.RECEIPTS_BASE_URL;
 const ReportService = require("../../Services/ReportService");
+const ExcelJS = require("exceljs");
+const { splitLang } = require("../../Helpers/langHelper");
+const formatDateOnly = require("./helper/FormatTime");
 
 
 
@@ -637,8 +640,8 @@ const exportPayments = async (features, status, type = "excel") => {
   if (!payments.length) throw new Error("not_found");
 
   const statusMap = {
-    pending: "قيد الانتظار",
-    succeeded: "تم الدفع بنجاح",
+    PENDING: "قيد الانتظار",
+    PAID: "تم الدفع بنجاح",
     failed: "فشل الدفع",
     refunded: "تم الاسترجاع",
   };
@@ -648,25 +651,35 @@ const exportPayments = async (features, status, type = "excel") => {
 
     function reverseWords(text) {
       if (!text) return "";
-      return text.toString().trim().split(/\s+/).reverse().join(" ");
+      return text.toString().trim().split(/\s+/).reverse().join("  ");
     }
 
     const columns = [
-      { title: reverseWords("الطالب"), width: 120 },
-      { title: reverseWords("المنتج"), width: 120 },
-      { title: reverseWords("الخدمة"), width: 100 },
-      { title: reverseWords("المبلغ"), width: 70 },
       { title: reverseWords("الحالة"), width: 90 },
-      { title: reverseWords("التاريخ"), width: "*" },
+      {title:reverseWords("التاريخ"),width:"*"},
+      { title: reverseWords("المبلغ"), width: 70 },
+      { title: reverseWords("الخدمة"), width: 90 },
+      { title: reverseWords("الرقم القومي"), width: 100 },
+      { title: reverseWords("الطالب"), width: 100 },
     ];
 
     const rows = payments.map((p) => [
-      reverseWords(p.Student?.fullName || ""),
-      reverseWords(p.Product?.courseName || ""),
-      reverseWords(p.Service?.name || ""),
-      p.actualAmount,
       reverseWords(statusMap[p.status] || p.status),
-      p.timestamp,
+      formatDateOnly(p.timestamp, "en"),
+      p.actualAmount+" "+p.currency?.code ?? "EGP",
+      reverseWords(
+        p.Product?.courseName
+          ? splitLang(p.Product.courseName).ar
+          : splitLang(p.Service?.name || "").ar
+      ),
+      reverseWords(p.Student?.nationalId || ""),
+      reverseWords(
+        (p.Student?.fullName || "")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 3)
+          .join("\t")
+      ),
     ]);
 
     return reportService.generate({
@@ -683,21 +696,24 @@ const exportPayments = async (features, status, type = "excel") => {
 
   worksheet.columns = [
     { header: "الطالب", key: "student", width: 30 },
-    { header: "المنتج", key: "product", width: 25 },
-    { header: "الخدمة", key: "service", width: 20 },
+    { header: "الرقم القومي", key: "ID", width: 30 },
+    { header: "الخدمة", key: "item", width: 30 },
     { header: "المبلغ", key: "amount", width: 15 },
-    { header: "العملة", key: "currency", width: 15 },
     { header: "الحالة", key: "status", width: 25 },
     { header: "التاريخ", key: "timestamp", width: 25 },
   ];
 
   payments.forEach((p) => {
+    const item =
+      p.Product?.courseName
+        ? splitLang(p.Product.courseName).ar
+        : splitLang(p.Service?.name || "").ar;
+  
     worksheet.addRow({
       student: p.Student?.fullName || "",
-      product: p.Product?.courseName || "",
-      service: p.Service?.name || "",
-      amount: p.actualAmount,
-      currency: p.currency?.code || "",
+      ID: p.Student?.nationalId || "",
+      item,
+      amount: p.actualAmount+" "+p.currency?.code || "",
       status: statusMap[p.status] || p.status,
       timestamp: p.timestamp,
     });

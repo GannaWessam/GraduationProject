@@ -136,6 +136,7 @@ router.get(
 
 router.get(
   "/export/pdfExcel",
+  validateToken,
   catchError(usersController.exportUsersController)
 );
 

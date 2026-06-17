@@ -63,7 +63,7 @@ async function getReservationsWithDetails(eventId) {
       },
       {
         model: Student,
-        attributes: ['userId', 'fullName', 'nationalId'],
+        attributes: ['userId', 'fullName', 'nationalId','NameEn'],
         required: true,
         include: [
           {
@@ -93,6 +93,7 @@ async function getReservationsWithDetails(eventId) {
       email: user?.email ?? '',
       fullName: student?.fullName ?? '',
       nationalId: student?.nationalId ?? '',
+      NameEn: student?.NameEn ?? '',
     };
   });
 
@@ -180,6 +181,12 @@ async function generateStudentDataExcel(eventId,req) {
     const password = generatePasswordFromUsername(username);
     const { firstname, lastname } = splitFullName(row.NameEn);
     const course1 = `Capital University - Helwan - ${row.language}`;
+
+    console.log(row.NameEn);
+    
+    
+    
+    
 
     return {
       username,

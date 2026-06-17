@@ -178,7 +178,7 @@ async function generateStudentDataExcel(eventId,req) {
   const dataRows = rows.map((row) => {
     const username = row.nationalId
     const password = generatePasswordFromUsername(username);
-    const { firstname, lastname } = splitFullName(row.fullName);
+    const { firstname, lastname } = splitFullName(row.NameEn);
     const course1 = `Capital University - Helwan - ${row.language}`;
 
     return {

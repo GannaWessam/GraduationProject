@@ -68,12 +68,23 @@ const deleteEventController = async (req, res) => {
     });
   }
 };
+const changeEventStatus = async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
 
+    const result = await eventService.changeEventStatusService(eventId);
+
+    res.status(200).json(ApiResponse.success(result));
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   getAllEvents,
   getEventById,
   closeEventById,
   updateEvent,
   deleteEventById,
-  deleteEventController
+  deleteEventController,
+  changeEventStatus
 };

@@ -525,6 +525,10 @@ const errorMessages = {
   code: 400,
   msg: "Student must have status paid, reserved training | حالة الطالب الحالية لا تسمح بإتمام التدريب",
 },
+"The event cannot be reopened after its start date": {
+  code: 400,
+  msg: "The event cannot be reopened after its start date | لا يمكن إعادة فتح الفعالية بعد موعد بدايتها",
+},
 };
 
 function getErrorPayload(errorKey) {

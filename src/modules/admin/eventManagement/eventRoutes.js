@@ -30,6 +30,11 @@ router.put(
   checkPermission("EDIT_EVENT"),
   catchError(eventController.updateEvent),
 );
+
+router.put("/open/:eventId",
+  //validateToken,
+  catchError(eventController.changeEventStatus));
+
 router.delete(
   "/:id",
   validateToken,

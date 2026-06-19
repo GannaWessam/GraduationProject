@@ -8,6 +8,7 @@ const {
   trainer,
   supervisor,
   sequelize,
+  Conversation,ConversationUser
 } = require("../../../models/index.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
@@ -302,11 +303,76 @@ const deleteEventService = async (eventId,req) => {
 };
 
 
+const changeEventStatusService = async (eventId) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const eventData = await event.findByPk(eventId, { transaction });
+
+    if (!eventData) {
+      throw new Error("Event not found");
+    }
+
+    if (eventData.status !== "closed") {
+      throw new Error("Event is already open");
+    }
+
+    const now = new Date();
+
+    if (now >= eventData.startDate) {
+      throw new Error("The event cannot be reopened after its start date");
+    }
+
+    
+    await eventData.update(
+      {
+        status: "opend",
+      },
+      {
+        transaction,
+      }
+    );
+
+    
+    const conversation = await Conversation.findOne({
+      where: { eventId },
+      transaction,
+    });
+
+    if (conversation) {
+      await ConversationUser.destroy({
+        where: {
+          conversationId: conversation.conversationId,
+        },
+        transaction,
+      });
+
+    
+      await Conversation.destroy({
+        where: {
+          conversationId: conversation.conversationId,
+        },
+        transaction,
+      });
+    }
+
+    await transaction.commit();
+
+    return {
+      message: "Event reopened successfully",
+    };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+
 module.exports = {
   getAllEvents,
   getEventById,
   closeEventById,
   updateEvent,
   deleteEventById,
-  deleteEventService
+  deleteEventService,
+  changeEventStatusService
 };

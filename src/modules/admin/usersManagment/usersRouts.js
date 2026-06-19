@@ -140,4 +140,9 @@ router.get(
   catchError(usersController.exportUsersController)
 );
 
+
+router.put("/passTraining/:userId",
+  //validateToken,
+  catchError(usersController.passTraining));
+
 module.exports = router;    

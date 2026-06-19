@@ -952,7 +952,7 @@ const passTrainingService = async (userId) => {
     }
 
   
-    const allowedStatuses = ["paid", "reserved training"];
+    const allowedStatuses = ["PAID", "reserved Training"];
 
 
     if (!allowedStatuses.includes(student.status)) {

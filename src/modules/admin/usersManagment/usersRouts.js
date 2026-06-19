@@ -142,7 +142,7 @@ router.get(
 
 
 router.put("/passTraining/:userId",
-  //validateToken,
+  validateToken,
   catchError(usersController.passTraining));
 
 module.exports = router;    

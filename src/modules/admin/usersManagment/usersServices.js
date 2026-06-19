@@ -932,6 +932,67 @@ const exportUsers = async (features, status, type = "excel") => {
   return workbook;
 };
 
+
+const passTrainingService = async (userId) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const student = await Student.findOne({
+      where: { userId },
+      transaction,
+    });
+
+    if (!student) {
+      throw new Error("Student not found");
+    }
+
+  
+    const allowedStatuses = ["paid", "reserved training"];
+
+
+    if (!allowedStatuses.includes(student.status)) {
+      throw new Error("Student must have status paid, reserved training");
+    }
+
+    await Student.update(
+      {
+        status: "Finish Training",
+      },
+      {
+        where: { userId },
+        transaction,
+      }
+    );
+
+    await User.increment("tokenVersion", {
+      by: 1,
+      where: { userId },
+      transaction,
+    });
+
+    await studentCourse.update(
+      {
+        trainingStatus: "done",
+      },
+      {
+        where: { userId },
+        transaction,
+      }
+    );
+
+    await transaction.commit();
+
+    return {
+      message: "Training passed successfully",
+    };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+
+
+
 module.exports = {
   getAllUsers,
   getAllUsersByStatus,
@@ -951,5 +1012,6 @@ module.exports = {
   exportPaidStudentsExcel,
   exportUsersExcel,
   getUsersByEventIdService,
-  exportUsers
+  exportUsers,
+  passTrainingService
 };

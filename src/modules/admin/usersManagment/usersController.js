@@ -308,6 +308,19 @@ const exportUsersController = async (req, res) => {
   res.end();
 };
 
+const passTraining = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await userServices.passTrainingService(userId);
+
+    res.status(200).json(ApiResponse.success(result));
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 module.exports = {
     getAllUsers,
@@ -328,5 +341,6 @@ module.exports = {
     exportPaidStudentsExcelController,
     exportUsersExcel,
     getUsersByEventId,
-    exportUsersController
+    exportUsersController,
+    passTraining
 }

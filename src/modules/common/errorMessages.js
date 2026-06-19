@@ -521,6 +521,10 @@ const errorMessages = {
   code: 400,
   msg: "You cannot reserve this event again until your latest exam result is failed | لا يمكنك حجز هذه الفعالية مرة أخرى حتى تكون نتيجة آخر امتحان لك راسب",
 },
+"Student must have status paid, reserved training": {
+  code: 400,
+  msg: "Student must have status paid, reserved training | حالة الطالب الحالية لا تسمح بإتمام التدريب",
+},
 };
 
 function getErrorPayload(errorKey) {

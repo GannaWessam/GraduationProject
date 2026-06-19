@@ -178,6 +178,7 @@ const getAllUsers = async (features) => {
 //----------------------------------------------------------------------
 const { Op } = require("sequelize");
 const { splitLang } = require("../../../Helpers/langHelper");
+const { model } = require("mongoose");
 
 const getAllUsersByStatus = async (status, features) => {
   const where = { ...(features.options?.where || {}) };
@@ -403,6 +404,10 @@ async function updateStudentNationalId(userId, nationalId,req) {
       {
         model : Product,
         attributes:["courseName"]
+      },
+      {
+        model: User,
+        attributes: ["email"],
       }
     ],
   });

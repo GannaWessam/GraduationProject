@@ -32,7 +32,7 @@ router.put(
 );
 
 router.put("/open/:eventId",
-  //validateToken,
+  validateToken,
   catchError(eventController.changeEventStatus));
 
 router.delete(

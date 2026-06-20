@@ -27,9 +27,10 @@ const registerForTraining = async (req, res, next) => {
 
 const getAvailableEventsForUserController = async (req, res, next) => {
   try {
-    const userId = req.userData.id;
+    const userId =req.query.userId?? req.userData.id;
     const StudentData = await Student.findOne({where:{userId:userId}});
-    const result = await eventService.getAvailableEventsForUserService(userId,StudentData.productId,req.query);
+    const { userId: _, ...queryWithoutUserId } = req.query;
+    const result = await eventService.getAvailableEventsForUserService(userId,StudentData.productId, queryWithoutUserId);
     res.status(200).json(ApiResponse.success(result, "Success"));
   } catch (error) {
     return next(error);

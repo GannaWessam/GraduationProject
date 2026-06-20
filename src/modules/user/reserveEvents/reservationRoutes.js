@@ -7,5 +7,7 @@ router.post("/register-exam",validateToken ,reservationController.registerForExa
 router.post("/register-training",validateToken ,reservationController.registerForTraining);
 router.get("/events",validateToken, reservationController.getAvailableEventsForUserController);
 router.get("/active-reservations",validateToken , reservationController.getUserActiveReservationsController);
+router.post("/superAdmin/register-exam/:userId",validateToken ,reservationController.registerForExamBySuperAdminController);
+router.post("/superAdmin/register-training/:userId",validateToken ,reservationController.registerForTrainBySuperAdminController);
 
 module.exports = router;

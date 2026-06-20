@@ -21,7 +21,7 @@ const {
 } = require("../../../../models");
 
 //bfkr a3ml 3leha endpoint?
-async function getAvailableEventsForUser(userId, productId, query) {
+async function getAvailableEventsForUser(userId, productId, query ,isSuperAdmin) {
   const product = await getProductById(productId);
   const { mandatoryCourses, optionalCourses, requiredTotal, optionalAllowed } =
     await getProductCourseRules(productId, product.requirdCourses);
@@ -44,6 +44,7 @@ async function getAvailableEventsForUser(userId, productId, query) {
     query,
     student.StudyLan,
     userId,
+    isSuperAdmin
   );
 
   return filterEligibleEvents(
@@ -126,7 +127,7 @@ async function getStudentCourseStatus(userId) {
 
 const ApiFeature = require("../../../../Util/ApiFeatures");
 
-async function getAllOpenEvents(productId, query, language = null, userId) {
+async function getAllOpenEvents(productId, query, language = null, userId ,isSuperAdmin) {
   const apiFeature = new ApiFeature(query)
     .filter()
     .pagination()
@@ -139,14 +140,17 @@ async function getAllOpenEvents(productId, query, language = null, userId) {
   endOfToday.setHours(23, 59, 59, 999);
   apiFeature.options.where = {
     ...apiFeature.options.where,
-    status: "opend",
     productId,
-    startDateRes: { [Op.lte]: endOfToday },
-    endDateRes: { [Op.gte]: startOfToday },
   };
 
   if (language) {
     apiFeature.options.where.language = language;
+  }
+
+  if (!isSuperAdmin) {
+    apiFeature.options.where.status = "opend";
+    apiFeature.options.where.startDateRes = { [Op.lte]: endOfToday };
+    apiFeature.options.where.endDateRes = { [Op.gte]: startOfToday };
   }
 
   return event.findAll({

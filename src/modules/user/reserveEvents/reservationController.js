@@ -28,9 +28,10 @@ const registerForTraining = async (req, res, next) => {
 const getAvailableEventsForUserController = async (req, res, next) => {
   try {
     const userId =req.query.userId?? req.userData.id;
+    const isSuperAdmin = req.userData.role === "SUPERADMIN" ? true : false;
     const StudentData = await Student.findOne({where:{userId:userId}});
     const { userId: _, ...queryWithoutUserId } = req.query;
-    const result = await eventService.getAvailableEventsForUserService(userId,StudentData.productId, queryWithoutUserId);
+    const result = await eventService.getAvailableEventsForUserService(userId,StudentData.productId, queryWithoutUserId ,isSuperAdmin);
     res.status(200).json(ApiResponse.success(result, "Success"));
   } catch (error) {
     return next(error);
@@ -47,11 +48,34 @@ const userId = req.query.userId;
   }
 };
 
+const registerForExamBySuperAdminController = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { eventId } = req.body;
+    const result = await reservationService.registerForExamBySuperAdmin(userId, eventId, req);
+    res.status(200).json(ApiResponse.success(result));
+  } catch (error) {
+    return next(error);
+  }
+};
+const registerForTrainBySuperAdminController = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { eventId } = req.body;
+    const result = await reservationService.registerForTrainingBySuperAdmin(userId, eventId, req);
+    res.status(200).json(ApiResponse.success(result));
+  } catch (error) {
+    return next(error);
+  }
+};
+
 
 
 module.exports = {
   registerForExam,
   registerForTraining,
   getAvailableEventsForUserController,
-  getUserActiveReservationsController
+  getUserActiveReservationsController,
+  registerForExamBySuperAdminController,
+  registerForTrainBySuperAdminController
 };

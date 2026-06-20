@@ -41,7 +41,12 @@ module.exports = (sequelize) => {
     serviceStatus: {
       type: DataTypes.STRING(200),
       allowNull: true
-    }
+    },
+    limitToAttachUserToEvent: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 10,
+    },
 
   }, {
     tableName: 'SystemData',

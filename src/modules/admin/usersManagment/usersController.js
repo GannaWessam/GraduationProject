@@ -320,6 +320,25 @@ const passTraining = async (req, res, next) => {
   }
 };
 
+const switchUserProductController = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { productId } = req.body;
+
+    const result = await userServices.switchUserProduct(
+      userId,
+      productId
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Product switched successfully",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 module.exports = {
@@ -342,5 +361,6 @@ module.exports = {
     exportUsersExcel,
     getUsersByEventId,
     exportUsersController,
-    passTraining
+    passTraining,
+    switchUserProductController
 }

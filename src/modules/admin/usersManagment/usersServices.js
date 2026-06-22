@@ -996,6 +996,108 @@ const passTrainingService = async (userId) => {
   }
 };
 
+const switchUserProduct = async (userId, newProductId) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const student = await Student.findByPk(userId, {
+      transaction,
+    });
+    
+    if (!student) {
+      throw new Error("Student not found");
+    }
+    
+    if (!["approved", "pending"].includes(student.status?.toLowerCase())) {
+      throw new Error(
+        `Student status (${student.status}) is not allowed for product switching`
+      );
+    }
+
+    const product = await Product.findByPk(newProductId, {
+      transaction,
+    });
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    const oldProductId = student.productId;
+
+    const isEgyptian =
+      student.nationality === "Egyptian | مصري" ;
+
+    await student.update(
+      {
+        productId: newProductId,
+      },
+      { transaction }
+    );
+
+    const paidPayment = await Payment.findOne({
+      where: {
+        userId,
+        productId: oldProductId,
+        status: "PAID",
+      },
+      transaction,
+    });
+    
+    if (paidPayment) {
+      throw new Error(
+        "Cannot switch product because payment is already PAID"
+      );
+    }
+
+    const paymentWhere = {
+      userId,
+      productId: oldProductId,
+      status: {
+        [Op.in]: ["PENDING", "FAILED"],
+      },
+    };
+
+    if (isEgyptian) {
+      await Payment.update(
+        {
+          productId: newProductId,
+          receiptId: product.receiptId,
+          amount: product.priceEgyptian,
+        },
+        {
+          where: paymentWhere,
+          transaction,
+        }
+      );
+    } else {
+      await Payment.update(
+        {
+          productId: newProductId,
+          receiptId: product.receiptIdOthers,
+          amount: product.priceOther,
+          currencyId: product.currencyId,
+        },
+        {
+          where: paymentWhere,
+          transaction,
+        }
+      );
+    }
+
+    await transaction.commit();
+
+    return {
+      userId,
+      oldProductId,
+      newProductId,
+    };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+
+
 
 
 module.exports = {
@@ -1018,5 +1120,6 @@ module.exports = {
   exportUsersExcel,
   getUsersByEventIdService,
   exportUsers,
-  passTrainingService
+  passTrainingService,
+  switchUserProduct
 };

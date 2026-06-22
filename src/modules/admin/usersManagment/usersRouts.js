@@ -145,4 +145,8 @@ router.put("/passTraining/:userId",
   validateToken,
   catchError(usersController.passTraining));
 
+  router.put("/switch-product/:userId",
+    validateToken
+    ,catchError(usersController.switchUserProductController));
+
 module.exports = router;    

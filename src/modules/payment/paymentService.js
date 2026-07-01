@@ -584,6 +584,7 @@ const getAllReceipts = async (userId,features) => {
   );
 };
 
+
 const manualFetchReceipts = async () => {
   try {
     const path = "/api/payments/receipts";
@@ -612,11 +613,13 @@ const manualFetchReceipts = async () => {
         success: true,
         fetched: 0,
         inserted: 0,
-        skipped: 0,
+        updated: 0,
         message: "No receipts found. | لم يتم العثور على أي إيصالات.",
       };
     }
-    const receiptIds = receipts.map((receipt) => receipt.receiptId);
+
+    // Replace "id" with your actual primary key if different.
+    const receiptIds = receipts.map((receipt) => receipt.id);
 
     const existingReceipts = await Receipts.findAll({
       attributes: ["receiptId"],
@@ -628,30 +631,37 @@ const manualFetchReceipts = async () => {
       raw: true,
     });
 
-    const existingIds = new Set(existingReceipts.map((receipt) => receipt.receiptId));
+    const existingIds = new Set(existingReceipts.map((r) => r.receiptId));
 
-    const newReceipts = receipts.filter(
-      (receipt) => !existingIds.has(receipt.receiptId)
-    );
+    let inserted = 0;
+    let updated = 0;
 
-    if (newReceipts.length > 0) {
-      await Receipts.bulkCreate(newReceipts, {
-        ignoreDuplicates: true,
-      });
-    }
+    await Receipts.sequelize.transaction(async (transaction) => {
+      await Promise.all(
+        receipts.map(async (receipt) => {
+          await Receipts.upsert(receipt, { transaction });
+
+          if (existingIds.has(receipt.id)) {
+            updated++;
+          } else {
+            inserted++;
+          }
+        })
+      );
+    });
 
     return {
       success: true,
       fetched: receipts.length,
-      inserted: newReceipts.length,
-      skipped: receipts.length - newReceipts.length,
-      message: `Successfully fetched ${receipts.length} receipts. Inserted ${newReceipts.length} new receipts and skipped ${receipts.length - newReceipts.length} existing receipts. | تم جلب ${receipts.length} إيصالًا بنجاح. تمت إضافة ${newReceipts.length} إيصالًا جديدًا وتخطي ${receipts.length - newReceipts.length} إيصالًا موجودًا بالفعل.`,
+      inserted,
+      updated,
+      message: `Successfully synchronized ${receipts.length} receipts. Inserted ${inserted} new receipts and updated ${updated} existing receipts. | تمت مزامنة ${receipts.length} إيصالًا بنجاح. تمت إضافة ${inserted} إيصالًا جديدًا وتحديث ${updated} إيصالًا موجودًا.`,
     };
   } catch (error) {
-    console.error("Failed to fetch receipts:", error);
+    console.error("Failed to synchronize receipts:", error);
 
     throw new Error(
-      "Failed to fetch receipts from external API. | فشل في جلب الإيصالات من النظام الخارجي."
+      "Failed to synchronize receipts with external API. | فشل في مزامنة الإيصالات مع النظام الخارجي."
     );
   }
 };

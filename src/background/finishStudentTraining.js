@@ -21,7 +21,7 @@ class FinishStudentTrainingService {
 
   init() {
     this.cronJob = cron.schedule(
-      "0 2 * * *",
+      "0 3 * * *",
       async () => {
         await this.processStudents();
       },
@@ -75,29 +75,23 @@ class FinishStudentTrainingService {
   }
 
   async checkStudent(student) {
-    const t =await sequelize.transaction()
     console.log(`\nChecking student: ${student.fullName}`);
-
-    // --------------------------------------------------------
-    //  REQUIRED COURSES (FROM PRODUCT)
-    // --------------------------------------------------------
+  
     const requiredCourses = await productCourse.findAll({
       where: { productId: student.productId },
       attributes: ["courseId"],
     });
-
+  
     if (!requiredCourses.length) {
       console.log("No required courses for this product");
       return;
     }
-    const requiredCoursesNumber=await Product.findOne({
-      where:{productId : student.productId},
-      attributes:["requirdCourses"]
-    })
-    
-    // --------------------------------------------------------
-    // GET STUDENT TRAINING RESERVATIONS
-    // --------------------------------------------------------
+  
+    const requiredCoursesNumber = await Product.findOne({
+      where: { productId: student.productId },
+      attributes: ["requirdCourses"],
+    });
+  
     const reservations = await trainingReservation.findAll({
       where: {
         userId: student.userId,
@@ -110,102 +104,100 @@ class FinishStudentTrainingService {
         },
       ],
     });
-
+  
     if (!reservations.length) {
       console.log("Student has no approved training reservations");
       return;
     }
-
-    // --------------------------------------------------------
-    // DETERMINE COMPLETED COURSES
-    // --------------------------------------------------------
+  
     const completedCourses = new Set();
-
+  
     for (const res of reservations) {
-      if (res.training && res.training.courseId) {
+      if (res.training?.courseId) {
         completedCourses.add(res.training.courseId);
       }
     }
-
-    // --------------------------------------------------------
-    //  COMPARE COURSES
-    // --------------------------------------------------------
-    const allCompleted = completedCourses.size >= requiredCoursesNumber.requirdCourses
-
-    // --------------------------------------------------------
-    //  GET RELATED EVENTS
-    // --------------------------------------------------------
+  
+    const allCompleted =
+      completedCourses.size >= requiredCoursesNumber.requirdCourses;
+  
     const eventIds = reservations
       .map((r) => r.training?.eventId)
       .filter(Boolean);
-
+  
     if (!eventIds.length) {
       console.log("No events found");
       return;
     }
-
+  
     const events = await event.findAll({
-      where: { eventId: { [Op.in]: eventIds } },
+      where: {
+        eventId: {
+          [Op.in]: eventIds,
+        },
+      },
       attributes: ["eventId", "endDate", "eventName"],
     });
-
-    if (!events.length) return;
-
-    // --------------------------------------------------------
-    //  FIND LAST EVENT
-    // --------------------------------------------------------
+  
+    if (!events.length) {
+      return;
+    }
+  
     let lastEvent = events[0];
-
+  
     for (const ev of events) {
       if (new Date(ev.endDate) > new Date(lastEvent.endDate)) {
         lastEvent = ev;
       }
     }
-
-    console.log(
-      `Last event: ${lastEvent.eventName} | End Date: ${lastEvent.endDate}`,
-    );
-
-    // --------------------------------------------------------
-    //  CHECK IF EVENT FINISHED
-    // --------------------------------------------------------
+  
     const today = new Date();
     const lastEventEnd = new Date(lastEvent.endDate);
-
+  
     if (lastEventEnd >= today) {
       console.log("Final event still running");
       return;
     }
-
-    
-    // --------------------------------------------------------
-    // UPDATE STUDENT STATUS
-    // --------------------------------------------------------
-    if(allCompleted)
-    {
-      await Student.update(
-        { status: "Finish Training" },
-        { where: { userId: student.userId } },
-      );
-      await User.increment("tokenVersion", { where: { userId: student.userId } });
-    }
-
-    const[affectedRows] =await studentCourse.update(
-      { trainingStatus: "done" },
-      {
-        where: {
-          userId: student.userId,
-          courseId: {
-            [Op.in]: Array.from(completedCourses),
-          },
-        },
-        transaction: t,
+  
+    // Only now start a transaction because we know we need updates
+    await sequelize.transaction(async (t) => {
+      if (allCompleted) {
+        await Student.update(
+          { status: "Finish Training" },
+          {
+            where: { userId: student.userId },
+            transaction: t,
+          }
+        );
+  
+        await User.increment(
+          "tokenVersion",
+          {
+            where: { userId: student.userId },
+            transaction: t,
+          }
+        );
       }
+  
+      const [affectedRows] = await studentCourse.update(
+        { trainingStatus: "done" },
+        {
+          where: {
+            userId: student.userId,
+            courseId: {
+              [Op.in]: Array.from(completedCourses),
+            },
+          },
+          transaction: t,
+        }
+      );
+  
+      console.log("Updated rows:", affectedRows);
+    });
+  
+    console.log(
+      `🎉 Student graduated automatically: ${student.fullName}`
     );
-    console.log("Updated rows:", affectedRows);
-    await t.commit();
-
-    console.log(`🎉 Student graduated automatically: ${student.fullName}`)
   }
 
   stop() {

@@ -1,4 +1,4 @@
-const {Payment , Student ,Product ,webhook ,sequelize, Service, currency , studentCourse ,Reexam , exam , Register, User ,userReceipts} = require("../../models");
+const {Payment , Student ,Product ,webhook ,sequelize, Service, currency , studentCourse ,Reexam , exam , Register, User ,userReceipts, Receipts} = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 const axios = require('axios');
 const crypto = require("crypto");
@@ -11,7 +11,7 @@ const ReportService = require("../../Services/ReportService");
 const ExcelJS = require("exceljs");
 const { splitLang } = require("../../Helpers/langHelper");
 const formatDateOnly = require("./helper/FormatTime");
-
+const SECRET_KEY = process.env.WEBHOOK_SECRET;
 
 
 
@@ -584,23 +584,77 @@ const getAllReceipts = async (userId,features) => {
   );
 };
 
-const manualFetchReceipts=async() => {
+const manualFetchReceipts = async () => {
   try {
-    const response = await axios.get(`${process.env.RECEIPTS_BASE_URL}/api/payments/receipts`, {
-      params: {
-        connectionTypeIds: 5,
+    const path = "/api/payments/receipts";
+    const query = "connectionTypeIds=5";
+
+    const { timestamp, signature } = signRequest(
+      "GET",
+      path,
+      query,
+      "",
+      SECRET_KEY
+    );
+
+    const response = await axios.get(`${BASE_URL}${path}?${query}`, {
+      headers: {
+        "X-System-Identifier": SYSTEM_IDENTIFIER,
+        "X-Timestamp": timestamp,
+        "X-Signature": signature,
       },
     });
+
+    const receipts = response.data;
+
+    if (!Array.isArray(receipts) || receipts.length === 0) {
+      return {
+        success: true,
+        fetched: 0,
+        inserted: 0,
+        skipped: 0,
+        message: "No receipts found. | لم يتم العثور على أي إيصالات.",
+      };
+    }
+    const receiptIds = receipts.map((receipt) => receipt.receiptId);
+
+    const existingReceipts = await Receipts.findAll({
+      attributes: ["receiptId"],
+      where: {
+        receiptId: {
+          [Op.in]: receiptIds,
+        },
+      },
+      raw: true,
+    });
+
+    const existingIds = new Set(existingReceipts.map((receipt) => receipt.receiptId));
+
+    const newReceipts = receipts.filter(
+      (receipt) => !existingIds.has(receipt.receiptId)
+    );
+
+    if (newReceipts.length > 0) {
+      await Receipts.bulkCreate(newReceipts, {
+        ignoreDuplicates: true,
+      });
+    }
+
     return {
       success: true,
-      data: response.data,
-    }
+      fetched: receipts.length,
+      inserted: newReceipts.length,
+      skipped: receipts.length - newReceipts.length,
+      message: `Successfully fetched ${receipts.length} receipts. Inserted ${newReceipts.length} new receipts and skipped ${receipts.length - newReceipts.length} existing receipts. | تم جلب ${receipts.length} إيصالًا بنجاح. تمت إضافة ${newReceipts.length} إيصالًا جديدًا وتخطي ${receipts.length - newReceipts.length} إيصالًا موجودًا بالفعل.`,
+    };
   } catch (error) {
-    console.log(error);
-    
-    throw new Error("Failed to fetch receipts from external API");
+    console.error("Failed to fetch receipts:", error);
+
+    throw new Error(
+      "Failed to fetch receipts from external API. | فشل في جلب الإيصالات من النظام الخارجي."
+    );
   }
-}
+};
 
 const exportPayments = async (features, status, type = "excel") => {
   const where = { ...(features.options?.where || {}) };

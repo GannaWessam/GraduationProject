@@ -97,11 +97,14 @@ const checkNationalIdExists = async (national_id, t) => {
     throw new Error("national_id_exists");
 };
 
-const generateQr = async (name, national_id) => {
-  const qrData = `الاسم: ${name}\nالرقم القومي: ${national_id}`;
+const generateQr = async (name, national_id, nationalIdImage) => {
+  const qrData = `
+الاسم: ${name}
+الرقم القومي: ${national_id}
+صورة البطاقة: ${process.env.HOST_BACK}/uploads/${nationalIdImage}
+`;
 
   const qrImage = await QRCode.toDataURL(qrData, {
-    //بيرجع الصورة على شكل string يبدأ بـ data:image/png;base64
     errorCorrectionLevel: "H",
     width: 400,
     color: {

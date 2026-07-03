@@ -63,7 +63,11 @@ async function registerUser(payload, idImage, req) {
   validateName(name_ar);
   validatePassword(password, confirmPassword);
 
-  const qrResult = await generateQr(name_ar, national_id);
+  const qrResult = await generateQr(
+    name_ar,
+    national_id,
+    idImage.front
+  );
 
   const status = OCR === "true" ? "approved" : "pending";
 
@@ -97,7 +101,8 @@ async function registerUser(payload, idImage, req) {
         university,
         college: faculty,
         department,
-        nationalIdImage: idImage,
+        nationalIdImage: idImage.front,
+        nationalIdImageBack:idImage.back,
         status,
         productId: product.productId,
         profilePhoto: qrResult,

@@ -29,6 +29,14 @@ module.exports = (sequelize) => {
           return rawValue ? `${process.env.HOST_BACK}/uploads/${rawValue}` : null;
         },
       },
+      nationalIdImageBack: {
+        type: DataTypes.STRING(300),
+        allowNull: true,
+        get() {
+          const rawValue = this.getDataValue("nationalIdImageBack");
+          return rawValue ? `${process.env.HOST_BACK}/uploads/${rawValue}` : null;
+        },
+      },
       university: { type: DataTypes.STRING(150), allowNull: true },
       college: { type: DataTypes.STRING(150), allowNull: true },
       department: { type: DataTypes.STRING(150), allowNull: true },

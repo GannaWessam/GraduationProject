@@ -1,12 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("./AuthController");
-const { uploadSingleFile } = require("../../fileUpload");
+const { uploadSingleFile , uploadMultipleFiles} = require("../../fileUpload");
 const catchError = require("../../middlewares/catchError");
 
 router.post(
   "/register",
-  uploadSingleFile("nationalIdImage"),
+  uploadMultipleFiles([
+    { name: "nationalIdImage", maxCount: 1 },
+    { name: "nationalIdBack", maxCount: 1 },
+  ]),
   authController.register
 );
 

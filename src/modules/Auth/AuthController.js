@@ -13,7 +13,14 @@ const OTP = new OtpService(process.env.GMAIL_USER, process.env.GMAIL_PASS);
 
 exports.register = async (req, res, next) => {
   try {
-    const result = await registerUser(req.body, req.file?.filename,req);
+    const result = await registerUser(
+      req.body,
+      {
+        front: req.files?.nationalIdImage?.[0]?.filename,
+        back: req.files?.nationalIdBack?.[0]?.filename,
+      },
+      req
+    );
 
     return res.status(201).json(ApiResponse.created(result));
   } catch (error) {

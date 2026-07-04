@@ -20,5 +20,7 @@ router.post("/verify-otp", catchError(authController.verifyOTP));
 router.get("/getUser", authController.getUser);
 router.get("/getUserFees", authController.getUserFees);
 router.post("/verify-email", catchError(authController.verifyEmail));
+router.post("/generate-qr", catchError(authController.generateQrController));
+
 
 module.exports = router;

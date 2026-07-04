@@ -5,6 +5,7 @@ const {
   verifyEmail,
   getuser,
   getuserfees,
+  generateQrService
 } = require("./AuthService");
 const ApiResponse = require("../../Util/ApiResponse.js");
 const OtpService = require("../../Services/OtpService.js");
@@ -91,6 +92,32 @@ exports.verifyEmail = async (req, res, next) => {
     return res
       .status(200)
       .json(ApiResponse.success(result, "founded successfully"));
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.generateQrController = async (req, res , next) => {
+  try {
+    const { name, national_id, nationalIdImage } = req.body;
+
+    if (!name || !national_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and national ID are required.",
+      });
+    }
+
+    const qrImage = await generateQrService(
+      name,
+      national_id,
+      nationalIdImage
+    );
+
+    return res.status(200).json({
+      success: true,
+      qrImage,
+    });
   } catch (error) {
     return next(error);
   }

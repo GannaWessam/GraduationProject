@@ -63,12 +63,6 @@ async function registerUser(payload, idImage, req) {
   validateName(name_ar);
   validatePassword(password, confirmPassword);
 
-  const qrResult = await generateQr(
-    name_ar,
-    national_id,
-    idImage.front
-  );
-
   const status = OCR === "true" ? "approved" : "pending";
 
   const product = await findProductById(ProductId, type);
@@ -105,7 +99,6 @@ async function registerUser(payload, idImage, req) {
         nationalIdImageBack:idImage.back,
         status,
         productId: product.productId,
-        profilePhoto: qrResult,
       },
       { transaction: t },
     );
@@ -309,6 +302,17 @@ async function verifyEmail(email, req) {
   return { email: user.email };
 }
 
+const generateQrService = async (name, national_id, nationalIdImage) => {
+  const qrData = generateQr(
+    name,
+    national_id,
+    nationalIdImage
+  );
+
+  return qrData;
+};
+
+
 module.exports = {
   registerUser,
   loginUser,
@@ -316,4 +320,5 @@ module.exports = {
   verifyEmail,
   getuser,
   getuserfees,
+  generateQrService
 };

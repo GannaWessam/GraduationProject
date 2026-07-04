@@ -11,6 +11,7 @@ const ReportService = require("../../Services/ReportService");
 const ExcelJS = require("exceljs");
 const { splitLang } = require("../../Helpers/langHelper");
 const formatDateOnly = require("./helper/FormatTime");
+const { syncReceipts } = require("../../background/receiptSyncService");
 const SECRET_KEY = process.env.WEBHOOK_SECRET;
 
 
@@ -584,6 +585,20 @@ const getAllReceipts = async (userId,features) => {
   );
 };
 
+const processReceipt =async(receipt)=> {
+  await Receipts.upsert({
+    receiptId: receipt.id,
+    receiptSerialNumber: receipt.receiptSerialNumber,
+    receiptName: receipt.receiptName,
+    description: receipt.description,
+    receiptTypeName: receipt.receiptTypeName,
+    receiptTypeDescription: receipt.receiptTypeDescription,
+    totalAmount: receipt.totalAmount,
+    currency: receipt.currency,
+  });
+
+  console.log(`Receipt synced: ${receipt.receiptSerialNumber}`);
+}
 
 const manualFetchReceipts = async () => {
   try {
@@ -613,55 +628,32 @@ const manualFetchReceipts = async () => {
         success: true,
         fetched: 0,
         inserted: 0,
-        updated: 0,
+        skipped: 0,
         message: "No receipts found. | لم يتم العثور على أي إيصالات.",
       };
     }
+    
+    for (const receipt of receipts) {
+      try {
+        await processReceipt(receipt);
+      } catch (err) {
+        console.error(
+          `Error processing receipt ${receipt.id}:`,
+          err.message,
+        );
+      }
+    }
 
-    // Replace "id" with your actual primary key if different.
-    const receiptIds = receipts.map((receipt) => receipt.id);
-
-    const existingReceipts = await Receipts.findAll({
-      attributes: ["receiptId"],
-      where: {
-        receiptId: {
-          [Op.in]: receiptIds,
-        },
-      },
-      raw: true,
-    });
-
-    const existingIds = new Set(existingReceipts.map((r) => r.receiptId));
-
-    let inserted = 0;
-    let updated = 0;
-
-    await Receipts.sequelize.transaction(async (transaction) => {
-      await Promise.all(
-        receipts.map(async (receipt) => {
-          await Receipts.upsert(receipt, { transaction });
-
-          if (existingIds.has(receipt.id)) {
-            updated++;
-          } else {
-            inserted++;
-          }
-        })
-      );
-    });
-
-    return {
+    return{
       success: true,
       fetched: receipts.length,
-      inserted,
-      updated,
-      message: `Successfully synchronized ${receipts.length} receipts. Inserted ${inserted} new receipts and updated ${updated} existing receipts. | تمت مزامنة ${receipts.length} إيصالًا بنجاح. تمت إضافة ${inserted} إيصالًا جديدًا وتحديث ${updated} إيصالًا موجودًا.`,
-    };
+      message: "Receipts fetched and processed successfully. | تم جلب الإيصالات ومعالجتها بنجاح.",
+    }
   } catch (error) {
-    console.error("Failed to synchronize receipts:", error);
+    console.error("Failed to fetch receipts:", error);
 
     throw new Error(
-      "Failed to synchronize receipts with external API. | فشل في مزامنة الإيصالات مع النظام الخارجي."
+      "Failed to fetch receipts from external API. | فشل في جلب الإيصالات من النظام الخارجي."
     );
   }
 };

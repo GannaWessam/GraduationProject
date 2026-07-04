@@ -8,7 +8,7 @@ router.post(
   "/register",
   uploadMultipleFiles([
     { name: "nationalIdImage", maxCount: 1 },
-    { name: "nationalIdBack", maxCount: 1 },
+    { name: "id_image_back", maxCount: 1 },
   ]),
   authController.register
 );

@@ -17,7 +17,7 @@ exports.register = async (req, res, next) => {
       req.body,
       {
         front: req.files?.nationalIdImage?.[0]?.filename,
-        back: req.files?.nationalIdBack?.[0]?.filename,
+        back: req.files?.id_image_back?.[0]?.filename,
       },
       req
     );

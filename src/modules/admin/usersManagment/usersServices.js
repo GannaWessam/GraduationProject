@@ -21,7 +21,8 @@ const {
   packageCourse,
   trainer,
   supervisor,
-  college
+  college,
+  university
 } = require("../../../models");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
@@ -765,9 +766,12 @@ const getUsersByEventIdService = async (eventId, features) => {
         attributes: [
           "userId",
           "fullName",
+          "NameEn",
           "Mobile",
           "nationalId",
           "college",
+          "university",
+          "department"
         ],
         include: [
           {
@@ -786,11 +790,14 @@ const getUsersByEventIdService = async (eventId, features) => {
 
   const users = rows.map((item) => ({
     userId: item.Student.userId,
-    name: item.Student.fullName,
+    fullName: item.Student.fullName,
     email: item.Student.User?.email,
     mobile: item.Student.Mobile,
     nationalId: item.Student.nationalId,
     college: item.Student.college,
+    university  : item.Student.university,
+    NameEn: item.Student.NameEn,
+    department: item.Student.department
   }));
 
   return PaginatedResponse.fromApiFeature(
@@ -854,10 +861,10 @@ const exportUsers = async (features, status, type = "excel") => {
 
     const columns = [
       { title: reverseWords("الكلية"), width: 100 },
-      { title: reverseWords("البريد الالكتروني"), width: "*" },
+      { title: reverseWords("البريد الالكتروني"), width: 150 },
       { title: reverseWords("الهاتف"), width: 80 },
       { title: reverseWords("الرقم القومي"), width: 70 },
-      { title: reverseWords("الاسم"), width: 120 },
+      { title: reverseWords("الاسم"), width: "*" },
     ];
 
     // const statusMap = {

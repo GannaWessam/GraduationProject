@@ -529,6 +529,10 @@ const errorMessages = {
   code: 400,
   msg: "The event cannot be reopened after its start date | لا يمكن إعادة فتح الفعالية بعد موعد بدايتها",
 },
+"Event attachment limit exceeded" :{
+    code: 400,
+    msg: "Event attachment limit exceeded | تم تجاوز حد المرفقات للفعالية",
+  },
 };
 
 function getErrorPayload(errorKey) {

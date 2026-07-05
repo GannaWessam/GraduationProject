@@ -151,6 +151,14 @@ async function getAllOpenEvents(productId, query, language = null, userId ,isSup
     apiFeature.options.where.status = "opend";
     apiFeature.options.where.startDateRes = { [Op.lte]: endOfToday };
     apiFeature.options.where.endDateRes = { [Op.gte]: startOfToday };
+  } else {
+    apiFeature.options.where.startDate={ [Op.gte]: endOfToday };
+    console.log(apiFeature.options);
+    console.log("--------------------");
+    console.log(endOfToday);
+    
+    
+    
   }
 
   return event.findAll({

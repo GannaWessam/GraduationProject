@@ -507,7 +507,7 @@ const registerForExamBySuperAdmin = async (userId, eventId, req) => {
       eventData.numberOfRegistered >=
       eventData.capacity + systemData.limitToAttachUserToEvent
     ) {
-        throw new Error("Event attachment limit exceeded.");
+        throw new Error("Event attachment limit exceeded");
     }
 
     let examsToReserve = [];
@@ -686,6 +686,21 @@ const registerForExamBySuperAdmin = async (userId, eventId, req) => {
       }
     }
 
+    if (eventData.capacity === eventData.numberOfRegistered) {
+      eventData.status = "closed";
+      await eventData.save({ transaction: t });
+      t.afterCommit(() => {
+        handleCreateGroupChatForEvent(
+          eventData.eventId,
+          eventData.eventName,
+          eventData.type
+        ).catch((err) => {
+          console.error("Group chat creation failed:", err);
+        });
+      });
+    }
+    
+
     await studentCourse.update(
       { examStatus: "done" },
       {
@@ -756,7 +771,7 @@ const registerForTrainingBySuperAdmin = async (userId, eventId, req) => {
       eventData.numberOfRegistered >=
       eventData.capacity + systemData.limitToAttachUserToEvent
     ) {
-        throw new Error("Event attachment limit exceeded.");
+        throw new Error("Event attachment limit exceeded")
     }
 
     
@@ -839,6 +854,19 @@ const registerForTrainingBySuperAdmin = async (userId, eventId, req) => {
           { transaction: t }
         );
       }
+    }
+    if (eventData.capacity === eventData.numberOfRegistered) {
+      eventData.status = "closed";
+      await eventData.save({ transaction: t });
+      t.afterCommit(() => {
+        handleCreateGroupChatForEvent(
+          eventData.eventId,
+          eventData.eventName,
+          eventData.type
+        ).catch((err) => {
+          console.error("Group chat creation failed:", err);
+        });
+      });
     }
     
     await studentCourse.update(

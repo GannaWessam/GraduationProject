@@ -28,7 +28,7 @@ async function registerStudentsToEvent(eventId) {
     console.log("✅ DB Connected");
 
     // ---------------- READ EXCEL ----------------
-    const nationalIds = loadNationalIds("scripts/No_Degrees_Type_1.xlsx");
+    const nationalIds = loadNationalIds("scripts/matched_students.xlsx");
     console.log(nationalIds);
     
 

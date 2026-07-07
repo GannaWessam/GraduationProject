@@ -101,7 +101,7 @@ const generateQr = async (name, national_id, nationalIdImage) => {
   const qrData = `
 الاسم: ${name}
 الرقم القومي: ${national_id}
-صورة البطاقة: ${process.env.HOST_BACK}/uploads/${nationalIdImage}
+صورة البطاقة: ${nationalIdImage}
 `;
 
   const qrImage = await QRCode.toDataURL(qrData, {

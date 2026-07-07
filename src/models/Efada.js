@@ -6,6 +6,7 @@ module.exports = (sequelize) => {
     userId: { type: DataTypes.UUID, allowNull: true},
     paymentId:{ type: DataTypes.UUID, allowNull: true},
     date: { type: DataTypes.DATE, allowNull: false},
+    counter: { type: DataTypes.INTEGER, allowNull: true , defaultValue:0},
   }, {
     tableName: 'efada',
   });

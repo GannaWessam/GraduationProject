@@ -244,8 +244,6 @@ const getAllPayments = async (features) => {
     );
 
   } catch (error) {
-    console.log(error);
-    
     throw new Error("failed_to_fetch_payments");
   }
 };

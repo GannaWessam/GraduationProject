@@ -771,7 +771,7 @@ const getUsersByEventIdService = async (eventId, features) => {
           "nationalId",
           "college",
           "university",
-          "department"
+          "department",
         ],
         include: [
           {

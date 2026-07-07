@@ -199,6 +199,13 @@ const efadaService = {
       margin: { top: "2.2cm", right: "2.2cm", bottom: "2.2cm", left: "2.5cm" },
     });
 
+    await efada.increment(
+      "counter",
+      {
+        where: { userId: student.userId },
+      }
+    );
+
     if (req && req.audit) {
       req.audit.affectedUser = { _id: student.userId , name: student.fullName, email: student.email };
       req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
@@ -216,6 +223,12 @@ const efadaService = {
     const sd = await systemdata.findOne();
   
     const buffer = await createEfadaDOCX({ nationalId, date, picturePath, student, sd });
+    await efada.increment(
+      "counter",
+      {
+        where: { userId: student.userId },
+      }
+    );
     if (req && req.audit) {
       req.audit.affectedUser = { _id: student.userId , name: student.fullName, email: student.email };
       req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };

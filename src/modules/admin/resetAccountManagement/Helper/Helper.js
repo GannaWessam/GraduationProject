@@ -44,6 +44,15 @@ const createResetPayment = async ({ userId, productId }, transaction) => {
     throw error;
   }
 
+
+  await Payment.destroy({
+    where: {
+      userId,
+      status: "PENDING",
+    },
+    transaction,
+  });
+
   const isEgyptian =
     student.nationality === "Egyptian | مصري" || student.nationality === "مصري";
 

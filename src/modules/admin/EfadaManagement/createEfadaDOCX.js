@@ -299,7 +299,7 @@ async function createEfadaDOCX({ nationalId, date, picturePath, student, sd,name
           // ── Closing ──────────────────────────────────────────────────
           new Paragraph({
             bidirectional: true,
-            alignment: AlignmentType.LEFT,
+            alignment: AlignmentType.CENTER,
             spacing: { before: 80, after: 60 },
             children: [
               run("وتفضلوا سيادتكم بقبول فائق الإحترام والتقدير،،،", {

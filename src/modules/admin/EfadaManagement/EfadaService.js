@@ -183,7 +183,8 @@ const efadaService = {
       .replace(/{{nameOfPersonInefada1}}/g, sd.nameOfPersonInefada1)
       .replace(/{{titlePersonInefada2}}/g, sd.titlePersonInefada2)
       .replace(/{{nameOfPersonInefada2}}/g, sd.nameOfPersonInefada2)
-      .replace(/{{Picture2\.png}}/g, qr);
+      .replace(/{{Picture2\.png}}/g, qr)
+      .replace(/{{exporter}}/g,splitLang(req?.userData?.name).ar)
 
     const browser = await puppeteer.launch({
       headless: true,
@@ -221,8 +222,10 @@ const efadaService = {
     if (!student) throw new Error("student_not_found");
   
     const sd = await systemdata.findOne();
-  
-    const buffer = await createEfadaDOCX({ nationalId, date, picturePath, student, sd });
+
+    const name =splitLang(req?.userData?.name).ar
+    
+    const buffer = await createEfadaDOCX({ nationalId, date, picturePath, student, sd, name});
     await efada.increment(
       "counter",
       {

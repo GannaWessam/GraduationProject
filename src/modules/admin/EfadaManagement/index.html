@@ -114,9 +114,20 @@
         margin-bottom: 0.6cm;
       }
 
+      .foot{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
       .date {
         font-size: 14pt;
       }
+      .exporter{
+        font-size: 14pt;
+        font-weight: bold;
+      }
+      
       .qr-block {
         width: 100%;
         margin-top: 30px;
@@ -251,8 +262,10 @@
             />
           </div>
         </div>
-
-        <div class="date">تحريراً في: {{date}}</div>
+        <div class="foot">
+          <div class="date">تحريراً في: {{date}}</div>
+          <span class="exporter">المستخرج: {{exporter}}</span>
+        </div>
       </div>
     </div>
   </body>

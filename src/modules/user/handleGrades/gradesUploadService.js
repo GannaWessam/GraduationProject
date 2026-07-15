@@ -215,6 +215,9 @@ async function processOneStudent(
   if (!studentRecord) {
     throw new Error("student_not_found_for_national_id");
   }
+  if (studentRecord.status === "succeeded") {
+    return { examsUpdated: 0, studentSucceeded: true , studentFailed: false};
+  }
 
   const userId = studentRecord.userId;
   let examsUpdated = 0;

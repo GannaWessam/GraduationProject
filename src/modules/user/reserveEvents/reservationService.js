@@ -133,7 +133,7 @@ const registerForExam = async (userId, eventId, req) => {
 
     if (hasNonFailLatest) {
       throw new Error(
-        "You cannot reserve this event again until your latest exam result is 'failed'."
+        "You cannot reserve this event again until your latest exam result is 'failed'. | لا يمكنك حجز هذا الحدث مرة أخرى حتى تكون نتيجة امتحانك الأخير 'راسب'."
       );
     }
 

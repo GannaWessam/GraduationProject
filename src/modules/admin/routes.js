@@ -10,6 +10,7 @@ const currencyRoutes = require("./currencyManagement/currencyRoutes");
 const efadaRoutes = require("./EfadaManagement/EfadaRoute");
 const generateStudentDataExcelRoutes = require("./excelsManagement/generateStudentDataExcel/generateStudentDataExcelRoutes");
 const systemData  = require("./systemDataManagment/systemDataRoute");
+const resetAccount=require("./resetAccountManagement/ResetAccountRoute");
 
 router.use("/usersManagment", usersRoutes);
 router.use("/examManagment", examRoutes);
@@ -21,5 +22,7 @@ router.use("/currencyManagement", currencyRoutes);
 router.use("/efada", efadaRoutes);
 router.use("/system", systemData);
 router.use("/generateStudentDataExcel", generateStudentDataExcelRoutes);
+router.use("/registerStudents", require("./oldEventsManagement/registerStudentsRoute"));
+router.use("/resetAccount", resetAccount);
 
 module.exports = router;

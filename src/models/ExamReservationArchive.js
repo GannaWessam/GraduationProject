@@ -24,6 +24,13 @@ module.exports = (sequelize) => {
       result: DataTypes.STRING(200),
       reservationStatus: DataTypes.STRING(200),
 
+      // groups all reservations archived together in the same reset event
+      // increments per user each time a reset happens
+      cycle: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+
       archivedAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
@@ -35,6 +42,7 @@ module.exports = (sequelize) => {
       indexes: [
         { fields: ["examId"] },
         { fields: ["userId"] },
+        { fields: ["userId", "cycle"] },
         { fields: ["archivedAt"] },
       ],
     },

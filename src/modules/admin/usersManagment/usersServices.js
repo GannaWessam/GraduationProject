@@ -1003,7 +1003,7 @@ const passTrainingService = async (userId) => {
   }
 };
 
-const switchUserProduct = async (userId, newProductId) => {
+const switchUserProduct = async (userId, newProductId,req) => {
   const transaction = await sequelize.transaction();
 
   try {
@@ -1041,20 +1041,20 @@ const switchUserProduct = async (userId, newProductId) => {
       { transaction }
     );
 
-    const paidPayment = await Payment.findOne({
-      where: {
-        userId,
-        productId: oldProductId,
-        status: "PAID",
-      },
-      transaction,
-    });
+    // const paidPayment = await Payment.findOne({
+    //   where: {
+    //     userId,
+    //     productId: oldProductId,
+    //     status: "PAID",
+    //   },
+    //   transaction,
+    // });
     
-    if (paidPayment) {
-      throw new Error(
-        "Cannot switch product because payment is already PAID"
-      );
-    }
+    // if (paidPayment) {
+    //   throw new Error(
+    //     "Cannot switch product because payment is already PAID"
+    //   );
+    // }
 
     const paymentWhere = {
       userId,
@@ -1092,6 +1092,15 @@ const switchUserProduct = async (userId, newProductId) => {
     }
 
     await transaction.commit();
+
+    if(req?.audit)
+    {   
+      
+      req.audit.affectedUser = { name: student.fullName };
+      req.audit.user = { _id: req.userData.id, name: req.userData.name, email: req.userData.email };
+      req.audit.message =
+        "User Product switched successfully | تم تغيير منتج المستخدم بنجاح";
+    }
 
     return {
       userId,

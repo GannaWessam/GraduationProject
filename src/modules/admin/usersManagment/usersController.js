@@ -327,7 +327,8 @@ const switchUserProductController = async (req, res, next) => {
 
     const result = await userServices.switchUserProduct(
       userId,
-      productId
+      productId,
+      req
     );
 
     res.status(200).json({

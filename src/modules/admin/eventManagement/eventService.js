@@ -8,7 +8,8 @@ const {
   trainer,
   supervisor,
   sequelize,
-  Conversation,ConversationUser
+  Conversation,ConversationUser,
+  Product
 } = require("../../../models/index.js");
 const ApiFeature = require("../../../Util/ApiFeatures");
 const PaginatedResponse = require("../../../Util/PaginatedResponse");
@@ -29,6 +30,11 @@ const getAllEvents = async (features) => {
     // handle trainerId specially
     const trainerIdFilter = baseWhere.trainerId;
     if (trainerIdFilter) delete baseWhere.trainerId;
+
+    const productInclude={
+      model:Product,
+      attributes:["courseName"]
+    }
 
     const examInclude = {
       model: exam,
@@ -60,7 +66,7 @@ const getAllEvents = async (features) => {
     }
 
     const queryOptions = {
-      include: [examInclude, trainingInclude],
+      include: [examInclude, trainingInclude,productInclude],
       where: baseWhere,
       order: opts.order || [["createdAt", "DESC"]],
       limit: opts.limit,

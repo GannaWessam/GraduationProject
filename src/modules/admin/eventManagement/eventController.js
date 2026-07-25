@@ -79,6 +79,29 @@ const changeEventStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+const exportEventReservations = async (req, res) => {
+  const { eventId } = req.params;
+
+  const workbook = await eventService.exportEventReservations(
+    eventId
+  );
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="event-${eventId}-reservations.xlsx"`
+  );
+
+  await workbook.xlsx.write(res);
+
+  res.end();
+};
+
 module.exports = {
   getAllEvents,
   getEventById,
@@ -86,5 +109,6 @@ module.exports = {
   updateEvent,
   deleteEventById,
   deleteEventController,
-  changeEventStatus
+  changeEventStatus,
+  exportEventReservations
 };

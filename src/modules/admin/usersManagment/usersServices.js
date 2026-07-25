@@ -1114,6 +1114,188 @@ const switchUserProduct = async (userId, newProductId,req) => {
 };
 
 
+const cancelReservation = async (userId, eventId , req) => {
+  return sequelize.transaction(async (t) => {
+
+    const studentData = await Student.findByPk(userId, {
+      attributes: [
+        "userId",
+        "fullName",
+        "NameEn",
+        "nationalId",
+      ],
+      transaction: t,
+    });
+
+    // 1️⃣ Get event with lock
+    const eventData = await event.findOne({
+      where: { eventId },
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+
+    if (!eventData) {
+      throw new Error("Event not found");
+    }
+
+    if (new Date() >= new Date(eventData.startDate)) {
+      throw new Error("Cannot cancel reservation after event has started");
+    }
+
+    // 2️⃣ Get user's reservation
+    const reservationData = await reservation.findOne({
+      where: {
+        userId,
+        eventId,
+      },
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+
+    if (!reservationData) {
+      throw new Error("Reservation not found");
+    }
+
+    // 3️⃣ Delete exam/training reservation
+    if (eventData.type === "exam") {
+      await examReservation.destroy({
+        where: {
+          reservationId: reservationData.reservationId,
+          userId,
+        },
+        transaction: t,
+      });
+    }
+
+    if (eventData.type === "training") {
+      await trainingReservation.destroy({
+        where: {
+          reservationId: reservationData.reservationId,
+          userId,
+        },
+        transaction: t,
+      });
+    }
+
+    // 4️⃣ Get course IDs
+    let courseIds = [];
+
+    // Event belongs to Package
+    if (eventData.packageId) {
+      const packageCourses = await packageCourse.findAll({
+        where: {
+          packageId: eventData.packageId,
+        },
+        attributes: ["courseId"],
+        transaction: t,
+      });
+
+      courseIds = packageCourses.map((item) => item.courseId);
+    }
+
+    // Event does NOT belong to Package
+    else {
+      if (eventData.type === "exam") {
+        const examData = await exam.findOne({
+          where: {
+            eventId,
+          },
+          attributes: ["courseId"],
+          transaction: t,
+        });
+
+        if (examData?.courseId) {
+          courseIds.push(examData.courseId);
+        }
+      }
+
+      if (eventData.type === "training") {
+        const trainingData = await training.findOne({
+          where: {
+            eventId,
+          },
+          attributes: ["courseId"],
+          transaction: t,
+        });
+
+        if (trainingData?.courseId) {
+          courseIds.push(trainingData.courseId);
+        }
+      }
+    }
+
+    // 5️⃣ Reset student course status
+    if (courseIds.length > 0) {
+      const updateData = {};
+
+      if (eventData.type === "exam") {
+        updateData.examStatus = "pending";
+      }
+
+      if (eventData.type === "training") {
+        updateData.trainingStatus = "pending";
+      }
+
+      await studentCourse.update(updateData, {
+        where: {
+          userId,
+          courseId: {
+            [Op.in]: courseIds,
+          },
+        },
+        transaction: t,
+      });
+
+      if (eventData.type === "exam") {
+        await studentCourse.decrement("attempts", {
+          by: 1,
+          where: {
+            userId,
+            courseId: {
+              [Op.in]: courseIds,
+            },
+            attempts: {
+              [Op.gt]: 0,
+            },
+          },
+          transaction: t,
+        });
+      }
+    }
+
+    // 6️⃣ Delete main reservation
+    await reservationData.destroy({
+      transaction: t,
+    });
+
+    // 7️⃣ Decrease registered count
+    await eventData.decrement("numberOfRegistered", {
+      by: 1,
+      transaction: t,
+    });
+
+    if (req?.audit) {
+      req.audit.affectedUser = {
+        _id: studentData?.userId,
+        name: studentData?.fullName,
+      };
+
+      req.audit.affectedThing = {
+        name: eventData.eventName,
+        eventId: eventData.eventId,
+      };
+
+      req.audit.message =
+        "Admin cancelled student's reservation | قام الأدمن بإلغاء حجز الطالب";
+    }
+
+    return {
+      success: true,
+      message: "Reservation cancelled successfully",
+    };
+  });
+};
+
 
 
 module.exports = {
@@ -1137,5 +1319,6 @@ module.exports = {
   getUsersByEventIdService,
   exportUsers,
   passTrainingService,
-  switchUserProduct
+  switchUserProduct,
+  cancelReservation
 };

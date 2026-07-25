@@ -4,6 +4,7 @@ const {
   training,
   course,
   User,
+  Student,
   reservation,
   trainer,
   supervisor,
@@ -17,6 +18,8 @@ const { Op } = require("sequelize");
 const {
   handleCreateGroupChatForEvent,
 } = require("../../user/reserveEvents/helpers/helper");
+
+const ExcelJS = require("exceljs");
 
 const getAllEvents = async (features) => {
   try {
@@ -373,6 +376,242 @@ const changeEventStatusService = async (eventId) => {
   }
 };
 
+
+const exportEventReservations = async (eventId) => {
+  // 1️⃣ Check if event exists
+  const eventData = await event.findByPk(eventId);
+
+  if (!eventData) {
+    throw new Error("event_not_found");
+  }
+
+  // 2️⃣ Get all reservations for this event
+  const reservations = await reservation.findAll({
+    where: {
+      eventId,
+    },
+    include: [
+      {
+        model: Student,
+        attributes: [
+          "userId",
+          "fullName",
+          "NameEn",
+          "Mobile",
+          "StudyLan",
+          "nationality",
+          "nationalId",
+          "university",
+          "college",
+          "department",
+          "type",
+        ],
+      },
+    ],
+    order: [["createdAt", "ASC"]],
+  });
+
+  // 3️⃣ Create workbook
+  const workbook = new ExcelJS.Workbook();
+
+  // 4️⃣ Create worksheet
+  const worksheet = workbook.addWorksheet("الحجوزات");
+
+  // 5️⃣ Make sheet RTL and freeze header
+  worksheet.views = [
+    {
+      rightToLeft: true,
+      state: "frozen",
+      ySplit: 1,
+    },
+  ];
+
+  // 6️⃣ Define columns
+  worksheet.columns = [
+    {
+      header: "م",
+      key: "number",
+      width: 10,
+    },
+    {
+      header: "كود المستخدم",
+      key: "userId",
+      width: 40,
+    },
+    {
+      header: "الاسم بالكامل",
+      key: "fullName",
+      width: 30,
+    },
+    {
+      header: "الاسم بالإنجليزية",
+      key: "nameEn",
+      width: 30,
+    },
+    {
+      header: "رقم الهاتف",
+      key: "mobile",
+      width: 20,
+    },
+    {
+      header: "لغة الدراسة",
+      key: "studyLanguage",
+      width: 20,
+    },
+    {
+      header: "الجنسية",
+      key: "nationality",
+      width: 20,
+    },
+    {
+      header: "الرقم القومي",
+      key: "nationalId",
+      width: 25,
+    },
+    {
+      header: "الجامعة",
+      key: "university",
+      width: 30,
+    },
+    {
+      header: "الكلية",
+      key: "college",
+      width: 30,
+    },
+    {
+      header: "القسم",
+      key: "department",
+      width: 30,
+    },
+    {
+      header: "تاريخ الحجز",
+      key: "reservationDate",
+      width: 25,
+    },
+  ];
+
+  // 7️⃣ Add data
+  reservations.forEach((reservationData, index) => {
+    const student = reservationData.Student;
+
+    worksheet.addRow({
+      number: index + 1,
+      userId: student?.userId || "",
+      fullName: student?.fullName || "",
+      nameEn: student?.NameEn || "",
+      mobile: student?.Mobile || "",
+      studyLanguage: student?.StudyLan || "",
+      nationality: student?.nationality || "",
+      nationalId: student?.nationalId || "",
+      university: student?.university || "",
+      college: student?.college || "",
+      department: student?.department || "",
+      reservationDate: reservationData.createdAt || "",
+    });
+  });
+
+  // 8️⃣ Header style
+  const headerRow = worksheet.getRow(1);
+
+  headerRow.height = 30;
+
+  headerRow.font = {
+    bold: true,
+    size: 12,
+  };
+
+  headerRow.alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+
+  headerRow.eachCell((cell) => {
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: {
+        argb: "D9EAD3",
+      },
+    };
+
+    cell.border = {
+      top: {
+        style: "thin",
+        color: { argb: "808080" },
+      },
+      left: {
+        style: "thin",
+        color: { argb: "808080" },
+      },
+      bottom: {
+        style: "thin",
+        color: { argb: "808080" },
+      },
+      right: {
+        style: "thin",
+        color: { argb: "808080" },
+      },
+    };
+  });
+
+  // 9️⃣ Style data rows
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+
+    row.height = 25;
+
+    // Center all cells
+    row.eachCell((cell) => {
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      };
+
+      cell.border = {
+        top: {
+          style: "thin",
+          color: { argb: "D9D9D9" },
+        },
+        left: {
+          style: "thin",
+          color: { argb: "D9D9D9" },
+        },
+        bottom: {
+          style: "thin",
+          color: { argb: "D9D9D9" },
+        },
+        right: {
+          style: "thin",
+          color: { argb: "D9D9D9" },
+        },
+      };
+    });
+
+    // 🔄 Alternating rows: white / gray
+    const fillColor =
+      rowNumber % 2 === 0 ? "FFFFFF" : "F2F2F2";
+
+    row.eachCell((cell) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: {
+          argb: fillColor,
+        },
+      };
+    });
+  });
+
+  // 🔟 Format reservation date
+  worksheet.getColumn("reservationDate").numFmt =
+    "yyyy-mm-dd hh:mm:ss";
+
+  return workbook;
+};
+
+
 module.exports = {
   getAllEvents,
   getEventById,
@@ -380,5 +619,6 @@ module.exports = {
   updateEvent,
   deleteEventById,
   deleteEventService,
-  changeEventStatusService
+  changeEventStatusService,
+  exportEventReservations
 };

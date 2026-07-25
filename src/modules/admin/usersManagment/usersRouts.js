@@ -145,8 +145,14 @@ router.put("/passTraining/:userId",
   validateToken,
   catchError(usersController.passTraining));
 
-  router.put("/switch-product/:userId",
-    validateToken
-    ,catchError(usersController.switchUserProductController));
+router.put("/switch-product/:userId",
+  validateToken,
+  catchError(usersController.switchUserProductController));
+
+router.delete(
+    "/reservation/:eventId",
+    validateToken,
+    catchError(usersController.cancelReservationController)
+  );
 
 module.exports = router;    

@@ -18,6 +18,13 @@ router.get(
   checkPermission("VIEW_EVENT"),
   catchError(eventController.getEventById),
 );
+
+router.get(
+  "/:eventId/export-reservations",
+  validateToken,
+  catchError(eventController.exportEventReservations),
+);
+
 router.put(
   "/close/:eventId",
   validateToken,

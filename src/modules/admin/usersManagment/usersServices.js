@@ -1263,6 +1263,56 @@ const cancelReservation = async (userId, eventId , req) => {
       }
     }
 
+const studentCourses = await studentCourse.findAll({
+  where: {
+    userId,
+  },
+  attributes: ["trainingStatus", "examStatus"],
+  transaction: t,
+});
+
+let newStudentStatus;
+
+if (eventData.type === "training") {
+  const hasReservedOrDoneTraining = studentCourses.some(
+    (course) =>
+      course.trainingStatus === "reserved" ||
+      course.trainingStatus === "done"
+  );
+
+  if (hasReservedOrDoneTraining) {
+    newStudentStatus = "reserved Training";
+  } else {
+    newStudentStatus = "PAID";
+  }
+}
+
+if (eventData.type === "exam") {
+  const hasDoneExam = studentCourses.some(
+    (course) => course.examStatus === "done"
+  );
+
+  if (hasDoneExam) {
+    newStudentStatus = "reserved Exam";
+  } else {
+    newStudentStatus = "Finish Training";
+  }
+}
+
+if (newStudentStatus) {
+  await Student.update(
+    {
+      status: newStudentStatus,
+    },
+    {
+      where: {
+        userId,
+      },
+      transaction: t,
+    }
+  );
+}
+
     // 6️⃣ Delete main reservation
     await reservationData.destroy({
       transaction: t,

@@ -20,6 +20,7 @@ const {
 } = require("../../user/reserveEvents/helpers/helper");
 
 const ExcelJS = require("exceljs");
+const { splitLang } = require("../../../Helpers/langHelper");
 
 const getAllEvents = async (features) => {
   try {
@@ -396,15 +397,16 @@ const exportEventReservations = async (eventId) => {
         attributes: [
           "userId",
           "fullName",
-          "NameEn",
           "Mobile",
-          "StudyLan",
-          "nationality",
           "nationalId",
-          "university",
           "college",
-          "department",
-          "type",
+          "status",
+        ],
+        include: [
+          {
+            model: User,
+            attributes: ["email"],
+          },
         ],
       },
     ],
@@ -417,7 +419,7 @@ const exportEventReservations = async (eventId) => {
   // 4️⃣ Create worksheet
   const worksheet = workbook.addWorksheet("الحجوزات");
 
-  // 5️⃣ Make sheet RTL and freeze header
+  // 5️⃣ RTL + freeze header
   worksheet.views = [
     {
       rightToLeft: true,
@@ -426,42 +428,12 @@ const exportEventReservations = async (eventId) => {
     },
   ];
 
-  // 6️⃣ Define columns
+  // 6️⃣ Same columns as exportUsersExcel
   worksheet.columns = [
-    {
-      header: "م",
-      key: "number",
-      width: 10,
-    },
-    {
-      header: "كود المستخدم",
-      key: "userId",
-      width: 40,
-    },
     {
       header: "الاسم بالكامل",
       key: "fullName",
-      width: 30,
-    },
-    {
-      header: "الاسم بالإنجليزية",
-      key: "nameEn",
-      width: 30,
-    },
-    {
-      header: "رقم الهاتف",
-      key: "mobile",
-      width: 20,
-    },
-    {
-      header: "لغة الدراسة",
-      key: "studyLanguage",
-      width: 20,
-    },
-    {
-      header: "الجنسية",
-      key: "nationality",
-      width: 20,
+      width: 35,
     },
     {
       header: "الرقم القومي",
@@ -469,44 +441,45 @@ const exportEventReservations = async (eventId) => {
       width: 25,
     },
     {
-      header: "الجامعة",
-      key: "university",
-      width: 30,
+      header: "رقم الهاتف",
+      key: "mobile",
+      width: 20,
     },
     {
       header: "الكلية",
       key: "college",
-      width: 30,
+      width: 35,
     },
     {
-      header: "القسم",
-      key: "department",
-      width: 30,
+      header: "البريد الإلكتروني",
+      key: "email",
+      width: 35,
     },
     {
-      header: "تاريخ الحجز",
-      key: "reservationDate",
-      width: 25,
+      header: "الحالة",
+      key: "status",
+      width: 20,
     },
   ];
 
-  // 7️⃣ Add data
-  reservations.forEach((reservationData, index) => {
+  // 7️⃣ Add reservation data
+  reservations.forEach((reservationData) => {
     const student = reservationData.Student;
 
     worksheet.addRow({
-      number: index + 1,
-      userId: student?.userId || "",
       fullName: student?.fullName || "",
-      nameEn: student?.NameEn || "",
-      mobile: student?.Mobile || "",
-      studyLanguage: student?.StudyLan || "",
-      nationality: student?.nationality || "",
+
       nationalId: student?.nationalId || "",
-      university: student?.university || "",
-      college: student?.college || "",
-      department: student?.department || "",
-      reservationDate: reservationData.createdAt || "",
+
+      mobile: student?.Mobile || "",
+
+      college: student?.college
+        ? splitLang(student.college).ar
+        : "",
+
+      email: student?.User?.email || "",
+
+      status: student?.status || "",
     });
   });
 
@@ -561,12 +534,24 @@ const exportEventReservations = async (eventId) => {
 
     row.height = 25;
 
-    // Center all cells
+    const fillColor =
+      rowNumber % 2 === 0
+        ? "FFFFFF"
+        : "F2F2F2";
+
     row.eachCell((cell) => {
       cell.alignment = {
         horizontal: "center",
         vertical: "middle",
         wrapText: true,
+      };
+
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: {
+          argb: fillColor,
+        },
       };
 
       cell.border = {
@@ -588,29 +573,10 @@ const exportEventReservations = async (eventId) => {
         },
       };
     });
-
-    // 🔄 Alternating rows: white / gray
-    const fillColor =
-      rowNumber % 2 === 0 ? "FFFFFF" : "F2F2F2";
-
-    row.eachCell((cell) => {
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: {
-          argb: fillColor,
-        },
-      };
-    });
   });
-
-  // 🔟 Format reservation date
-  worksheet.getColumn("reservationDate").numFmt =
-    "yyyy-mm-dd hh:mm:ss";
 
   return workbook;
 };
-
 
 module.exports = {
   getAllEvents,

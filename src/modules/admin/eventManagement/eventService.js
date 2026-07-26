@@ -386,26 +386,25 @@ const exportEventReservations = async (features,eventId) => {
     throw new Error("event_not_found");
   }
 
-  // 2️⃣ Get all reservations for this event
-  const where = {
-    ...(features.options?.where || {}),
-    eventId,
-  };
+  const options = features.options || {};
   
-  const reservations = await reservation.findAll({
-    ...features.options,
-    where,
+  const {rows} = await reservation.findAndCountAll({
+    where: {
+      eventId,
+    },
+    attributes: [],
     include: [
       {
         model: Student,
         attributes: [
           "userId",
           "fullName",
+          "NameEn",
           "Mobile",
           "nationalId",
           "college",
+          "university",
           "department",
-          "NameEn"
         ],
         include: [
           {
@@ -413,9 +412,13 @@ const exportEventReservations = async (features,eventId) => {
             attributes: ["email"],
           },
         ],
+        where: options.where || {},
       },
     ],
-    order: features.options?.order || [["createdAt", "ASC"]],
+    limit: options.limit,
+    offset: options.offset,
+    order: options.order,
+    distinct: true,
   });
 
   // 3️⃣ Create workbook
@@ -473,7 +476,7 @@ const exportEventReservations = async (features,eventId) => {
   ];
 
   // 7️⃣ Add reservation data
-  reservations.forEach((reservationData) => {
+  rows.forEach((reservationData) => {
     const student = reservationData.Student;
 
     worksheet.addRow({

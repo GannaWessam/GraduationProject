@@ -378,7 +378,7 @@ const changeEventStatusService = async (eventId) => {
 };
 
 
-const exportEventReservations = async (eventId) => {
+const exportEventReservations = async (features,eventId) => {
   // 1️⃣ Check if event exists
   const eventData = await event.findByPk(eventId);
 
@@ -387,10 +387,14 @@ const exportEventReservations = async (eventId) => {
   }
 
   // 2️⃣ Get all reservations for this event
+  const where = {
+    ...(features.options?.where || {}),
+    eventId,
+  };
+  
   const reservations = await reservation.findAll({
-    where: {
-      eventId,
-    },
+    ...features.options,
+    where,
     include: [
       {
         model: Student,
@@ -400,7 +404,8 @@ const exportEventReservations = async (eventId) => {
           "Mobile",
           "nationalId",
           "college",
-          "status",
+          "department",
+          "NameEn"
         ],
         include: [
           {
@@ -410,7 +415,7 @@ const exportEventReservations = async (eventId) => {
         ],
       },
     ],
-    order: [["createdAt", "ASC"]],
+    order: features.options?.order || [["createdAt", "ASC"]],
   });
 
   // 3️⃣ Create workbook
@@ -436,6 +441,11 @@ const exportEventReservations = async (eventId) => {
       width: 35,
     },
     {
+      header:"الاسم بالإنجليزية",
+      key:"NameEn",
+      width:25
+    },
+    {
       header: "الرقم القومي",
       key: "nationalId",
       width: 25,
@@ -456,9 +466,9 @@ const exportEventReservations = async (eventId) => {
       width: 35,
     },
     {
-      header: "الحالة",
-      key: "status",
-      width: 20,
+      header: "القسم",
+      key: "department",
+      width: 35,
     },
   ];
 
@@ -468,6 +478,8 @@ const exportEventReservations = async (eventId) => {
 
     worksheet.addRow({
       fullName: student?.fullName || "",
+
+      NameEn: student?.NameEn || "",
 
       nationalId: student?.nationalId || "",
 
@@ -479,7 +491,7 @@ const exportEventReservations = async (eventId) => {
 
       email: student?.User?.email || "",
 
-      status: student?.status || "",
+      department: student?.department || "",
     });
   });
 

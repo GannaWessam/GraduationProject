@@ -83,7 +83,17 @@ const changeEventStatus = async (req, res, next) => {
 const exportEventReservations = async (req, res) => {
   const { eventId } = req.params;
 
+  const query = { ...req.query };
+  delete query.type;
+
+  const features = new ApiFeature(query)
+    .filter()
+    .search()
+    .sort()
+    .selectedFields();
+
   const workbook = await eventService.exportEventReservations(
+    features,
     eventId
   );
 

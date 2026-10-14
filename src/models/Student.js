@@ -44,6 +44,7 @@ module.exports = (sequelize) => {
       status: { type: DataTypes.STRING(200), allowNull: false },
       profilePhoto: { type: DataTypes.STRING(10000), allowNull: true },
       productId: { type: DataTypes.UUID, allowNull: true },
+      certificateUploaded:{ type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     },
     {
       tableName: "students",

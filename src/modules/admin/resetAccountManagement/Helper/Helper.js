@@ -1,4 +1,4 @@
-const { Student, User, Product, currency, Payment, studentCourse, productCourse, efada, examReservationArchive, examReservation } = require("../../../../models");
+const { Student, User, Product, currency, Payment, studentCourse, productCourse, efada, examReservationArchive, examReservation, UserCertificate } = require("../../../../models");
 
 const updateStudentAfterReset = async ({ userId, productId, type }, transaction) => {
   const [affectedCount] = await Student.update(
@@ -6,6 +6,7 @@ const updateStudentAfterReset = async ({ userId, productId, type }, transaction)
       status: "approved",
       type,
       productId,
+      certificateUploaded: false,
     },
     {
       where: { userId },
@@ -185,6 +186,10 @@ const resetOrCreateStudentCourses = async ({ userId, productId }, transaction) =
   
   const deleteEfadaRequest = async ({ userId }, transaction) => {
     const deletedCount = await efada.destroy({
+      where: { userId },
+      transaction,
+    });
+    const CertificateDeletedCount = await UserCertificate.destroy({
       where: { userId },
       transaction,
     });

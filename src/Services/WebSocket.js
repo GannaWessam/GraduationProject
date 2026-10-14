@@ -17,11 +17,11 @@ class WebSocketService {
             this.onlineUsers.add(data.userId);
             console.log(this.onlineUsers);
             await chattingService.syncMessagesAfterOffline(data.userId);
-            const result=await chattingService.getUsersWithCommonConversations(data.userId)
+            const result = await chattingService.getUsersWithCommonConversations(data.userId)
             this.notifySpecificClients({
-              type:"online",
-              receiverIds:result,
-            },data.userId)
+              type: "online",
+              receiverIds: result,
+            }, data.userId)
             console.log(`User ${data.userId} registered and now online`);
           }
         } catch (err) {
@@ -29,23 +29,23 @@ class WebSocketService {
         }
       });
 
-      
-      ws.on('close', async() => {
+
+      ws.on('close', async () => {
         if (ws.userId) {
           this.onlineUsers.delete(ws.userId);
-          const result=await chattingService.getUsersWithCommonConversations(ws.userId)
+          const result = await chattingService.getUsersWithCommonConversations(ws.userId)
           this.notifySpecificClients({
-            type:"offline",
-            receiverIds:result,
-          },ws.userId)
+            type: "offline",
+            receiverIds: result,
+          }, ws.userId)
           console.log(`User ${ws.userId} disconnected`);
         }
       });
     });
     console.log('WebSocket server is running on ws://localhost:2000');
   }
-  async notifyClients(data , identifier) {
-    const message={data, id: identifier }
+  async notifyClients(data, identifier) {
+    const message = { data, id: identifier }
     this.websocketServer.clients.forEach(client => { //clints = kol elnas elly bt listen
       if (client.readyState === WebSocket.OPEN) {
         try {
@@ -56,12 +56,12 @@ class WebSocketService {
       }
     });
   }
-  async notifySpecificClients(data , conversationId) {
+  async notifySpecificClients(data, conversationId) {
     const { receiverIds } = data;
     const message = { data, id: conversationId };
-  
+
     this.websocketServer.clients.forEach(client => {
-      try{  
+      try {
         if (client.readyState === WebSocket.OPEN && receiverIds?.includes(client.userId)) {
           client.send(JSON.stringify(message));
         }
@@ -70,6 +70,28 @@ class WebSocketService {
       }
     });
     return true;
+  }
+
+  /**
+   * Notify specific user about certificate upload progress
+   * Used for real-time updates during certificate processing
+   */
+  notifyUploadProgress(userId, jobId, progressData) {
+    const message = {
+      type: 'certificate_upload_progress',
+      jobId: jobId,
+      data: progressData
+    };
+
+    this.websocketServer.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN && client.userId === userId) {
+        try {
+          client.send(JSON.stringify(message));
+        } catch (err) {
+          console.error('Error sending upload progress:', err);
+        }
+      }
+    });
   }
 }
 

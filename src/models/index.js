@@ -50,6 +50,8 @@ const Reexam = require("./ReexamRequest")(sequelize);
 const Register = require("./RegisterRequest")(sequelize);
 const systemdata = require("./SystemData")(sequelize);
 const userReceipts = require("./userReceipts")(sequelize);
+const UserCertificate = require("./UserCertificate")(sequelize);
+const CertificateUploadJob = require("./CertificateUploadJob")(sequelize);
 
 Student.hasMany(Payment, {
   foreignKey: "userId",
@@ -66,11 +68,11 @@ Product.hasMany(Payment, {
   as: "payments",
 });
 
-Student.belongsTo(Product,{
-  foreignKey:"productId"
+Student.belongsTo(Product, {
+  foreignKey: "productId"
 })
-Product.hasMany(Student,{
-  foreignKey:"productId"
+Product.hasMany(Student, {
+  foreignKey: "productId"
 })
 
 // Associations
@@ -587,6 +589,30 @@ userReceipts.belongsTo(Payment, {
   targetKey: 'paymentId',
 });
 
+// Certificate Associations
+//==============================================================
+
+// Student - UserCertificate (One-to-Many)
+Student.hasMany(UserCertificate, {
+  foreignKey: "userId",
+  as: "certificates"
+});
+
+UserCertificate.belongsTo(Student, {
+  foreignKey: "userId"
+});
+
+// User - CertificateUploadJob (One-to-Many)
+User.hasMany(CertificateUploadJob, {
+  foreignKey: "uploadedBy",
+  as: "certificateUploads"
+});
+
+CertificateUploadJob.belongsTo(User, {
+  foreignKey: "uploadedBy",
+  as: "uploader"
+});
+
 module.exports = {
   sequelize,
   User,
@@ -637,5 +663,7 @@ module.exports = {
   Register,
   systemdata,
   Receipts,
-  userReceipts
+  userReceipts,
+  UserCertificate,
+  CertificateUploadJob
 };

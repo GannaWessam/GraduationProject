@@ -7,7 +7,7 @@ const universityCollegeRoutes = require("./modules/university-college/university
 const adminRoutes = require("./modules/admin/routes");
 const Department = require("./modules/Department/DepartmentRoute");
 const Nationality = require("./modules/nationality/NationalityRoute");
-const notifications=require('./modules/Notifications/NotificationRoutes');
+const notifications = require('./modules/Notifications/NotificationRoutes');
 const course = require('./modules/Courses/CourseRoute');
 const reservationRoute = require('./modules/user/reserveEvents/reservationRoutes');
 const chatRoutes = require('./modules/Chat/chatRoutes');
@@ -24,9 +24,11 @@ const logsRoutes = require("./modules/Log/LogRoutes");
 const payment = require("./modules/payment/paymentRoute");
 const gradesManagmentRoutes = require("./modules/Grades/gradeRoute");
 const serviceRoutes = require("./modules/ServiceManagement/ServiceRoutes");
-const ReceiptsRoutes=require("./modules/SuperAdmin/ReceiptsManagment/ReceiptsRoutes");
-const statisticsRoutes=require("./modules/statistics/statisticsRoutes");
-const OCR=require("./modules/OCR/OCR-Routes")
+const ReceiptsRoutes = require("./modules/SuperAdmin/ReceiptsManagment/ReceiptsRoutes");
+const statisticsRoutes = require("./modules/statistics/statisticsRoutes");
+const OCR = require("./modules/OCR/OCR-Routes");
+const certificateRoutes = require("./modules/admin/certificateManagement/certificateRoutes");
+const studentCertificateRoutes = require("./modules/user/certificates/certificateRoutes");
 
 
 const { validateToken } = require("./middlewares/token");
@@ -36,7 +38,7 @@ const router = express.Router();
 
 router.use("/api/admin", adminRoutes);
 router.use("/api", authRoutes);
-router.use("/api/products",  productRoutes);
+router.use("/api/products", productRoutes);
 router.use("/api/universities", universityRoutes);
 router.use("/api/colleges", collegeRoutes);
 router.use("/api/university-colleges", universityCollegeRoutes);
@@ -63,6 +65,8 @@ router.use("/api/gradesManagment", gradesManagmentRoutes);
 router.use("/api/services", serviceRoutes);
 router.use("/api/statistics", statisticsRoutes);
 router.use("/api/ocr", OCR);
+router.use("/api/admin/certificates", certificateRoutes);
+router.use("/api/certificates", studentCertificateRoutes);
 
 
 module.exports = router;

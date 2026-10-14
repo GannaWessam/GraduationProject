@@ -7,7 +7,8 @@ const {
   Reexam,
   Payment,
   efada,
-  systemdata
+  systemdata,
+  UserCertificate
 } = require("../../models");
 const PaginatedResponse = require("../../Util/PaginatedResponse");
 
@@ -141,7 +142,14 @@ const getReservationsByUserId = async (userId, features) => {
   else if(sd.serviceStatus === "Activated")
     hasEfada=false
 
-  
+  let hasCertificate=false
+  const userCertificate=await UserCertificate.findOne({
+    where:{userId}
+  })
+  if(userCertificate){
+    hasCertificate=true
+  }
+
   const formattedRows = rows.map((row) => {
     const data = row.toJSON();
 
@@ -151,7 +159,7 @@ const getReservationsByUserId = async (userId, features) => {
     };
   });
 
-  const data = {formattedRows , hasEfada : hasEfada}
+  const data = {formattedRows , hasEfada : hasEfada , hasCertificate : hasCertificate};
 
   return PaginatedResponse.fromApiFeature(
     features,

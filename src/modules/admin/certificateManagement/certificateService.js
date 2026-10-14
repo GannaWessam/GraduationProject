@@ -260,9 +260,50 @@ async function getAllJobs(page = 1, limit = 10) {
   };
 }
 
+/**
+ * Get unmatched certificates for a specific job
+ */
+async function getUnmatchedCertificates(jobId) {
+  const job = await CertificateUploadJob.findOne({
+    where: { jobId },
+    attributes: [
+      'jobId',
+      'fileName',
+      'status',
+      'totalFiles',
+      'processedFiles',
+      'matchedCount',
+      'notMatchedCount',
+      'notMatchedList',
+      'errorMessage',
+      'createdAt',
+      'completedAt'
+    ]
+  });
+
+  if (!job) {
+    throw new Error('Job not found');
+  }
+
+  return {
+    jobId: job.jobId,
+    fileName: job.fileName,
+    status: job.status,
+    totalFiles: job.totalFiles,
+    processedFiles: job.processedFiles,
+    matchedCount: job.matchedCount,
+    notMatchedCount: job.notMatchedCount,
+    notMatchedList: job.notMatchedList || [],
+    errorMessage: job.errorMessage,
+    createdAt: job.createdAt,
+    completedAt: job.completedAt
+  };
+}
+
 module.exports = {
   handleCertificateUpload,
   processCertificateUpload,
   getJobStatus,
-  getAllJobs
+  getAllJobs,
+  getUnmatchedCertificates
 };

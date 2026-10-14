@@ -76,8 +76,32 @@ async function getAllJobs(req, res) {
   }
 }
 
+/**
+ * Get unmatched certificates for a specific job
+ */
+async function getUnmatchedCertificates(req, res) {
+  try {
+    const { jobId } = req.params;
+
+    const result = await certificateService.getUnmatchedCertificates(jobId);
+
+    return res.status(200).json({
+      success: true,
+      data: result
+    });
+
+  } catch (error) {
+    console.error('Get unmatched certificates error:', error);
+    return res.status(404).json({
+      success: false,
+      error: error.message
+    });
+  }
+}
+
 module.exports = {
   uploadCertificates,
   getJobStatus,
-  getAllJobs
+  getAllJobs,
+  getUnmatchedCertificates
 };

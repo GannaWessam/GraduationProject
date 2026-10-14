@@ -9,6 +9,7 @@ const { uploadZip } = require('./helpers/uploadMiddleware');
 router.post(
   '/upload',
   validateToken,
+  checkPermission('UPLOAD_CERTIFICATE'),
   uploadZip.single('file'),
   certificateController.uploadCertificates
 );
@@ -17,6 +18,12 @@ router.get(
   '/jobs/:jobId',
   validateToken,
   certificateController.getJobStatus
+);
+
+router.get(
+  '/jobs/:jobId/unmatched',
+  validateToken,
+  certificateController.getUnmatchedCertificates
 );
 
 router.get(
